@@ -1,19 +1,25 @@
 ﻿using Buenaventura.Client.Models;
 using Buenaventura.Client.Services;
+using Buenaventura.Data;
+using Buenaventura.Domain;
 using CryptoHelper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buenaventura.Api;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(IAuthenticationService authenticationService)
+public class AuthController(CoronadoDbContext context)
     : ControllerBase
 {
     [HttpGet]
     [Route("[action]")]
     public string GetPassword(string password) {
-        return Crypto.HashPassword(password);
+        var hasher = new PasswordHasher<User>();
+        var user = context.Users.First();
+        var newPasswordHash = hasher.HashPassword(user, password);
+        return newPasswordHash;
     }
 
 /*
@@ -42,22 +48,5 @@ public class AuthController(IAuthenticationService authenticationService)
             await _context.SaveChangesAsync().ConfigureAwait(false);
         }
 */
-
-    [HttpPost]
-    [Route("[action]")]
-    public async Task<ActionResult<AuthData>> Login([FromBody] LoginViewModel model)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        try
-        {
-            return await authenticationService.Login(model.Email, model.Password);
-        }
-        catch (Exception exception)
-        {
-            return NotFound(new { message = exception.Message });
-        }
-
-    }
 
 }

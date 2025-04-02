@@ -14,3 +14,8 @@ public class User
 
     [Required] public string Password { get; set; }
 }
+
+public class Role
+{
+    
+}

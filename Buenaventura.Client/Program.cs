@@ -1,8 +1,4 @@
-using Blazored.LocalStorage;
-using Buenaventura.Client;
-using Buenaventura.Client.Infrastructure;
 using Buenaventura.Client.Services;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 
@@ -16,14 +12,10 @@ builder.Services.Scan(scan => scan
     .AddClasses(classes => classes.InNamespaceOf<ClientWeatherService>())
     .AsImplementedInterfaces()
     .WithScopedLifetime());
-builder.Services.AddTransient<AuthTokenHandler>();
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStateProvider>();
-builder.Services.AddScoped<JwtAuthenticationStateProvider>();
 builder.Services.AddHttpClient("AuthenticatedClient",
-        client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
-    .AddHttpMessageHandler<AuthTokenHandler>();
+    client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedClient"));
-builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddAuthenticationStateDeserialization();
 
 await builder.Build().RunAsync();

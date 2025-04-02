@@ -24,4 +24,26 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.*" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\ChangePassword.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\DeletePersonalData.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\Disable2fa.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\Email.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\EnableAuthenticator.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\ExternalLogins.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\GenerateRecoveryCodes.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\Index.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\PersonalData.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\ResetAuthenticator.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\SetPassword.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\TwoFactorAuthentication.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\_Imports.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Shared\ExternalLoginPicker.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Shared\ManageLayout.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Shared\ManageNavMenu.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Shared\ShowRecoveryCodes.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Shared\StatusMessage.razor" />
+  </ItemGroup>
+
 </Project>

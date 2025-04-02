@@ -10,15 +10,23 @@
     <link href=@Assets["_content/MudBlazor/MudBlazor.min.css"] rel="stylesheet"/>
     <ImportMap/>
     <link rel="icon" type="image/ico" href="favicon.ico"/>
-    <HeadOutlet @rendermode="InteractiveWebAssembly"/>
+    <HeadOutlet @rendermode="PageRenderMode"/>
 </head>
 
 <body>
 <CascadingAuthenticationState>
-    <Routes @rendermode="InteractiveWebAssembly"/>
+    <Routes @rendermode="PageRenderMode"/>
 </CascadingAuthenticationState>
 <script src="_framework/blazor.web.js"></script>
 <script src=@Assets["_content/MudBlazor/MudBlazor.min.js"]></script>
 </body>
 
 </html>
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    private IComponentRenderMode? PageRenderMode =>
+        HttpContext.AcceptsInteractiveRouting() ? InteractiveAuto : null;
+
+}

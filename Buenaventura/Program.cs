@@ -2,10 +2,14 @@ using System.Text;
 using Buenaventura.Client.Services;
 using MudBlazor.Services;
 using Buenaventura.Components;
+using Buenaventura.Components.Account;
 using Buenaventura.Data;
 using Buenaventura.Domain;
+using Buenaventura.Identity;
 using Buenaventura.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -17,7 +21,13 @@ builder.Services.AddMudServices();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
-    .AddInteractiveWebAssemblyComponents();
+    .AddInteractiveWebAssemblyComponents()
+    .AddAuthenticationStateSerialization();
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IdentityUserAccessor>();
+builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(typeof(IAppService));
@@ -41,23 +51,28 @@ builder.Services.Scan(s =>
         .AsImplementedInterfaces()
         .WithScopedLifetime());
 var jwtSecret = builder.Configuration.GetValue<string>("JwtSecretKey");
-builder.Services.AddAuthentication(x =>
+builder.Services.AddAuthentication(options =>
     {
-        x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
-    .AddJwtBearer(x =>
+    .AddIdentityCookies();
+builder.Services.AddIdentityCore<User>(options =>
     {
-        x.RequireHttpsMetadata = false;
-        x.SaveToken = true;
-        x.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSecret)),
-            ValidateIssuer = false,
-            ValidateAudience = false
-        };
-    });
+        options.SignIn.RequireConfirmedAccount = false;
+        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedPhoneNumber = false;
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.AllowedForNewUsers = false;
+    })
+    .AddUserStore<BuenaventuraUserStore>()
+    // .AddRoleStore<BuenaventuraRoleStore>()
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<IUserStore<User>, BuenaventuraUserStore>();
+builder.Services.AddScoped<IUserPasswordStore<User>, BuenaventuraUserStore>();
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
