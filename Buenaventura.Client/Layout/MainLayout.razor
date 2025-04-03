@@ -7,7 +7,9 @@
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))" />
+    <MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme" />
+    <MudAppBar Elevation="25">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                        OnClick="@((e) => DrawerToggle())"/>
         <MudText Typo="Typo.h5" Class="ml-3">Buenaventura</MudText>
@@ -27,7 +29,7 @@
             </button>
         </form>
     </MudAppBar>
-    <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Width="350px">
+    <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="7" Width="350px">
         <NavMenu/>
     </MudDrawer>
     <MudMainContent Class="pt-16 pa-4">
@@ -68,6 +70,7 @@
             PaletteDark = _darkPalette,
             LayoutProperties = new LayoutProperties()
         };
+        StateHasChanged();
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -91,10 +94,20 @@
     {
         Black = "#110e2d",
         AppbarText = "#424242",
-        AppbarBackground = "rgba(255,255,255,0.8)",
+        AppbarBackground = "rgba(156, 102, 68, 0.8)",
         DrawerBackground = "#ffffff",
         GrayLight = "#e8e8e8",
         GrayLighter = "#f9f9f9",
+        Primary = "#9c6644",
+        Secondary = "#447a9c",
+        Tertiary = "#eed9c4",
+        Info = "#3a88d1",
+        Success = "#5a8f55",
+        Warning = "#d8a039",
+        Error = "#c24a4a",
+        Dark = "2b2b2b",
+        Surface = "faf7f4",
+        Background = "#f3ece7"
     };
 
     private readonly PaletteDark _darkPalette = new()
@@ -137,6 +150,19 @@
         await JS.InvokeVoidAsync("submitLogoutForm");
     }
 
+    private ThemeManagerTheme _themeManager = new ThemeManagerTheme();
+    public bool _themeManagerOpen = false;
+
+    void OpenThemeManager(bool value)
+    {
+        _themeManagerOpen = value;
+    }
+
+    void UpdateTheme(ThemeManagerTheme value)
+    {
+        _themeManager = value;
+        StateHasChanged();
+    }
 }
 
 
