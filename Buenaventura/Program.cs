@@ -1,4 +1,4 @@
-using System.Text;
+using Blazored.LocalStorage;
 using Buenaventura.Client.Services;
 using MudBlazor.Services;
 using Buenaventura.Components;
@@ -7,11 +7,9 @@ using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Identity;
 using Buenaventura.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +64,7 @@ builder.Services.AddIdentityCore<User>(options =>
     // .AddRoleStore<BuenaventuraRoleStore>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddScoped<IUserStore<User>, BuenaventuraUserStore>();
 builder.Services.AddScoped<IUserPasswordStore<User>, BuenaventuraUserStore>();
