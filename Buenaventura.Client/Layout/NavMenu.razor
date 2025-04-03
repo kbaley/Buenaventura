@@ -10,8 +10,8 @@
         <MudNavLink Href="@($"account/{account.AccountId}")" Match="NavLinkMatch.Prefix"
                     Icon="@(GetIcon(account.AccountType))">
             <MudGrid>
-                <MudItem xs="6">@account.Name</MudItem>
-                <MudItem xs="6" Class="d-flex justify-end">
+                <MudItem xs="8">@account.Name</MudItem>
+                <MudItem xs="4" Class="d-flex justify-end">
                     @account.CurrentBalance.ToString("N2")
                 </MudItem>
             </MudGrid>
