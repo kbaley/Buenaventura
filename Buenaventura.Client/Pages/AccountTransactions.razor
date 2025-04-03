@@ -1,0 +1,25 @@
+@page "/account/{accountId:guid}"
+@using Buenaventura.Client.Services
+@using Buenaventura.Dtos
+@inject IAccountService AccountService
+<h3>AccountTransactions</h3>
+
+<div>@AccountId</div>
+
+<div>Transactions: @transactions.Transactions.Count()</div>
+
+@code {
+    [Parameter] public Guid AccountId { get; set; }
+    private TransactionListModel transactions = new();
+    private Guid previousAccounId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (AccountId != previousAccounId)
+        {
+            transactions = await AccountService.GetTransactions(AccountId);
+            previousAccounId = AccountId;
+        }
+    }
+
+}

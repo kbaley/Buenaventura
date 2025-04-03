@@ -1,7 +1,9 @@
 using AutoMapper;
+using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Dtos;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,34 +16,16 @@ namespace Buenaventura.Api;
 public class AccountsController(
     CoronadoDbContext context,
     ITransactionRepository transactionRepo,
+    IAccountService accountService,
     IMapper mapper)
     : ControllerBase
 {
     private readonly TransactionParser _transactionParser = new(context);
 
-    // GET: api/Accounts
     [HttpGet]
-    public IEnumerable<AccountWithBalance> GetAccounts()
+    public async Task<IEnumerable<AccountWithBalance>> GetAccounts()
     {
-        var exchangeRate = context.Currencies.GetCadExchangeRate();
-        var accounts = context.Accounts
-            .Select(a => new AccountWithBalance
-            {
-                AccountId = a.AccountId,
-                Name = a.Name,
-                Currency = a.Currency,
-                Vendor = a.Currency,
-                AccountType = a.AccountType,
-                MortgagePayment = a.MortgagePayment,
-                MortgageType = a.MortgageType,
-                DisplayOrder = a.DisplayOrder,
-                IsHidden = a.IsHidden,
-                CurrentBalance = a.Transactions.Sum(t => t.Amount),
-                CurrentBalanceInUsd = a.Currency == "CAD" 
-                    ? Math.Round(a.Transactions.Sum(t => t.Amount) / exchangeRate, 2)
-                    : a.Transactions.Sum(t => t.Amount),
-            });
-        return accounts;
+        return await accountService.GetAccounts();
     }
 
     [HttpPut("{id}")]

@@ -1,4 +1,6 @@
-namespace Buenaventura.Dtos
+using Microsoft.AspNetCore.Http;
+
+namespace Buenaventura.Shared
 {
 
   public class AccountForPosting

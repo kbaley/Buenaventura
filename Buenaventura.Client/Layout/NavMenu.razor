@@ -1,10 +1,24 @@
-﻿
+﻿@using Buenaventura.Client.Services
+@using Buenaventura.Shared
+@inject IAccountService AccountService
+
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
     
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
+    @foreach (var account in accounts.Where(a => !a.IsHidden).OrderBy(a => a.DisplayOrder))
+    {
+        <MudNavLink Href="@($"account/{account.AccountId}")" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">@account.Name</MudNavLink>
+    }
 
 </MudNavMenu>
 
+@code {
+    private IEnumerable<AccountWithBalance> accounts = [];
 
+    protected override async Task OnInitializedAsync()
+    {
+        accounts = await AccountService.GetAccounts();
+        await base.OnInitializedAsync();
+    }
+
+}

@@ -1,7 +1,6 @@
 using System.Globalization;
 using Buenaventura.Data;
-using Buenaventura.Domain;
-using Buenaventura.Dtos;
+using Buenaventura.Shared;
 
 namespace Buenaventura.Api;
 
@@ -79,7 +78,7 @@ public class TransactionParser(CoronadoDbContext context)
             TransactionId = Guid.NewGuid(),
             AccountId = accountId,
             EnteredDate = DateTime.Now,
-            TransactionType = TRANSACTION_TYPE.REGULAR,
+            TransactionType = TransactionType.REGULAR,
             Vendor = ""
         };
 
@@ -111,7 +110,7 @@ public class TransactionParser(CoronadoDbContext context)
                         TransactionId = Guid.NewGuid(),
                         AccountId = accountId,
                         EnteredDate = DateTime.Now,
-                        TransactionType = TRANSACTION_TYPE.REGULAR,
+                        TransactionType = TransactionType.REGULAR,
                         Vendor = ""
                     };
                     break;
@@ -138,7 +137,7 @@ public class TransactionParser(CoronadoDbContext context)
             TransactionId = Guid.NewGuid(),
             AccountId = accountId,
             EnteredDate = DateTime.Now,
-            TransactionType = TRANSACTION_TYPE.REGULAR,
+            TransactionType = TransactionType.REGULAR,
             Vendor = ""
         };
         while (reader.Peek() >= 0)
@@ -155,7 +154,7 @@ public class TransactionParser(CoronadoDbContext context)
                             {
                                 var relatedAccountName = trx.Vendor.Replace("Transfer : ", "");
                                 var relatedAccount = context.Accounts.Single(a => a.Name == relatedAccountName);
-                                trx.TransactionType = TRANSACTION_TYPE.TRANSFER;
+                                trx.TransactionType = TransactionType.TRANSFER;
                                 trx.RelatedAccountId = relatedAccount.AccountId;
                                 trx.Vendor = "";
                             }
@@ -167,7 +166,7 @@ public class TransactionParser(CoronadoDbContext context)
                             TransactionId = Guid.NewGuid(),
                             AccountId = accountId,
                             EnteredDate = DateTime.Now,
-                            TransactionType = TRANSACTION_TYPE.REGULAR,
+                            TransactionType = TransactionType.REGULAR,
                             Vendor = ""
                         };
                         break;
@@ -231,7 +230,7 @@ public class TransactionParser(CoronadoDbContext context)
                 AccountId = accountId,
                 TransactionDate = transactionDate,
                 EnteredDate = DateTime.Now,
-                TransactionType = TRANSACTION_TYPE.REGULAR,
+                TransactionType = TransactionType.REGULAR,
                 Amount = amount,
                 Description = description
             };
@@ -259,7 +258,7 @@ public class TransactionParser(CoronadoDbContext context)
                 AccountId = accountId,
                 TransactionDate = transactionDate,
                 EnteredDate = DateTime.Now,
-                TransactionType = TRANSACTION_TYPE.REGULAR,
+                TransactionType = TransactionType.REGULAR,
                 Amount = amount,
                 Description = description
             };

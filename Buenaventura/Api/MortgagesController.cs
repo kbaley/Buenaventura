@@ -1,5 +1,5 @@
 ﻿using Buenaventura.Data;
-using Buenaventura.Dtos;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

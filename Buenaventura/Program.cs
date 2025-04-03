@@ -30,7 +30,7 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddControllers();
-builder.Services.AddAutoMapper(typeof(IAppService));
+builder.Services.AddAutoMapper(typeof(ServerAccountService));
 var connectionString = builder.Configuration["ConnectionStrings:Buenaventura"];
 builder.Services.AddDbContext<CoronadoDbContext>(options =>
     options
@@ -39,18 +39,15 @@ builder.Services.AddDbContext<CoronadoDbContext>(options =>
 
 // Register server-side implementations of services
 builder.Services.Scan(scan => scan
-    .FromAssemblyOf<ServerWeatherService>()
-    .AddClasses(classes => classes.InNamespaceOf<ServerWeatherService>())
+    .FromAssemblyOf<ServerAccountService>()
+    .AddClasses(classes => classes.AssignableTo<IServerAppService>())
     .AsImplementedInterfaces()
     .WithScopedLifetime());
-
-// Register other random app services
-builder.Services.Scan(s =>
-    s.FromAssemblyOf<IAppService>()
-        .AddClasses(c => c.AssignableTo<IAppService>())
-        .AsImplementedInterfaces()
-        .WithScopedLifetime());
-var jwtSecret = builder.Configuration.GetValue<string>("JwtSecretKey");
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<ServerAccountService>()
+    .AddClasses(classes => classes.AssignableTo<IAppService>())
+    .AsImplementedInterfaces()
+    .WithScopedLifetime());
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = IdentityConstants.ApplicationScheme;
@@ -101,5 +98,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Buenaventura.Client._Imports).Assembly);
+
+app.MapAdditionalIdentityEndpoints();
 
 app.Run();

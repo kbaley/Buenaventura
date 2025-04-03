@@ -1,5 +1,6 @@
 using Buenaventura.Domain;
 using Buenaventura.Dtos;
+using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Data;

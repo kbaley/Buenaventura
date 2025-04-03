@@ -22,6 +22,7 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.7.0" />
     <ProjectReference Include="..\Buenaventura.Client\Buenaventura.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.*" />
+    <ProjectReference Include="..\Buenaventura.Shared\Buenaventura.Shared.csproj" />
   </ItemGroup>
 
 

@@ -2,6 +2,7 @@
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Dtos;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -171,7 +172,7 @@ namespace Buenaventura.Api
                 TransactionDate = investmentDto.Date,
                 EnteredDate = now,
                 Description = investmentDto.Description + " (DIVIDEND)",
-                TransactionType = TRANSACTION_TYPE.DIVIDEND,
+                TransactionType = TransactionType.DIVIDEND,
                 DividendInvestmentId = investmentDto.InvestmentId,
                 CategoryId = investmentIncomeCategory.CategoryId,
             };
@@ -187,7 +188,7 @@ namespace Buenaventura.Api
                     TransactionDate = investmentDto.Date,
                     EnteredDate = now,
                     Description = investmentDto.Description + " (INCOME TAX)",
-                    TransactionType = TRANSACTION_TYPE.DIVIDEND,
+                    TransactionType = TransactionType.DIVIDEND,
                     DividendInvestmentId = investmentDto.InvestmentId,
                     CategoryId = incomeTaxCategory.CategoryId,
                 };
@@ -330,7 +331,7 @@ namespace Buenaventura.Api
                 Amount = Math.Round(investmentDto.Shares * investmentDto.LastPrice, 2),
                 TransactionDate = investmentDto.Date,
                 EnteredDate = enteredDate,
-                TransactionType = TRANSACTION_TYPE.INVESTMENT,
+                TransactionType = TransactionType.INVESTMENT,
                 Description = description
             };
             investmentAccountTransaction.SetAmountInBaseCurrency(investmentAccount.Currency, exchangeRate);
@@ -343,7 +344,7 @@ namespace Buenaventura.Api
                 Amount = 0 - Math.Round(investmentDto.Shares * investmentDto.LastPrice, 2),
                 TransactionDate = investmentDto.Date,
                 EnteredDate = enteredDate,
-                TransactionType = TRANSACTION_TYPE.INVESTMENT,
+                TransactionType = TransactionType.INVESTMENT,
                 Description = description
             };
             transaction.SetAmountInBaseCurrency(currency, exchangeRate);

@@ -4,7 +4,7 @@ using Buenaventura.Services;
 
 namespace Buenaventura.Data
 {
-    public interface IReportRepository : IAppService
+    public interface IReportRepository : IServerAppService
     {
         decimal GetNetWorthFor(DateTime date);
         decimal GetInvestmentTotalFor(DateTime date);

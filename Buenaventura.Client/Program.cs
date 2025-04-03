@@ -7,15 +7,16 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.Services.AddAuthorizationCore();
 builder.Services.AddMudServices();
 // Register client-side implementations of services
+builder.Services.AddSingleton(_ => new HttpClient
+{
+    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+});
 builder.Services.Scan(scan => scan
-    .FromAssemblyOf<ClientWeatherService>()
-    .AddClasses(classes => classes.InNamespaceOf<ClientWeatherService>())
+    .FromAssemblyOf<ClientAccountService>()
+    .AddClasses(classes => classes.AssignableTo<IAppService>())
     .AsImplementedInterfaces()
     .WithScopedLifetime());
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddHttpClient("AuthenticatedClient",
-    client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
-builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthenticatedClient"));
 builder.Services.AddAuthenticationStateDeserialization();
 
 await builder.Build().RunAsync();

@@ -1,11 +1,9 @@
-using Buenaventura.Domain;
-
-namespace Buenaventura.Dtos;
+namespace Buenaventura.Shared;
 
 public class TransactionForDisplay
 {
     public Guid TransactionId { get; set; }
-    public string Vendor { get; set; }
+    public string? Vendor { get; set; }
     public string Description { get; set; }
     public DateTime TransactionDate { get; set; }
     public string CategoryName { get; set; }
@@ -23,7 +21,7 @@ public class TransactionForDisplay
     public bool IsReconciled { get; set; }
     public Guid? InvoiceId { get; set; }
     public string InvoiceNumber { get; set; }
-    public TRANSACTION_TYPE TransactionType { get; set; }
+    public TransactionType TransactionType { get; set; }
     public decimal AmountInBaseCurrency { get; set; }
     public decimal RunningTotal { get; set; }
     public string DownloadId { get; set; }
@@ -44,23 +42,4 @@ public class TransactionForDisplay
         }
     }
 
-    // Creates a shallow copy of a transaction with none of the objects mapped
-    public Transaction ShallowMap()
-    {
-        return new Transaction
-        {
-            TransactionId = TransactionId,
-            AccountId = AccountId.Value,
-            TransactionDate = TransactionDate,
-            TransactionType = TransactionType,
-            CategoryId = CategoryId,
-            Vendor = Vendor,
-            Description = Description,
-            Amount = Amount,
-            IsReconciled = IsReconciled,
-            InvoiceId = InvoiceId,
-            AmountInBaseCurrency = AmountInBaseCurrency,
-            DownloadId = DownloadId
-        };
-    }
 }

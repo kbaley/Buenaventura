@@ -1,3 +1,5 @@
+using Buenaventura.Shared;
+
 namespace Buenaventura.Dtos 
 {
     public class TransactionListModel {

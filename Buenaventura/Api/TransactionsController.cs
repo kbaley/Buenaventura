@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Dtos;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +14,7 @@ namespace Buenaventura.Api;
 public class TransactionsController(
     CoronadoDbContext context,
     ITransactionRepository transactionRepo,
+    IAccountService accountService,
     IMapper mapper)
     : ControllerBase
 {

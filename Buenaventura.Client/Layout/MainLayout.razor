@@ -1,19 +1,34 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
 
-<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
+<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
+<MudPopoverProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="@((e) => DrawerToggle())"/>
         <MudText Typo="Typo.h5" Class="ml-3">Buenaventura</MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        <MudSpacer/>
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+            <MudMenuItem Icon="@Icons.Material.Filled.Person" IconColor="Color.Primary" Label="Profile"/>
+            <MudMenuItem Icon="@Icons.Material.Filled.Logout"
+                         OnClick="Logout"
+                         IconColor="Color.Primary" Label="Logout"/>
+        </MudMenu>
+        <form action="Account/Logout" method="post">
+            <AntiforgeryToken/>
+            <input type="hidden" name="ReturnUrl" value=""/>
+            <button type="submit" class="nav-link">
+                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+            </button>
+        </form>
     </MudAppBar>
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu />
+        <NavMenu/>
     </MudDrawer>
     <MudMainContent Class="pt-16 pa-4">
         <CascadingAuthenticationState>
@@ -21,6 +36,11 @@
         </CascadingAuthenticationState>
     </MudMainContent>
 </MudLayout>
+
+<form id="logoutForm" method="post" action="Account/Logout">
+    <AntiforgeryToken/>
+    <input type="hidden" name="ReturnUrl" value="@currentUrl"/>
+</form>
 
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -30,21 +50,32 @@
 </div>
 
 @code {
+
     private bool _drawerOpen = true;
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
+    private string? currentUrl;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        _theme = new()
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+        _theme = new MudTheme
         {
             PaletteLight = _lightPalette,
             PaletteDark = _darkPalette,
             LayoutProperties = new LayoutProperties()
         };
     }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
 
     private void DrawerToggle()
     {
@@ -100,6 +131,12 @@
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
     };
+
+    private async Task Logout(MouseEventArgs obj)
+    {
+        await JS.InvokeVoidAsync("submitLogoutForm");
+    }
+
 }
 
 

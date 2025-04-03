@@ -1,4 +1,4 @@
-namespace Buenaventura.Domain;
+namespace Buenaventura.Shared;
 
 public static class AccountType
 {

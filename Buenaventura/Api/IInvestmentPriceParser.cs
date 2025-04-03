@@ -1,9 +1,10 @@
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
+using Buenaventura.Services;
 
 namespace Buenaventura.Api;
 
-public interface IInvestmentPriceParser : IAppService
+public interface IInvestmentPriceParser : IServerAppService
 {
     Task UpdatePricesFor(CoronadoDbContext context);
 }
