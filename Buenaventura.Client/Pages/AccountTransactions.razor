@@ -4,21 +4,43 @@
 @inject IAccountService AccountService
 <h3>AccountTransactions</h3>
 
-<div>@AccountId</div>
-
-<div>Transactions: @transactions.Transactions.Count()</div>
+<MudTable Items="@transactions.Transactions" Loading="@loading">
+    <HeaderContent>
+        <MudTh>Date</MudTh>
+        <MudTh>Vendor</MudTh>
+        <MudTh>Category</MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Debit</MudTh>
+        <MudTh>Credit</MudTh>
+        <MudTh>Balance</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Date">@context.TransactionDate.ToShortDateString()</MudTd>
+        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+        <MudTd DataLabel="Category">@context.CategoryDisplay</MudTd>
+        <MudTd DataLabel="Description">@context.Description</MudTd>
+        <MudTd DataLabel="Credit">@(context.Debit.HasValue ? context.Debit.Value.ToString("N2") : "")</MudTd>
+        <MudTd DataLabel="Credit">@(context.Credit.HasValue ? context.Credit.Value.ToString("N2") : "")</MudTd>
+        <MudTd DataLabel="Balance">@context.Amount.ToString("N2")</MudTd>
+        <MudTd></MudTd>
+    </RowTemplate>
+</MudTable>
 
 @code {
     [Parameter] public Guid AccountId { get; set; }
     private TransactionListModel transactions = new();
-    private Guid previousAccounId;
+    private Guid previousAccountId;
+    private bool loading = true;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (AccountId != previousAccounId)
+        if (AccountId != previousAccountId)
         {
+            loading = true;
             transactions = await AccountService.GetTransactions(AccountId);
-            previousAccounId = AccountId;
+            loading = false;
+            previousAccountId = AccountId;
         }
     }
 
