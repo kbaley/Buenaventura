@@ -4,10 +4,18 @@
 
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    
+
     @foreach (var account in accounts.Where(a => !a.IsHidden).OrderBy(a => a.DisplayOrder))
     {
-        <MudNavLink Href="@($"account/{account.AccountId}")" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">@account.Name</MudNavLink>
+        <MudNavLink Href="@($"account/{account.AccountId}")" Match="NavLinkMatch.Prefix"
+                    Icon="@(GetIcon(account.AccountType))">
+            <MudGrid>
+                <MudItem xs="6">@account.Name</MudItem>
+                <MudItem xs="6" Class="d-flex justify-end">
+                    @account.CurrentBalance.ToString("C")
+                </MudItem>
+            </MudGrid>
+        </MudNavLink>
     }
 
 </MudNavMenu>
@@ -19,6 +27,19 @@
     {
         accounts = await AccountService.GetAccounts();
         await base.OnInitializedAsync();
+    }
+
+    private string? GetIcon(string accountType)
+    {
+        var icon = accountType switch
+        {
+            "Bank Account" => Icons.Material.Outlined.AccountBalance,
+            "Loan" => Icons.Material.Outlined.Money,
+            "Credit Card" => Icons.Material.Outlined.CreditCard,
+                "Asset" => Icons.Material.Filled.DirectionsCar,
+            _ => Icons.Material.Filled.AttachMoney
+        };
+        return icon;
     }
 
 }
