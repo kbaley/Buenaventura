@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Dtos;
 using Buenaventura.Shared;
@@ -14,7 +13,6 @@ namespace Buenaventura.Api;
 public class TransactionsController(
     CoronadoDbContext context,
     ITransactionRepository transactionRepo,
-    IAccountService accountService,
     IMapper mapper)
     : ControllerBase
 {
@@ -26,16 +24,19 @@ public class TransactionsController(
             return BadRequest(ModelState);
         }
 
-        var transaction = transactionRepo.Get(id);
+        var transaction = await transactionRepo.Get(id);
         InvoiceForPosting? invoiceDto = null;
         if (transaction.InvoiceId.HasValue)
         {
-            var invoice = context.Invoices.Find(transaction.InvoiceId.Value);
-            context.Entry(invoice).Collection(i => i!.LineItems).Load();
-            context.Entry(invoice).Reference(i => i!.Customer).Load();
-            invoiceDto = mapper.Map<InvoiceForPosting>(invoice);
+            var invoice = await context.Invoices.FindAsync(transaction.InvoiceId.Value);
+            if (invoice != null)
+            {
+                await context.Entry(invoice).Collection(i => i.LineItems).LoadAsync();
+                await context.Entry(invoice).Reference(i => i.Customer).LoadAsync();
+                invoiceDto = mapper.Map<InvoiceForPosting>(invoice);
+            }
         }
-        transactionRepo.Delete(id);
+        await transactionRepo.Delete(id);
 
         return Ok(new { transaction, accountBalances = (await context.GetAccountBalances()).ToList(), invoiceDto });
     }
@@ -50,9 +51,9 @@ public class TransactionsController(
             return BadRequest();
         }
 
-        var originalAmount = transactionRepo.Get(transaction.TransactionId).Amount;
+        var originalAmount = (await transactionRepo.Get(transaction.TransactionId)).Amount;
         transaction.SetAmount();
-        transactionRepo.Update(transaction);
+        await transactionRepo.Update(transaction);
         InvoiceForPosting? invoiceDto = null;
         if (transaction.InvoiceId.HasValue)
         {
@@ -81,7 +82,7 @@ public class TransactionsController(
         }
 
         var addedTransactions = await transactionRepo.Insert(transaction);
-        transactions.AddRange(addedTransactions.Select(t => mapper.Map<TransactionForDisplay>(t)));
+        transactions.AddRange(addedTransactions.Select(mapper.Map<TransactionForDisplay>));
         transactions.ForEach(t => t.SetDebitAndCredit());
 
         var accountBalances = (await context.GetAccountBalances()).ToList();

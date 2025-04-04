@@ -3,7 +3,6 @@ using Buenaventura.Domain;
 using Buenaventura.Dtos;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
-using Buenaventura.Shared;
 
 namespace Buenaventura.Data
 {
@@ -11,18 +10,19 @@ namespace Buenaventura.Data
     {
         private decimal _cadExchangeRate = decimal.MinValue;
 
-        private void UpdateInvoiceBalance(Guid? invoiceId, Guid? transactionToIgnore = null)
+        private async Task UpdateInvoiceBalance(Guid? invoiceId, Guid? transactionToIgnore = null)
         {
             if (!invoiceId.HasValue) return;
 
             // Load all invoice transactions into the cache so that we can work locally.
             // This is because we might have added or updated a related transaction that
             // hasn't been committed to the database yet.
-            context.Transactions
+            await context.Transactions
                 .Where(t => t.InvoiceId == invoiceId.Value)
-                .Load();
-            var invoice = context.Invoices.Find(invoiceId.Value);
-            context.Entry(invoice).Collection(i => i.LineItems).Load();
+                .LoadAsync();
+            var invoice = await context.Invoices.FindAsync(invoiceId.Value);
+            if (invoice == null) return;
+            await context.Entry(invoice).Collection(i => i.LineItems).LoadAsync();
             var payments = context.Transactions.Local
                 .Where(t => t.InvoiceId == invoiceId.Value && (!transactionToIgnore.HasValue || t.TransactionId != transactionToIgnore.Value))
                 .Sum(t => t.Amount);
@@ -30,31 +30,31 @@ namespace Buenaventura.Data
             context.Invoices.Update(invoice);
         }
 
-        public void Delete(Guid transactionId)
+        public async Task Delete(Guid transactionId)
         {
-            var transaction = context.Transactions
+            var transaction = await context.Transactions
                 .Include(t => t.LeftTransfer)
                 .Include(t => t.RightTransfer)
                 .Include(t => t.LeftTransfer.RightTransaction)
-                .Single(t => t.TransactionId == transactionId);
-            UpdateInvoiceBalance(transaction.InvoiceId, transactionId);
+                .SingleAsync(t => t.TransactionId == transactionId);
+            await UpdateInvoiceBalance(transaction.InvoiceId, transactionId);
             context.Transactions.Remove(transaction);
             if (transaction.LeftTransfer != null)
             {
-                context.Transactions.Remove(transaction.LeftTransfer.RightTransaction);
+                context.Transactions.Remove(transaction.LeftTransfer.RightTransaction!);
                 context.Transfers.Remove(transaction.LeftTransfer);
                 context.Transfers.Remove(transaction.RightTransfer);
             }
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        public Transaction Update(TransactionForDisplay transaction)
+        public async Task<Transaction> Update(TransactionForDisplay transaction)
         {
-            var dbTransaction = context.Transactions
+            var dbTransaction = await context.Transactions
                 .Include(t => t.Account)
                 .Include(t => t.Category)
                 .Include(t => t.RightTransfer)
-                .Single(t => t.TransactionId == transaction.TransactionId);
+                .SingleAsync(t => t.TransactionId == transaction.TransactionId);
             if (TransactionTypeChanged(transaction, dbTransaction))
             {
                 throw new Exception("Can't change the type of the transaction");
@@ -63,7 +63,7 @@ namespace Buenaventura.Data
             {
                 throw new Exception("Can't change the destination account of a transfer");
             }
-            dbTransaction.AccountId = transaction.AccountId.Value;
+            dbTransaction.AccountId = transaction.AccountId!.Value;
             dbTransaction.Vendor = transaction.Vendor;
             dbTransaction.Description = transaction.Description;
             dbTransaction.IsReconciled = transaction.IsReconciled;
@@ -72,12 +72,12 @@ namespace Buenaventura.Data
             if (transaction.CategoryId.HasValue)
                 dbTransaction.CategoryId = transaction.CategoryId;
 
-            UpdateAmount(dbTransaction, transaction);
+            await UpdateAmount(dbTransaction, transaction);
 
             context.Transactions.Update(dbTransaction);
-            UpdateInvoiceBalance(transaction.InvoiceId);
-            AddOrUpdateVendor(transaction.Vendor, transaction.CategoryId);
-            context.SaveChanges();
+            await UpdateInvoiceBalance(transaction.InvoiceId);
+            AddOrUpdateVendor(transaction.Vendor!, transaction.CategoryId);
+            await context.SaveChangesAsync();
             return dbTransaction;
         }
 
@@ -85,7 +85,7 @@ namespace Buenaventura.Data
         {
             if (dbTransaction.TransactionType != TransactionType.TRANSFER && dbTransaction.TransactionType != TransactionType.INVESTMENT)
                 return false;
-            if (dbTransaction.LeftTransfer.RightTransaction.AccountId != transaction.RelatedAccountId)
+            if (dbTransaction.LeftTransfer.RightTransaction!.AccountId != transaction.RelatedAccountId)
                 return false;
             return true;
         }
@@ -112,8 +112,8 @@ namespace Buenaventura.Data
                     break;
                 case TransactionType.TRANSFER:
                 case TransactionType.INVESTMENT:
-                    context.Entry(dbTransaction).Reference(t => t.LeftTransfer).Load();
-                    context.Entry(dbTransaction.LeftTransfer).Reference(t => t.RightTransaction).Load();
+                    await context.Entry(dbTransaction).Reference(t => t.LeftTransfer).LoadAsync();
+                    await context.Entry(dbTransaction.LeftTransfer).Reference(t => t.RightTransaction).LoadAsync();
                     updater = new TransactionAmountUpdaterTransfer(dbTransaction, _cadExchangeRate);
                     var relatedTransaction = updater.UpdateAmount(transaction.Amount);
                     context.Transactions.Update(relatedTransaction);
@@ -153,45 +153,46 @@ namespace Buenaventura.Data
             await LoadCadExchangeRate();
             var transactionList = new List<Transaction>();
             var transaction = transactionDto.ShallowMap();
-            transaction.Category = context.Categories.Find(transaction.CategoryId);
+            transaction.Category = (await context.Categories.FindAsync(transaction.CategoryId))!;
             var exchangeRate = 1.0m;
             if (GetCurrencyFor(transaction.AccountId) == "CAD")
             {
                 exchangeRate = _cadExchangeRate;
-            };
+            }
+
             transaction.AmountInBaseCurrency = Math.Round(transaction.Amount / exchangeRate, 2);
             transactionList.Add(transaction);
             context.Transactions.Add(transaction);
-            var bankFeeTransactions = GetBankFeeTransactions(transactionDto);
+            var bankFeeTransactions = (await GetBankFeeTransactions(transactionDto)).ToList();
             foreach (var trx in bankFeeTransactions)
             {
                 trx.AmountInBaseCurrency = Math.Round(trx.Amount / exchangeRate, 2);
                 context.Transactions.Add(trx);
             }
             transactionList.AddRange(bankFeeTransactions);
-            UpdateInvoiceBalance(transaction.InvoiceId);
-            AddOrUpdateVendor(transactionDto.Vendor, transactionDto.CategoryId);
+            await UpdateInvoiceBalance(transaction.InvoiceId);
+            AddOrUpdateVendor(transactionDto.Vendor!, transactionDto.CategoryId);
             if (transactionDto.TransactionType == TransactionType.TRANSFER)
             {
-                CreateTransferFrom(transactionDto, transaction.TransactionId);
+                await CreateTransferFrom(transactionDto, transaction.TransactionId);
             }
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             return transactionList;
         }
 
         private string GetCurrencyFor(Guid accountId)
         {
-            return context.Accounts.Find(accountId).Currency;
+            return context.Accounts.Find(accountId)!.Currency;
         }
 
         private async Task CreateTransferFrom(TransactionForDisplay transactionDto, Guid relatedTransactionId)
         {
             var rightTransaction = transactionDto.ShallowMap();
             rightTransaction.TransactionId = Guid.NewGuid();
-            rightTransaction.AccountId = transactionDto.RelatedAccountId.Value;
+            rightTransaction.AccountId = transactionDto.RelatedAccountId!.Value;
             rightTransaction.Amount = 0 - transactionDto.Amount;
             await LoadCadExchangeRate();
-            var sourceCurrency = GetCurrencyFor(transactionDto.AccountId.Value);
+            var sourceCurrency = GetCurrencyFor(transactionDto.AccountId!.Value);
             var destCurrency = GetCurrencyFor(transactionDto.RelatedAccountId.Value);
             if (sourceCurrency == "USD" && destCurrency == "CAD")
             {
@@ -231,11 +232,19 @@ namespace Buenaventura.Data
             var transactionList = context.Transactions
                 .Include(t => t.LeftTransfer)
                 .Include(t => t.LeftTransfer.RightTransaction)
-                .Include(t => t.LeftTransfer.RightTransaction.Account)
+                .Include(t => t.LeftTransfer.RightTransaction!.Account)
                 .Include(t => t.Category)
                 .Include(t => t.Account)
                 .Where(t => t.AccountId == accountId
-                && (string.IsNullOrWhiteSpace(search) || t.Description.ToLower().Contains(search.ToLower())))
+                    && (string.IsNullOrWhiteSpace(search) 
+                        || t.Description.ToLower().Contains(search.ToLower())
+                        || t.Vendor != null && t.Vendor.ToLower().Contains(search.ToLower())
+                        || t.Category.Name.ToLower().Contains(search.ToLower()))
+                    // ReSharper disable once SpecifyACultureInStringConversionExplicitly
+                        || t.Amount.ToString() == search
+                    // ReSharper disable once SpecifyACultureInStringConversionExplicitly
+                        || (-t.Amount).ToString() == search
+                    )
                 .OrderByDescending(t => t.TransactionDate)
                 .ThenByDescending(t => t.EnteredDate)
                 .ThenBy(t => t.TransactionId)
@@ -274,21 +283,21 @@ namespace Buenaventura.Data
             return model;
         }
 
-        public TransactionForDisplay Get(Guid transactionId)
+        public async Task<TransactionForDisplay> Get(Guid transactionId)
         {
-            var transaction = context.Transactions
+            var transaction = await context.Transactions
                 .Include(t => t.LeftTransfer)
                 .Include(t => t.LeftTransfer.RightTransaction)
                 .Include(t => t.LeftTransfer.RightTransaction!.Account)
                 .Include(t => t.Category)
                 .Include(t => t.Account)
-                .SingleOrDefault(t => t.TransactionId == transactionId);
+                .SingleOrDefaultAsync(t => t.TransactionId == transactionId);
             var mapped = mapper.Map<TransactionForDisplay>(transaction);
             mapped.SetDebitAndCredit();
             return mapped;
         }
 
-        private IEnumerable<Transaction> GetBankFeeTransactions(TransactionForDisplay newTransaction)
+        private async Task<IEnumerable<Transaction>> GetBankFeeTransactions(TransactionForDisplay newTransaction)
         {
             var transactions = new List<Transaction>();
             var description = newTransaction.Description;
@@ -298,7 +307,7 @@ namespace Buenaventura.Data
             }
 
             var category = context.GetOrCreateCategory("Bank Fees").GetAwaiter().GetResult();
-            var vendor = context.Accounts.Find(newTransaction.AccountId.Value).Vendor;
+            var vendor = ((await context.Accounts.FindAsync(newTransaction.AccountId!.Value))!).Vendor;
             newTransaction.Description = description.Substring(0, description.IndexOf("bf:", StringComparison.CurrentCultureIgnoreCase));
             var parsed = description.Substring(description.IndexOf("bf:", 0, StringComparison.CurrentCultureIgnoreCase));
             while (parsed.StartsWith("bf:", StringComparison.CurrentCultureIgnoreCase))
