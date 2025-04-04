@@ -31,9 +31,11 @@
         <NavMenu/>
     </MudDrawer>
     <MudMainContent Class="pt-16 pa-4">
-        <CascadingAuthenticationState>
-            @Body
-        </CascadingAuthenticationState>
+        <MudContainer Class="pt-6" Gutters="false">
+            <CascadingAuthenticationState>
+                @Body
+            </CascadingAuthenticationState>
+        </MudContainer>
     </MudMainContent>
 </MudLayout>
 

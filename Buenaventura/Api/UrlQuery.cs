@@ -2,9 +2,9 @@ namespace Buenaventura.Api
 {
   public class UrlQuery
   {
-    public Guid AccountId { get; set; }
-    public int Page { get; set; }
-    public bool LoadAll { get; set; }
+      public int Page { get; set; } = 0;
+      public int PageSize { get; set; } = 50;
+      public string? Search { get; set; }
   }
 
   public class ReportQuery

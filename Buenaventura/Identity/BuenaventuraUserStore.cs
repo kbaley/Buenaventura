@@ -25,17 +25,18 @@ public class BuenaventuraUserStore(
 
     public Task SetUserNameAsync(User user, string? userName, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        user.Email = userName ?? "";
+        return Task.CompletedTask;
     }
 
     public Task<string?> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken)
     {
-        return Task.FromResult(user.Email)!;
+        return Task.FromResult(user.Email.ToLower())!;
     }
 
     public Task SetNormalizedUserNameAsync(User user, string? normalizedName, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     public Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
@@ -45,7 +46,7 @@ public class BuenaventuraUserStore(
 
     public Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(IdentityResult.Success);
     }
 
     public Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken)

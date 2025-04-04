@@ -28,6 +28,19 @@ public class AccountsController(
         return await accountService.GetAccounts();
     }
 
+    [HttpGet("{id}/transactions")]
+    public async Task<TransactionListModel> GetTransactions([FromRoute] Guid id, [FromQuery] UrlQuery query)
+    {
+        return await accountService.GetTransactions(id, query.Search ?? "", query.Page, query.PageSize);
+    }
+    
+    [HttpGet("{id}")]
+    public async Task<AccountWithBalance> GetAccount([FromRoute] Guid id)
+    {
+        return await accountService.GetAccount(id);
+    }
+    
+
     [HttpPut("{id}")]
     public async Task<IActionResult> PutAccount([FromRoute] Guid id, [FromBody] Account account)
     {
@@ -86,7 +99,7 @@ public class AccountsController(
             EnteredDate = account.StartDate,
             IsReconciled = true
         };
-        var exchangeRate = context.Currencies.GetCadExchangeRate();
+        var exchangeRate = await context.Currencies.GetCadExchangeRate();
         var accountCurrency = account.Currency;
         transaction.SetAmountInBaseCurrency(accountCurrency, exchangeRate);
         context.Transactions.Add(transaction);

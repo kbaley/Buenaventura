@@ -8,9 +8,8 @@ namespace Buenaventura.Data
 {
     public interface ITransactionRepository : IServerAppService
     {
-        TransactionListModel GetByAccount(Guid accountId, int? page);
-        IEnumerable<TransactionForDisplay> GetByAccount(Guid accountId);
-        IEnumerable<Transaction> Insert(TransactionForDisplay transaction);
+        TransactionListModel GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50);
+        Task<IEnumerable<Transaction>> Insert(TransactionForDisplay transaction);
         Transaction Update(TransactionForDisplay transaction);
         void Delete(Guid transactionId);
         TransactionForDisplay Get(Guid transactionId);

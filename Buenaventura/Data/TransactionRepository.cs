@@ -9,7 +9,6 @@ namespace Buenaventura.Data
 {
     public class TransactionRepository(CoronadoDbContext context, IMapper mapper) : ITransactionRepository
     {
-        private const int PAGE_SIZE = 100;
         private decimal _cadExchangeRate = decimal.MinValue;
 
         private void UpdateInvoiceBalance(Guid? invoiceId, Guid? transactionToIgnore = null)
@@ -96,11 +95,11 @@ namespace Buenaventura.Data
             return dbTransaction.TransactionType != transaction.TransactionType;
         }
 
-        private void UpdateAmount(Transaction dbTransaction, TransactionForDisplay transaction)
+        private async Task UpdateAmount(Transaction dbTransaction, TransactionForDisplay transaction)
         {
             if (dbTransaction.Amount == transaction.Amount) return;
 
-            LoadCadExchangeRate();
+            await LoadCadExchangeRate();
             TransactionAmountUpdater updater;
             switch (dbTransaction.TransactionType)
             {
@@ -143,15 +142,15 @@ namespace Buenaventura.Data
             }
         }
 
-        private void LoadCadExchangeRate()
+        private async Task LoadCadExchangeRate()
         {
             if (_cadExchangeRate > decimal.MinValue) return;
-            _cadExchangeRate = context.Currencies.GetCadExchangeRate();
+            _cadExchangeRate = await context.Currencies.GetCadExchangeRate();
         }
 
-        public IEnumerable<Transaction> Insert(TransactionForDisplay transactionDto)
+        public async Task<IEnumerable<Transaction>> Insert(TransactionForDisplay transactionDto)
         {
-            LoadCadExchangeRate();
+            await LoadCadExchangeRate();
             var transactionList = new List<Transaction>();
             var transaction = transactionDto.ShallowMap();
             transaction.Category = context.Categories.Find(transaction.CategoryId);
@@ -185,13 +184,13 @@ namespace Buenaventura.Data
             return context.Accounts.Find(accountId).Currency;
         }
 
-        private void CreateTransferFrom(TransactionForDisplay transactionDto, Guid relatedTransactionId)
+        private async Task CreateTransferFrom(TransactionForDisplay transactionDto, Guid relatedTransactionId)
         {
             var rightTransaction = transactionDto.ShallowMap();
             rightTransaction.TransactionId = Guid.NewGuid();
             rightTransaction.AccountId = transactionDto.RelatedAccountId.Value;
             rightTransaction.Amount = 0 - transactionDto.Amount;
-            LoadCadExchangeRate();
+            await LoadCadExchangeRate();
             var sourceCurrency = GetCurrencyFor(transactionDto.AccountId.Value);
             var destCurrency = GetCurrencyFor(transactionDto.RelatedAccountId.Value);
             if (sourceCurrency == "USD" && destCurrency == "CAD")
@@ -227,27 +226,29 @@ namespace Buenaventura.Data
             });
         }
 
-        public TransactionListModel GetByAccount(Guid accountId, int? page)
+        public TransactionListModel GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50)
         {
-            var thePage = page ?? 0;
             var transactionList = context.Transactions
                 .Include(t => t.LeftTransfer)
                 .Include(t => t.LeftTransfer.RightTransaction)
                 .Include(t => t.LeftTransfer.RightTransaction.Account)
                 .Include(t => t.Category)
                 .Include(t => t.Account)
-                .Where(t => t.AccountId == accountId)
+                .Where(t => t.AccountId == accountId
+                && (string.IsNullOrWhiteSpace(search) || t.Description.ToLower().Contains(search.ToLower())))
                 .OrderByDescending(t => t.TransactionDate)
                 .ThenByDescending(t => t.EnteredDate)
                 .ThenBy(t => t.TransactionId)
-                .Skip(PAGE_SIZE * thePage).Take(PAGE_SIZE)
+                .Skip(pageSize * page).Take(pageSize)
                 .ToList();
             var transactions = transactionList
                 .Select(mapper.Map<TransactionForDisplay>)
                 .ToList();
 
-            var remainingTransactionCount = context.Transactions
-                .Count(t => t.AccountId == accountId) - transactions.Count();
+            var totalTransactionCount = context.Transactions
+                .Count(t => t.AccountId == accountId
+                            && (string.IsNullOrWhiteSpace(search) ||
+                                t.Description.ToLower().Contains(search.ToLower())));
             var startingBalance = context.Transactions
                 .Where(t => t.AccountId == accountId)
                 .OrderByDescending(t => t.TransactionDate)
@@ -268,34 +269,9 @@ namespace Buenaventura.Data
             {
                 Transactions = transactions,
                 StartingBalance = startingBalance,
-                RemainingTransactionCount = remainingTransactionCount,
-                Page = thePage
+                TotalTransactionCount = totalTransactionCount
             };
             return model;
-        }
-
-        public IEnumerable<TransactionForDisplay> GetByAccount(Guid accountId)
-        {
-            var transactions = context.Transactions
-                .Include(t => t.LeftTransfer)
-                .Include(t => t.LeftTransfer.RightTransaction)
-                .Include(t => t.LeftTransfer.RightTransaction.Account)
-                .Include(t => t.Category)
-                .Include(t => t.Account)
-                .Where(t => t.AccountId == accountId)
-                .OrderByDescending(t => t.TransactionDate)
-                .ThenByDescending(t => t.EnteredDate)
-                .Select(t => mapper.Map<TransactionForDisplay>(t))
-                .ToList();
-            var runningTotal = context.Transactions
-                .Where(t => t.AccountId == accountId)
-                .Sum(t => t.Amount);
-            transactions.ForEach(t => {
-                t.SetDebitAndCredit();
-                t.RunningTotal = runningTotal;
-                runningTotal -= t.Amount;
-            });
-            return transactions;
         }
 
         public TransactionForDisplay Get(Guid transactionId)
@@ -303,7 +279,7 @@ namespace Buenaventura.Data
             var transaction = context.Transactions
                 .Include(t => t.LeftTransfer)
                 .Include(t => t.LeftTransfer.RightTransaction)
-                .Include(t => t.LeftTransfer.RightTransaction.Account)
+                .Include(t => t.LeftTransfer.RightTransaction!.Account)
                 .Include(t => t.Category)
                 .Include(t => t.Account)
                 .SingleOrDefault(t => t.TransactionId == transactionId);

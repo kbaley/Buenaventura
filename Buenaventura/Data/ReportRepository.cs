@@ -7,39 +7,37 @@ namespace Buenaventura.Data
     public class ReportRepository(IConfiguration config, CoronadoDbContext context)
         : BaseRepository(config), IReportRepository
     {
-        public decimal GetNetWorthFor(DateTime date)
+        public async Task<decimal> GetNetWorthFor(DateTime date)
         {
-            var exchangeRate = context.Currencies.GetCadExchangeRate(date);
-            var usTotal = context
+            var exchangeRate = await context.Currencies.GetCadExchangeRate(date);
+            var usTotal = await context
                 .Transactions
                 .Include(t => t.Account)
                 .Where(t => t.TransactionDate <= date && t.Account.Currency == "USD")
-                .Sum(t => t.Amount);
-            var cadTotal = context
+                .SumAsync(t => t.Amount);
+            var cadTotal = await context
                 .Transactions
                 .Include(t => t.Account)
                 .Where(t => t.TransactionDate <= date && t.Account.Currency == "CAD")
-                .Sum(t => t.Amount);
+                .SumAsync(t => t.Amount);
             return Math.Round(usTotal + (cadTotal / exchangeRate), 2);
         }
 
-        public decimal GetInvestmentTotalFor(DateTime date)
+        public async Task<decimal> GetInvestmentTotalFor(DateTime date)
         {
-            var exchangeRate = context.Currencies.GetCadExchangeRate(date);
-            var usTotal = context
-                .Transactions
+            var exchangeRate = await context.Currencies.GetCadExchangeRate(date);
+            var usTotal = await context.Transactions
                 .Include(t => t.Account)
                 .Where(t => t.TransactionDate <= date 
                     && t.Account.AccountType == "Investment"
                     && t.Account.Currency == "USD")
-                .Sum(t => t.Amount);
-            var cadTotal = context
-                .Transactions
+                .SumAsync(t => t.Amount);
+            var cadTotal = await context.Transactions
                 .Include(t => t.Account)
                 .Where(t => t.TransactionDate <= date 
                     && t.Account.AccountType == "Investment"
                     && t.Account.Currency == "CAD")
-                .Sum(t => t.Amount);
+                .SumAsync(t => t.Amount);
             return Math.Round(usTotal + (cadTotal / exchangeRate), 2);
         }
 

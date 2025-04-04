@@ -18,22 +18,8 @@ public class TransactionsController(
     IMapper mapper)
     : ControllerBase
 {
-    [HttpGet]
-    public TransactionListModel GetTransactions([FromQuery] UrlQuery query)
-    {
-        if (query.LoadAll) {
-            var transactions = transactionRepo.GetByAccount(query.AccountId);
-            return new TransactionListModel {
-                Transactions = transactions,
-                StartingBalance = 0,
-                RemainingTransactionCount = 0
-            };
-        }
-        return transactionRepo.GetByAccount(query.AccountId, query.Page);
-    }
-
     [HttpDelete("{id}")]
-    public IActionResult DeleteTransaction([FromRoute] Guid id)
+    public async Task<IActionResult> DeleteTransaction([FromRoute] Guid id)
     {
         if (!ModelState.IsValid)
         {
@@ -51,11 +37,11 @@ public class TransactionsController(
         }
         transactionRepo.Delete(id);
 
-        return Ok(new { transaction, accountBalances = context.GetAccountBalances().ToList(), invoiceDto });
+        return Ok(new { transaction, accountBalances = (await context.GetAccountBalances()).ToList(), invoiceDto });
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateTransaction([FromRoute] Guid id,
+    public async Task<IActionResult> UpdateTransaction([FromRoute] Guid id,
         [FromBody] TransactionForDisplay transaction)
     {
 
@@ -75,7 +61,7 @@ public class TransactionsController(
         }
         return Ok(new { transaction, 
             originalAmount, 
-            accountBalances = context.GetAccountBalances().ToList(), 
+            accountBalances = (await context.GetAccountBalances()).ToList(), 
             invoiceDto 
         });
     }
@@ -94,11 +80,11 @@ public class TransactionsController(
             transaction.CategoryId = context.GetOrCreateCategory(transaction.CategoryName).GetAwaiter().GetResult().CategoryId;
         }
 
-        var addedTransactions = transactionRepo.Insert(transaction);
+        var addedTransactions = await transactionRepo.Insert(transaction);
         transactions.AddRange(addedTransactions.Select(t => mapper.Map<TransactionForDisplay>(t)));
         transactions.ForEach(t => t.SetDebitAndCredit());
 
-        var accountBalances = context.GetAccountBalances().ToList();
+        var accountBalances = (await context.GetAccountBalances()).ToList();
         InvoiceForPosting? invoiceDto = null;
         if (transaction.InvoiceId.HasValue)
         {

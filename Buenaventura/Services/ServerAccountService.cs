@@ -2,18 +2,20 @@ using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Dtos;
 using Buenaventura.Shared;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
 public class ServerAccountService(
-    CoronadoDbContext context,
+    IDbContextFactory<CoronadoDbContext> dbContextFactory,
     ITransactionRepository transactionRepo
-    ) : IAccountService
+) : IAccountService
 {
-    public Task<IEnumerable<AccountWithBalance>> GetAccounts()
+    public async Task<IEnumerable<AccountWithBalance>> GetAccounts()
     {
-        var exchangeRate = context.Currencies.GetCadExchangeRate();
-        var accounts = context.Accounts
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var exchangeRate = await context.Currencies.GetCadExchangeRate();
+        var accounts = await context.Accounts
             .Select(a => new AccountWithBalance
             {
                 AccountId = a.AccountId,
@@ -26,23 +28,46 @@ public class ServerAccountService(
                 DisplayOrder = a.DisplayOrder,
                 IsHidden = a.IsHidden,
                 CurrentBalance = a.Transactions.Sum(t => t.Amount),
-                CurrentBalanceInUsd = a.Currency == "CAD" 
+                CurrentBalanceInUsd = a.Currency == "CAD"
                     ? Math.Round(a.Transactions.Sum(t => t.Amount) / exchangeRate, 2)
                     : a.Transactions.Sum(t => t.Amount),
-            });
-        return Task.FromResult<IEnumerable<AccountWithBalance>>(accounts);
+            }).ToListAsync();
+        return accounts;
     }
 
-    public Task<TransactionListModel> GetTransactions(Guid accountId, bool loadAll = false)
+    public Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0,
+        int pageSize = 50)
     {
-        if (loadAll) {
-            var transactions = transactionRepo.GetByAccount(accountId);
-            return Task.FromResult(new TransactionListModel {
-                Transactions = transactions,
-                StartingBalance = 0,
-                RemainingTransactionCount = 0
-            });
+        return Task.FromResult(transactionRepo.GetByAccount(accountId, search, page, pageSize));
+    }
+
+    public async Task<AccountWithBalance> GetAccount(Guid id)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var exchangeRate = await context.Currencies.GetCadExchangeRate();
+        var account = await context.Accounts.Include(account => account.Transactions)
+            .FirstOrDefaultAsync(a => a.AccountId == id);
+        if (account == null)
+        {
+            return new AccountWithBalance();
         }
-        return Task.FromResult(transactionRepo.GetByAccount(accountId, 0));
+
+        var accountWithBalance = new AccountWithBalance
+        {
+            AccountId = account.AccountId,
+            Name = account.Name,
+            Currency = account.Currency,
+            Vendor = account.Currency,
+            AccountType = account.AccountType,
+            MortgagePayment = account.MortgagePayment,
+            MortgageType = account.MortgageType,
+            DisplayOrder = account.DisplayOrder,
+            IsHidden = account.IsHidden,
+            CurrentBalance = account.Transactions.Sum(t => t.Amount),
+            CurrentBalanceInUsd = account.Currency == "CAD"
+                ? Math.Round(account.Transactions.Sum(t => t.Amount) / exchangeRate, 2)
+                : account.Transactions.Sum(t => t.Amount),
+        };
+        return accountWithBalance;
     }
 }

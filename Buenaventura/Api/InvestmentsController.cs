@@ -162,7 +162,7 @@ namespace Buenaventura.Api
             var incomeTaxCategory = await context.Categories
                 .SingleAsync(c => c.Name == "Income Tax");
             var now = DateTime.Now;
-            var exchangeRate = context.Currencies.GetCadExchangeRate();
+            var exchangeRate = await context.Currencies.GetCadExchangeRate();
             var accountCurrency = (await context.Accounts.FindAsync(investmentDto.AccountId))!.Currency;
             var transaction = new Transaction
             {
@@ -251,8 +251,8 @@ namespace Buenaventura.Api
                     Description = ""
                 };
                 transaction.SetDebitAndCredit();
-                transactionRepo.Insert(transaction);
-                var accountBalances = context.GetAccountBalances().ToList();
+                await transactionRepo.Insert(transaction);
+                var accountBalances = (await context.GetAccountBalances()).ToList();
                 var transactions = new[] { transaction };
 
                 return CreatedAtAction("MakeCorrectingEntries", new { id = transaction.TransactionId }, new { transactions, accountBalances });
@@ -305,7 +305,7 @@ namespace Buenaventura.Api
             var investmentTransaction = await CreateInvestmentTransaction(investmentDto, investment).ConfigureAwait(false);
             await context.SaveChangesAsync().ConfigureAwait(false);
 
-            var accountBalances = context.GetAccountBalances().ToList();
+            var accountBalances = (await context.GetAccountBalances()).ToList();
             return CreatedAtAction("PostInvestment", new { id = investment.InvestmentId },
                 new
                 {
@@ -323,7 +323,7 @@ namespace Buenaventura.Api
             var description = $"Investment: {buySell} of {investmentDto.Symbol} at {investmentDto.LastPrice}";
             var investmentAccount = await context.Accounts.FirstAsync(a => a.AccountType == "Investment").ConfigureAwait(false);
             var enteredDate = DateTime.Now;
-            var exchangeRate = context.Currencies.GetCadExchangeRate();
+            var exchangeRate = await context.Currencies.GetCadExchangeRate();
             var investmentAccountTransaction = new Transaction
             {
                 TransactionId = Guid.NewGuid(),

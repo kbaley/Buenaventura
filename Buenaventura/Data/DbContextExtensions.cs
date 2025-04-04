@@ -7,25 +7,25 @@ namespace Buenaventura.Data;
 
 public static class DbContextExtensions
 {
-    public static decimal GetCadExchangeRate(this DbSet<Currency> currencies, DateTime? asOf = null)
+    public static async Task<decimal> GetCadExchangeRate(this DbSet<Currency> currencies, DateTime? asOf = null)
     {
         if (!asOf.HasValue)
         {
             asOf = DateTime.Now;
         }
 
-        var currency = currencies
+        var currency = (await currencies
             .Where(c => c.Symbol == "CAD")
-            .ToList()
+            .ToListAsync())
             .OrderBy(c => Math.Abs((asOf.Value - c.LastRetrieved).TotalMinutes))
             .First();
         return currency.PriceInUsd;
     }
 
-    public static IQueryable<AccountIdAndBalance> GetAccountBalances(this CoronadoDbContext context)
+    public static async Task<IEnumerable<AccountIdAndBalance>> GetAccountBalances(this CoronadoDbContext context)
     {
-        var exchangeRate = context.Currencies.GetCadExchangeRate();
-        return context.Accounts
+        var exchangeRate = await context.Currencies.GetCadExchangeRate();
+        return await context.Accounts
             .Select(a => new AccountIdAndBalance
             {
                 AccountId = a.AccountId,
@@ -33,7 +33,7 @@ public static class DbContextExtensions
                 CurrentBalanceInUsd = a.Currency == "CAD"
                     ? Math.Round(a.Transactions.Sum(t => t.Amount) / exchangeRate, 2)
                     : a.Transactions.Sum(t => t.Amount)
-            });
+            }).ToListAsync();
     }
 
     public static double GetAnnualizedIrr(this DbSet<Investment> investments)

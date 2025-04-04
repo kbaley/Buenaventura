@@ -1,37 +1,58 @@
 @page "/account/{accountId:guid}"
 @using Buenaventura.Client.Services
 @using Buenaventura.Dtos
+@using Buenaventura.Shared
 @inject IAccountService AccountService
-<h3>AccountTransactions</h3>
 
-<MudTable Items="@transactions.Transactions" Loading="@loading">
-    <HeaderContent>
-        <MudTh>Date</MudTh>
-        <MudTh>Vendor</MudTh>
-        <MudTh>Category</MudTh>
-        <MudTh>Description</MudTh>
-        <MudTh>Debit</MudTh>
-        <MudTh>Credit</MudTh>
-        <MudTh>Balance</MudTh>
-        <MudTh></MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd DataLabel="Date">@context.TransactionDate.ToShortDateString()</MudTd>
-        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-        <MudTd DataLabel="Category">@context.CategoryDisplay</MudTd>
-        <MudTd DataLabel="Description">@context.Description</MudTd>
-        <MudTd DataLabel="Credit">@(context.Debit.HasValue ? context.Debit.Value.ToString("N2") : "")</MudTd>
-        <MudTd DataLabel="Credit">@(context.Credit.HasValue ? context.Credit.Value.ToString("N2") : "")</MudTd>
-        <MudTd DataLabel="Balance">@context.Amount.ToString("N2")</MudTd>
-        <MudTd></MudTd>
-    </RowTemplate>
-</MudTable>
+<MudText Typo="Typo.h4" GutterBottom="true">@Account.Name</MudText>
+
+<MudDataGrid T="TransactionForDisplay" SortMode="SortMode.None" @ref="dataGrid"
+             Striped="true" Dense="true" Loading="@loading"
+             FixedHeader="true" ServerData="ServerReload" RowsPerPage="50"
+>
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Account.Name</MudText>
+        <MudSpacer/>
+        <MudTextField T="string" Value="@searchString" ValueChanged="@(s => OnSearchChanged(s))" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
+                      Clearable="true" Immediate="true"
+        />
+
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.TransactionDate" Title="Date" Format="MM/dd/yyyy" CellStyle="width: 125px"/>
+        <PropertyColumn Property="x => x.Vendor" Title="Vendor" CellStyle="width: 175px"/>
+        <PropertyColumn Property="x => x.CategoryDisplay" Title="Category" CellStyle="width: 175px;"/>
+        <PropertyColumn Property="x => x.Description" Title="Description" CellClass="flex-grow-1"/>
+        <PropertyColumn Property="x => x.Debit" Title="Debit" Format="N2" CellClass="transaction-amount"/>
+        <PropertyColumn Property="x => x.Credit" Title="Credit" Format="N2" CellClass="transaction-amount"/>
+        <TemplateColumn Title="Balance" CellClass="transaction-amount">
+            <CellTemplate>
+                @if (string.IsNullOrEmpty(searchString))
+                {
+                    @context.Item?.RunningTotal.ToString("N2")
+                }
+                else
+                {
+                    <span>--</span>   
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager />
+    </PagerContent>
+</MudDataGrid>
 
 @code {
     [Parameter] public Guid AccountId { get; set; }
+    private AccountWithBalance Account { get; set; } = new();
     private TransactionListModel transactions = new();
+    private string searchString = string.Empty;
     private Guid previousAccountId;
     private bool loading = true;
+    MudDataGrid<TransactionForDisplay> dataGrid;
+
 
     protected override async Task OnParametersSetAsync()
     {
@@ -39,9 +60,49 @@
         {
             loading = true;
             transactions = await AccountService.GetTransactions(AccountId);
+            Account = await AccountService.GetAccount(AccountId);
+            searchString = string.Empty;
             loading = false;
             previousAccountId = AccountId;
         }
+    }
+
+    private Func<TransactionForDisplay, bool> quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return true;
+        }
+
+        if (x.Description.Contains(searchString, StringComparison.InvariantCultureIgnoreCase)
+            || (x.Vendor ?? "").Contains(searchString, StringComparison.InvariantCultureIgnoreCase)
+            || x.CategoryDisplay.Contains(searchString, StringComparison.InvariantCultureIgnoreCase))
+        {
+            return true;
+        }
+
+        if (decimal.TryParse(searchString, out var result) && (x.Debit == result || x.Credit == result))
+        {
+            return true;
+        }
+
+        return DateTime.TryParse(searchString, out var dateResult) && x.TransactionDate.Date == dateResult.Date;
+    };
+
+    private async Task OnSearchChanged(string text)
+    {
+        searchString = text;
+        await dataGrid.ReloadServerData();
+    }
+
+    private async Task<GridData<TransactionForDisplay>> ServerReload(GridState<TransactionForDisplay> state)
+    {
+        transactions = await AccountService.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
+        return new GridData<TransactionForDisplay>
+        {
+            TotalItems = transactions.RemainingTransactionCount,
+            Items = transactions.Transactions,
+        };
     }
 
 }
