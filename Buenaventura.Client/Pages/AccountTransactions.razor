@@ -98,9 +98,10 @@
     private async Task<GridData<TransactionForDisplay>> ServerReload(GridState<TransactionForDisplay> state)
     {
         transactions = await AccountService.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
+        Console.WriteLine($"Count: {transactions.RemainingTransactionCount}");
         return new GridData<TransactionForDisplay>
         {
-            TotalItems = transactions.RemainingTransactionCount,
+            TotalItems = transactions.TotalTransactionCount,
             Items = transactions.Transactions,
         };
     }

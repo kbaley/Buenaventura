@@ -227,9 +227,9 @@ namespace Buenaventura.Data
             });
         }
 
-        public TransactionListModel GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50)
+        public async Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50)
         {
-            var transactionList = context.Transactions
+            var transactionList = await context.Transactions
                 .Include(t => t.LeftTransfer)
                 .Include(t => t.LeftTransfer.RightTransaction)
                 .Include(t => t.LeftTransfer.RightTransaction!.Account)
@@ -249,29 +249,33 @@ namespace Buenaventura.Data
                 .ThenByDescending(t => t.EnteredDate)
                 .ThenBy(t => t.TransactionId)
                 .Skip(pageSize * page).Take(pageSize)
-                .ToList();
+                .ToListAsync();
             var transactions = transactionList
                 .Select(mapper.Map<TransactionForDisplay>)
                 .ToList();
 
             var totalTransactionCount = context.Transactions
                 .Count(t => t.AccountId == accountId
-                            && (string.IsNullOrWhiteSpace(search) ||
-                                t.Description.ToLower().Contains(search.ToLower())));
-            var startingBalance = context.Transactions
+                            && (string.IsNullOrWhiteSpace(search)
+                        || t.Description.ToLower().Contains(search.ToLower())
+                        || t.Vendor != null && t.Vendor.ToLower().Contains(search.ToLower())
+                        || t.Category.Name.ToLower().Contains(search.ToLower()))
+                    // ReSharper disable once SpecifyACultureInStringConversionExplicitly
+                        || t.Amount.ToString() == search
+                    // ReSharper disable once SpecifyACultureInStringConversionExplicitly
+                        || (-t.Amount).ToString() == search);
+            var endingBalance = await context.Transactions
                 .Where(t => t.AccountId == accountId)
                 .OrderByDescending(t => t.TransactionDate)
                 .ThenByDescending(t => t.EnteredDate)
                 .ThenBy(t => t.TransactionId)
-                .Skip(transactionList.Count())
-                .Sum(t => t.Amount);
-            var runningTotal = context.Transactions
-                .Where(t => t.AccountId == accountId)
-                .Sum(t => t.Amount);
+                .Skip(pageSize * page)
+                .SumAsync(t => t.Amount);
+            var startingBalance = endingBalance - transactions.Sum(t => t.Amount);
             transactions.ForEach(t => {
                 t.SetDebitAndCredit();
-                t.RunningTotal = runningTotal;
-                runningTotal -= t.Amount;
+                t.RunningTotal = endingBalance;
+                endingBalance -= t.Amount;
             });
 
             var model = new TransactionListModel

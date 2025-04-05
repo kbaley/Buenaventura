@@ -35,10 +35,10 @@ public class ServerAccountService(
         return accounts;
     }
 
-    public Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0,
+    public async Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0,
         int pageSize = 50)
     {
-        return Task.FromResult(transactionRepo.GetByAccount(accountId, search, page, pageSize));
+        return await transactionRepo.GetByAccount(accountId, search, page, pageSize);
     }
 
     public async Task<AccountWithBalance> GetAccount(Guid id)

@@ -26,7 +26,7 @@ public static class Themes
             Dark = "2b2b2b",
             Surface = "faf7f4",
             Background = "#f3ece7",
-            ActionDefault = "#ffffff",
+            ActionDefault = "#333333",
         };
     }
     
