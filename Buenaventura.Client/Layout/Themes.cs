@@ -26,7 +26,7 @@ public static class Themes
             Dark = "2b2b2b",
             Surface = "faf7f4",
             Background = "#f3ece7",
-            ActionDefault = "#333333",
+            ActionDefault = "#424242",
         };
     }
     
@@ -45,7 +45,7 @@ public static class Themes
             AppbarText = "#ffffff",
             AppbarBackground = "#9c6644",
             DrawerBackground = "#231b18",
-            ActionDefault = "#ffffff",
+            ActionDefault = "#b2b0bf",
             ActionDisabled = "#9999994d",
             ActionDisabledBackground = "#605f6d4d",
             TextPrimary = "#b2b0bf",
