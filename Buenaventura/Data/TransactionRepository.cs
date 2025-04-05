@@ -254,8 +254,8 @@ namespace Buenaventura.Data
                 .Select(mapper.Map<TransactionForDisplay>)
                 .ToList();
 
-            var totalTransactionCount = context.Transactions
-                .Count(t => t.AccountId == accountId
+            var totalTransactionCount = await context.Transactions
+                .CountAsync(t => t.AccountId == accountId
                             && (string.IsNullOrWhiteSpace(search)
                         || t.Description.ToLower().Contains(search.ToLower())
                         || t.Vendor != null && t.Vendor.ToLower().Contains(search.ToLower())

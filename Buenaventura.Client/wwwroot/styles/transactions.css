@@ -2,3 +2,10 @@
     text-align: right;
     width: 100px;
 }
+.mud-table-small-cell {
+    padding: 4px !important;
+}
+
+.align-right input {
+    text-align: right;
+}

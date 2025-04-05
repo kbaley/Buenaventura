@@ -1,4 +1,5 @@
 @page "/account/{accountId:guid}"
+@using System.ComponentModel.Design.Serialization
 @using Buenaventura.Client.Services
 @using Buenaventura.Dtos
 @using Buenaventura.Shared
@@ -6,14 +7,16 @@
 
 <MudText Typo="Typo.h4" GutterBottom="true">@Account.Name</MudText>
 
-<MudTable ServerData="ServerReload" Hover="true" Bordered="true" Striped="true" Dense="true" 
+<MudTable T="TransactionForDisplay" ServerData="ServerReload" Hover="true" Bordered="true" Striped="true" Dense="true"
           Loading="@loading" @ref="transactionTable" RowsPerPage="25" Elevation="6"
+          OnRowClick="BeginEdit"
 >
     <ToolBarContent>
         <MudText Typo="Typo.h6">@Account.Name</MudText>
         <MudSpacer/>
         <div style="width: 400px;">
-            <MudTextField T="string" Value="@searchString" ValueChanged="@(s => OnSearchChanged(s))" Placeholder="Search" Adornment="Adornment.Start"
+            <MudTextField T="string" Value="@searchString" ValueChanged="@(s => OnSearchChanged(s))"
+                          Placeholder="Search" Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
                           Clearable="true" Immediate="true"
             />
@@ -29,25 +32,60 @@
         <MudTh Class="transaction-amount">Balance</MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
-        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-        <MudTd DataLabel="Category">@context.CategoryDisplay</MudTd>
-        <MudTd DataLabel="Description">@context.Description</MudTd>
-        <MudTd DataLabel="Debit" Class="transaction-amount">@context.Debit?.ToString("N2")</MudTd>
-        <MudTd DataLabel="Credit" Class="transaction-amount">@context.Credit?.ToString("N2")</MudTd>
-        <MudTd DataLabel="Balance" Class="transaction-amount">
-            @if (string.IsNullOrEmpty(searchString))
-            {
-                @context.RunningTotal.ToString("N2")
-            }
-            else
-            {
-                <span>--</span>   
-            }
-        </MudTd>
+        @if (EditingTransaction == context)
+        {
+            <MudTd DataLabel="Date" Class="mud-table-small-cell">
+                <MudTextField @bind-Value="@context.TransactionDate" Variant="Variant.Filled" Margin="Margin.Dense"
+                              OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                              Immediate="true"/>
+            </MudTd>
+            <MudTd DataLabel="Vendor" Class="mud-table-small-cell">
+                <MudTextField @bind-Value="@context.Vendor" Variant="Variant.Filled" Margin="Margin.Dense"
+                              Typo="Typo.inherit"/>
+            </MudTd>
+            <MudTd DataLabel="Category" Class="mud-table-small-cell">
+                <MudTextField @bind-Value="@context.CategoryDisplay" Variant="Variant.Filled" Margin="Margin.Dense"
+                              Typo="Typo.inherit"/>
+            </MudTd>
+            <MudTd DataLabel="Description" Class="mud-table-small-cell">
+                <MudTextField @bind-Value="@context.Description" Variant="Variant.Filled" Margin="Margin.Dense"
+                              Typo="Typo.inherit"/>
+            </MudTd>
+            <MudTd DataLabel="Debit" Class="mud-table-small-cell align-right">
+                <MudTextField @bind-Value="@context.Debit" Variant="Variant.Filled" Margin="Margin.Dense"
+                              Typo="Typo.inherit"
+                              Style="text-align: right;"/>
+            </MudTd>
+            <MudTd DataLabel="Description" Class="mud-table-small-cell align-right">
+                <MudTextField @bind-Value="@context.Credit" Variant="Variant.Filled" Margin="Margin.Dense"
+                              Typo="Typo.inherit"/>
+            </MudTd>
+            <MudTd DataLabel="Balance" Class="transaction-amount">
+                <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="(() => CancelEdit(context))" />
+            </MudTd>
+        }
+        else
+        {
+            <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
+            <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+            <MudTd DataLabel="Category">@context.CategoryDisplay</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Debit" Class="transaction-amount">@context.Debit?.ToString("N2")</MudTd>
+            <MudTd DataLabel="Credit" Class="transaction-amount">@context.Credit?.ToString("N2")</MudTd>
+            <MudTd DataLabel="Balance" Class="transaction-amount">
+                @if (string.IsNullOrEmpty(searchString))
+                {
+                    @context.RunningTotal.ToString("N2")
+                }
+                else
+                {
+                    <span>--</span>
+                }
+            </MudTd>
+        }
     </RowTemplate>
     <PagerContent>
-        <MudTablePager />
+        <MudTablePager/>
     </PagerContent>
 </MudTable>
 
@@ -59,6 +97,8 @@
     private Guid previousAccountId;
     private bool loading = true;
     MudTable<TransactionForDisplay>? transactionTable;
+    private TransactionForDisplay? EditingTransaction { get; set; }
+    private TransactionForDisplay? TransactionBackup { get; set; }
 
 
     protected override async Task OnParametersSetAsync()
@@ -72,8 +112,49 @@
             {
                 await transactionTable.ReloadServerData();
             }
+
             loading = false;
             previousAccountId = AccountId;
+        }
+    }
+
+    private void BeginEdit(TableRowClickEventArgs<TransactionForDisplay> args)
+    {
+        var transaction = args.Item;
+        if (transaction == null)
+        {
+            return;
+        }
+
+        EditingTransaction = transaction;
+        TransactionBackup = new TransactionForDisplay
+        {
+            TransactionDate = transaction.TransactionDate,
+            Vendor = transaction.Vendor,
+            CategoryDisplay = transaction.CategoryDisplay,
+            Description = transaction.Description,
+            Debit = transaction.Debit,
+            Credit = transaction.Credit,
+            RunningTotal = transaction.RunningTotal,
+            TransactionId = transaction.TransactionId,
+        };
+    }
+
+    private void CancelEdit(TransactionForDisplay transaction)
+    {
+        if (TransactionBackup != null)
+        {
+            transaction.TransactionDate = TransactionBackup.TransactionDate;
+            transaction.Vendor = TransactionBackup.Vendor;
+            transaction.CategoryDisplay = TransactionBackup.CategoryDisplay;
+            transaction.Description = TransactionBackup.Description;
+            transaction.Debit = TransactionBackup.Debit;
+            transaction.Credit = TransactionBackup.Credit;
+            transaction.RunningTotal = TransactionBackup.RunningTotal;
+            transaction.TransactionId = TransactionBackup.TransactionId;
+
+            EditingTransaction = null;
+            TransactionBackup = null;
         }
     }
 
@@ -94,6 +175,15 @@
             TotalItems = transactions.TotalTransactionCount,
             Items = transactions.Transactions,
         };
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs args, TransactionForDisplay context)
+    {
+        if (args.Key == "Enter")
+        {
+            EditingTransaction = null;
+            TransactionBackup = null;
+        }
     }
 
 }
