@@ -34,9 +34,10 @@
         @if (editingTransaction == context || newTransaction == context)
         {
             <MudTd DataLabel="Date" Class="mud-table-small-cell">
-                <MudTextField @bind-Value="@context.TransactionDate" Variant="@textVariant" T="DateTime"
+                <MudTextField @bind-Value="@context.TransactionDateForEdit" Variant="@textVariant"
                               OnKeyDown="@(e => HandleKeyDown(e, context, true))" Typo="Typo.inherit"
-                              Immediate="true"/>
+                              Immediate="true" @ref="@transactionDateField"
+                              />
             </MudTd>
             <MudTd DataLabel="Vendor" Class="mud-table-small-cell">
                 <MudTextField @bind-Value="@context.Vendor" Variant="@textVariant"
@@ -61,7 +62,7 @@
             <MudTd DataLabel="Description" Class="mud-table-small-cell align-right">
                 <MudTextField @bind-Value="@context.CreditForEdit" Variant="@textVariant"
                               OnKeyDown="@(e => HandleKeyDown(e, context))"
-                              Typo="Typo.inherit"
+                              Typo="Typo.inherit" Immediate="true"
                 />
             </MudTd>
             <MudTd DataLabel="Balance" Class="transaction-amount">
@@ -107,10 +108,12 @@
     private TransactionForDisplay? editingTransaction { get; set; }
     private TransactionForDisplay? transactionBackup { get; set; }
     private readonly Variant textVariant = Variant.Text;
+    private MudTextField<string>? transactionDateField;
 
     private TransactionForDisplay newTransaction { get; set; } = new()
     {
-        TransactionDate = DateTime.Today
+        TransactionDate = DateTime.Today,
+        TransactionDateForEdit = DateTime.Today.ToString("MM/dd/yyyy")
     };
 
 
@@ -139,6 +142,7 @@
         editingTransaction = transaction;
         editingTransaction.DebitForEdit = transaction.Debit?.ToString("N2") ?? "";
         editingTransaction.CreditForEdit = transaction.Credit?.ToString("N2") ?? "";
+        editingTransaction.TransactionDateForEdit = transaction.TransactionDate.ToString("MM/dd/yyyy");
         transactionBackup = new TransactionForDisplay
         {
             TransactionDate = transaction.TransactionDate,
@@ -157,6 +161,7 @@
         if (transactionBackup != null)
         {
             transaction.TransactionDate = transactionBackup.TransactionDate;
+            transaction.TransactionDateForEdit = transactionBackup.TransactionDate.ToString("MM/dd/yyyy");
             transaction.Vendor = transactionBackup.Vendor;
             transaction.CategoryDisplay = transactionBackup.CategoryDisplay;
             transaction.Description = transactionBackup.Description;
@@ -197,10 +202,12 @@
         if (isDateField && args.Key == "ArrowUp")
         {
             context.TransactionDate = context.TransactionDate.AddDays(1);
+            context.TransactionDateForEdit = context.TransactionDate.ToString("MM/dd/yyyy");
         }
         else if (isDateField && args.Key == "ArrowDown")
         {
             context.TransactionDate = context.TransactionDate.AddDays(-1);
+            context.TransactionDateForEdit = context.TransactionDate.ToString("MM/dd/yyyy");
         }
     }
 
@@ -223,15 +230,26 @@
         {
             transaction.Debit = null;
         }
+        
+        if (DateTime.TryParse(transaction.TransactionDateForEdit, out var date))
+        {
+            transaction.TransactionDate = date;
+        }
+        else
+        {
+            transaction.TransactionDate = DateTime.Today;
+        }
+        
         if (transaction == newTransaction)
         {
-            Console.WriteLine("New transaction");
             await AccountService.AddTransaction(AccountId, transaction);
             newTransaction = new TransactionForDisplay
             {
-                TransactionDate = transaction.TransactionDate
+                TransactionDate = transaction.TransactionDate,
+                TransactionDateForEdit = transaction.TransactionDate.ToString("MM/dd/yyyy")
             };
             await ReloadTransactions();
+            await SetFocus();
             return;
         }
 
@@ -239,6 +257,14 @@
         transactionBackup = null;
         await AccountService.UpdateTransaction(transaction);
         await ReloadTransactions();
+    }
+    
+    private async Task SetFocus()
+    {
+        if (transactionDateField != null)
+        {
+            await transactionDateField.FocusAsync();
+        }
     }
 
     private async Task ReloadTransactions()

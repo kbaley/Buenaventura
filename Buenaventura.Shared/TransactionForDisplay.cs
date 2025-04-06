@@ -20,6 +20,8 @@ public class TransactionForDisplay
     /// </summary>
     public string DebitForEdit { get; set; } = "";
     public string CreditForEdit { get; set; } = "";
+    public string TransactionDateForEdit { get; set; } = "";
+    
     public decimal Amount { get; set; }
     public Guid? RelatedTransactionId { get; set; }
     public string RelatedAccountName { get; set; } = "";
