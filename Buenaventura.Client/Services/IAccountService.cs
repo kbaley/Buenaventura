@@ -9,6 +9,8 @@ public interface IAccountService : IAppService
      Task<IEnumerable<AccountWithBalance>> GetAccounts();
      Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50);
      Task<AccountWithBalance> GetAccount(Guid id);
+     Task UpdateTransaction(TransactionForDisplay transaction);
+     Task AddTransaction(Guid accountId, TransactionForDisplay transaction);
 }
 
 public class ClientAccountService(HttpClient httpClient) : IAccountService
@@ -32,5 +34,27 @@ public class ClientAccountService(HttpClient httpClient) : IAccountService
         var url = $"api/accounts/{id}";
         var result = await httpClient.GetFromJsonAsync<AccountWithBalance>(url);
         return result ?? new AccountWithBalance();
+    }
+
+    public async Task UpdateTransaction(TransactionForDisplay transaction)
+    {
+        var url = $"api/transactions/{transaction.TransactionId}";
+        var result = await httpClient.PutAsJsonAsync(url, transaction);
+        if (result.IsSuccessStatusCode)
+        {
+            return;
+        }
+        throw new Exception(result.ReasonPhrase);
+    }
+
+    public async Task AddTransaction(Guid accountId, TransactionForDisplay transaction)
+    {
+        var url = $"api/accounts/{accountId}/transactions";
+        var result = await httpClient.PostAsJsonAsync(url, transaction);
+        if (result.IsSuccessStatusCode)
+        {
+            return;
+        }
+        throw new Exception(result.ReasonPhrase);
     }
 }

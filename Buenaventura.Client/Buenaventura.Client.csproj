@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Buenaventura.Shared\Buenaventura.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
 </Project>

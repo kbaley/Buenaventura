@@ -11,7 +11,7 @@ public static class DomainExtensions
         {
             TransactionId = transaction.TransactionId,
             AccountId = transaction.AccountId!.Value,
-            TransactionDate = transaction.TransactionDate,
+            TransactionDate = DateTime.SpecifyKind(transaction.TransactionDate, DateTimeKind.Utc),
             TransactionType = transaction.TransactionType,
             CategoryId = transaction.CategoryId,
             Vendor = transaction.Vendor,

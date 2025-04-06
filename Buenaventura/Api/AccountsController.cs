@@ -34,6 +34,12 @@ public class AccountsController(
         return await accountService.GetTransactions(id, query.Search ?? "", query.Page, query.PageSize);
     }
     
+    [HttpPost("{id}/transactions")]
+    public async Task CreateTransaction([FromRoute] Guid id, [FromBody] TransactionForDisplay transaction)
+    {
+        await accountService.AddTransaction(id, transaction);
+    }
+    
     [HttpGet("{id}")]
     public async Task<AccountWithBalance> GetAccount([FromRoute] Guid id)
     {

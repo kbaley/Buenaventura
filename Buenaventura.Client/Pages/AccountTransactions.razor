@@ -1,5 +1,4 @@
 @page "/account/{accountId:guid}"
-@using System.ComponentModel.Design.Serialization
 @using Buenaventura.Client.Services
 @using Buenaventura.Dtos
 @using Buenaventura.Shared
@@ -32,36 +31,44 @@
         <MudTh Class="transaction-amount">Balance</MudTh>
     </HeaderContent>
     <RowTemplate>
-        @if (EditingTransaction == context)
+        @if (editingTransaction == context || newTransaction == context)
         {
             <MudTd DataLabel="Date" Class="mud-table-small-cell">
-                <MudTextField @bind-Value="@context.TransactionDate" Variant="Variant.Filled" Margin="Margin.Dense"
-                              OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                <MudTextField @bind-Value="@context.TransactionDate" Variant="@textVariant" T="DateTime"
+                              OnKeyDown="@(e => HandleKeyDown(e, context, true))" Typo="Typo.inherit"
                               Immediate="true"/>
             </MudTd>
             <MudTd DataLabel="Vendor" Class="mud-table-small-cell">
-                <MudTextField @bind-Value="@context.Vendor" Variant="Variant.Filled" Margin="Margin.Dense"
-                              Typo="Typo.inherit"/>
+                <MudTextField @bind-Value="@context.Vendor" Variant="@textVariant"
+                              OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                              Immediate="true"/>
             </MudTd>
             <MudTd DataLabel="Category" Class="mud-table-small-cell">
-                <MudTextField @bind-Value="@context.CategoryDisplay" Variant="Variant.Filled" Margin="Margin.Dense"
-                              Typo="Typo.inherit"/>
+                <MudTextField @bind-Value="@context.CategoryDisplay" Variant="@textVariant"
+                              OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                              Immediate="true"/>
             </MudTd>
             <MudTd DataLabel="Description" Class="mud-table-small-cell">
-                <MudTextField @bind-Value="@context.Description" Variant="Variant.Filled" Margin="Margin.Dense"
-                              Typo="Typo.inherit"/>
+                <MudTextField @bind-Value="@context.Description" Variant="@textVariant"
+                              OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                              Immediate="true"/>
             </MudTd>
             <MudTd DataLabel="Debit" Class="mud-table-small-cell align-right">
-                <MudTextField @bind-Value="@context.Debit" Variant="Variant.Filled" Margin="Margin.Dense"
-                              Typo="Typo.inherit"
-                              Style="text-align: right;"/>
+                <MudTextField @bind-Value="@context.DebitForEdit" Variant="@textVariant"
+                              OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                              Immediate="true"/>
             </MudTd>
             <MudTd DataLabel="Description" Class="mud-table-small-cell align-right">
-                <MudTextField @bind-Value="@context.Credit" Variant="Variant.Filled" Margin="Margin.Dense"
-                              Typo="Typo.inherit"/>
+                <MudTextField @bind-Value="@context.CreditForEdit" Variant="@textVariant"
+                              OnKeyDown="@(e => HandleKeyDown(e, context))"
+                              Typo="Typo.inherit"
+                />
             </MudTd>
             <MudTd DataLabel="Balance" Class="transaction-amount">
-                <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="(() => CancelEdit(context))" />
+                @if (editingTransaction == context)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="(() => CancelEdit(context))"/>
+                }
             </MudTd>
         }
         else
@@ -97,8 +104,14 @@
     private Guid previousAccountId;
     private bool loading = true;
     MudTable<TransactionForDisplay>? transactionTable;
-    private TransactionForDisplay? EditingTransaction { get; set; }
-    private TransactionForDisplay? TransactionBackup { get; set; }
+    private TransactionForDisplay? editingTransaction { get; set; }
+    private TransactionForDisplay? transactionBackup { get; set; }
+    private readonly Variant textVariant = Variant.Text;
+
+    private TransactionForDisplay newTransaction { get; set; } = new()
+    {
+        TransactionDate = DateTime.Today
+    };
 
 
     protected override async Task OnParametersSetAsync()
@@ -126,8 +139,10 @@
             return;
         }
 
-        EditingTransaction = transaction;
-        TransactionBackup = new TransactionForDisplay
+        editingTransaction = transaction;
+        editingTransaction.DebitForEdit = transaction.Debit?.ToString("N2") ?? "";
+        editingTransaction.CreditForEdit = transaction.Credit?.ToString("N2") ?? "";
+        transactionBackup = new TransactionForDisplay
         {
             TransactionDate = transaction.TransactionDate,
             Vendor = transaction.Vendor,
@@ -142,19 +157,19 @@
 
     private void CancelEdit(TransactionForDisplay transaction)
     {
-        if (TransactionBackup != null)
+        if (transactionBackup != null)
         {
-            transaction.TransactionDate = TransactionBackup.TransactionDate;
-            transaction.Vendor = TransactionBackup.Vendor;
-            transaction.CategoryDisplay = TransactionBackup.CategoryDisplay;
-            transaction.Description = TransactionBackup.Description;
-            transaction.Debit = TransactionBackup.Debit;
-            transaction.Credit = TransactionBackup.Credit;
-            transaction.RunningTotal = TransactionBackup.RunningTotal;
-            transaction.TransactionId = TransactionBackup.TransactionId;
+            transaction.TransactionDate = transactionBackup.TransactionDate;
+            transaction.Vendor = transactionBackup.Vendor;
+            transaction.CategoryDisplay = transactionBackup.CategoryDisplay;
+            transaction.Description = transactionBackup.Description;
+            transaction.Debit = transactionBackup.Debit;
+            transaction.Credit = transactionBackup.Credit;
+            transaction.RunningTotal = transactionBackup.RunningTotal;
+            transaction.TransactionId = transactionBackup.TransactionId;
 
-            EditingTransaction = null;
-            TransactionBackup = null;
+            editingTransaction = null;
+            transactionBackup = null;
         }
     }
 
@@ -173,17 +188,64 @@
         return new TableData<TransactionForDisplay>
         {
             TotalItems = transactions.TotalTransactionCount,
-            Items = transactions.Transactions,
+            Items = transactions.Transactions.ToList().Prepend(newTransaction)!
         };
     }
 
-    private void HandleKeyDown(KeyboardEventArgs args, TransactionForDisplay context)
+    private async Task HandleKeyDown(KeyboardEventArgs args, TransactionForDisplay context, bool isDateField = false)
     {
         if (args.Key == "Enter")
         {
-            EditingTransaction = null;
-            TransactionBackup = null;
+            await AddEditTransaction(context);
+            return;
         }
+
+        if (isDateField && args.Key == "ArrowUp")
+        {
+            context.TransactionDate = context.TransactionDate.AddDays(1);
+        }
+        else if (isDateField && args.Key == "ArrowDown")
+        {
+            context.TransactionDate = context.TransactionDate.AddDays(-1);
+        }
+    }
+
+    private async Task AddEditTransaction(TransactionForDisplay transaction)
+    {
+        Console.WriteLine(transaction.Credit);
+        if (decimal.TryParse(transaction.CreditForEdit, out var credit))
+        {
+            transaction.Credit = credit;
+        }
+        else
+        {
+            transaction.Credit = null;
+        }
+
+        if (decimal.TryParse(transaction.DebitForEdit, out var debit))
+        {
+            transaction.Debit = debit;
+        }
+        else
+        {
+            transaction.Debit = null;
+        }
+        if (transaction == newTransaction)
+        {
+            Console.WriteLine("New transaction");
+            await AccountService.AddTransaction(AccountId, transaction);
+            newTransaction = new TransactionForDisplay
+            {
+                TransactionDate = transaction.TransactionDate
+            };
+            return;
+        }
+
+        Console.WriteLine("existing transaction");
+
+        editingTransaction = null;
+        transactionBackup = null;
+        await AccountService.UpdateTransaction(transaction);
     }
 
 }

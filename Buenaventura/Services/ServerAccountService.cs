@@ -1,3 +1,4 @@
+using AutoMapper;
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Dtos;
@@ -8,7 +9,8 @@ namespace Buenaventura.Services;
 
 public class ServerAccountService(
     IDbContextFactory<CoronadoDbContext> dbContextFactory,
-    ITransactionRepository transactionRepo
+    ITransactionRepository transactionRepo,
+    IMapper mapper
 ) : IAccountService
 {
     public async Task<IEnumerable<AccountWithBalance>> GetAccounts()
@@ -69,5 +71,26 @@ public class ServerAccountService(
                 : account.Transactions.Sum(t => t.Amount),
         };
         return accountWithBalance;
+    }
+
+    public async Task UpdateTransaction(TransactionForDisplay transaction)
+    {
+        transaction.SetAmount();
+        await transactionRepo.Update(transaction);
+    }
+
+    public async Task AddTransaction(Guid accountId, TransactionForDisplay transaction)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        if (transaction.TransactionId == Guid.Empty) transaction.TransactionId = Guid.NewGuid();
+        transaction.AccountId = accountId;
+        transaction.SetAmount();
+        transaction.EnteredDate = DateTime.Now;
+        if (transaction.CategoryId.IsNullOrEmpty() && !string.IsNullOrWhiteSpace(transaction.CategoryName))
+        {
+            transaction.CategoryId = context.GetOrCreateCategory(transaction.CategoryName).GetAwaiter().GetResult().CategoryId;
+        }
+
+        await transactionRepo.Insert(transaction);
     }
 }

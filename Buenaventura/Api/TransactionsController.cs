@@ -50,27 +50,14 @@ public class TransactionsController(
         {
             return BadRequest();
         }
-
-        var originalAmount = (await transactionRepo.Get(transaction.TransactionId)).Amount;
         transaction.SetAmount();
         await transactionRepo.Update(transaction);
-        InvoiceForPosting? invoiceDto = null;
-        if (transaction.InvoiceId.HasValue)
-        {
-            var invoice = context.FindInvoiceEager(transaction.InvoiceId.Value);
-            invoiceDto = mapper.Map<InvoiceForPosting>(invoice);
-        }
-        return Ok(new { transaction, 
-            originalAmount, 
-            accountBalances = (await context.GetAccountBalances()).ToList(), 
-            invoiceDto 
-        });
+        return Ok(new { transaction });
     }
 
     [HttpPost]
     public async Task<IActionResult> PostTransaction([FromBody] TransactionForDisplay transaction)
     {
-        var transactions = new List<TransactionForDisplay>();
         if (transaction.TransactionId == Guid.Empty) transaction.TransactionId = Guid.NewGuid();
         transaction.AccountId ??= context.Accounts
             .Single(a => a.Name.Equals(transaction.AccountName, StringComparison.CurrentCultureIgnoreCase)).AccountId;
@@ -81,20 +68,9 @@ public class TransactionsController(
             transaction.CategoryId = context.GetOrCreateCategory(transaction.CategoryName).GetAwaiter().GetResult().CategoryId;
         }
 
-        var addedTransactions = await transactionRepo.Insert(transaction);
-        transactions.AddRange(addedTransactions.Select(mapper.Map<TransactionForDisplay>));
-        transactions.ForEach(t => t.SetDebitAndCredit());
+        await transactionRepo.Insert(transaction);
 
-        var accountBalances = (await context.GetAccountBalances()).ToList();
-        InvoiceForPosting? invoiceDto = null;
-        if (transaction.InvoiceId.HasValue)
-        {
-            var invoice = await context.FindInvoiceEager(transaction.InvoiceId.Value).ConfigureAwait(false);
-            invoiceDto = mapper.Map<InvoiceForPosting>(invoice);
-        }
-        var vendor = context.Vendors.SingleOrDefault(v => v.Name == transaction.Vendor);
-
-        return CreatedAtAction("PostTransaction", new { id = transaction.TransactionId }, new { transactions, accountBalances, invoiceDto, vendor });
+        return CreatedAtAction("PostTransaction", new { id = transaction.TransactionId });
     }
 
 }

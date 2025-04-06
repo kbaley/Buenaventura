@@ -10,7 +10,7 @@ public class Transaction
     [Key] public Guid TransactionId { get; set; }
 
     public Guid AccountId { get; set; }
-    [Required] public Account Account { get; set; } = new();
+    public Account? Account { get; set; }
     public string? Vendor { get; set; }
     public string Description { get; set; } = "";
 
@@ -19,12 +19,12 @@ public class Transaction
     public DateTime TransactionDate { get; set; }
     public Category Category { get; set; } = new();
     public Guid? CategoryId { get; set; }
-    public DateTime EnteredDate { get; set; } = DateTime.Now;
+    public DateTime EnteredDate { get; set; } = DateTime.UtcNow;
     public Guid? InvoiceId { get; set; }
-    public Invoice Invoice { get; set; } = new();
+    public Invoice? Invoice { get; set; }
     public TransactionType TransactionType { get; set; }
-    public Transfer LeftTransfer { get; set; } = new();
-    public Transfer RightTransfer { get; set; } = new();
+    public Transfer? LeftTransfer { get; set; }
+    public Transfer? RightTransfer { get; set; }
     public decimal AmountInBaseCurrency { get; set; }
     public string? DownloadId { get; set; }
     public Guid? DividendInvestmentId { get; set; }
