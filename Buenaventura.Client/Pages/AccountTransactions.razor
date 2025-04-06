@@ -121,10 +121,7 @@
             loading = true;
             Account = await AccountService.GetAccount(AccountId);
             searchString = string.Empty;
-            if (transactionTable != null)
-            {
-                await transactionTable.ReloadServerData();
-            }
+            await ReloadTransactions();
 
             loading = false;
             previousAccountId = AccountId;
@@ -176,10 +173,7 @@
     private async Task OnSearchChanged(string text)
     {
         searchString = text;
-        if (transactionTable != null)
-        {
-            await transactionTable.ReloadServerData();
-        }
+        await ReloadTransactions();
     }
 
     private async Task<TableData<TransactionForDisplay>> ServerReload(TableState state, CancellationToken token)
@@ -212,7 +206,6 @@
 
     private async Task AddEditTransaction(TransactionForDisplay transaction)
     {
-        Console.WriteLine(transaction.Credit);
         if (decimal.TryParse(transaction.CreditForEdit, out var credit))
         {
             transaction.Credit = credit;
@@ -238,14 +231,22 @@
             {
                 TransactionDate = transaction.TransactionDate
             };
+            await ReloadTransactions();
             return;
         }
-
-        Console.WriteLine("existing transaction");
 
         editingTransaction = null;
         transactionBackup = null;
         await AccountService.UpdateTransaction(transaction);
+        await ReloadTransactions();
+    }
+
+    private async Task ReloadTransactions()
+    {
+        if (transactionTable != null)
+        {
+            await transactionTable.ReloadServerData();
+        }
     }
 
 }

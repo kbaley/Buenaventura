@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
@@ -30,10 +31,6 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(typeof(ServerAccountService));
 var connectionString = builder.Configuration["ConnectionStrings:Buenaventura"];
-// builder.Services.AddDbContext<CoronadoDbContext>(options =>
-//     options
-//         .UseSnakeCaseNamingConvention()
-//         .UseNpgsql(connectionString));
 builder.Services.AddDbContextFactory<CoronadoDbContext>(options =>
     options
         .UseSnakeCaseNamingConvention()
