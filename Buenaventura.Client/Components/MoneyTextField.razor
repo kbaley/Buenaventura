@@ -13,7 +13,6 @@
 
     private async Task OnValueChanged(string input)
     {
-        Console.WriteLine($"Input: {input}");
         var rawDigits = new string(input.Where(char.IsDigit).ToArray());
         rawDigits = rawDigits.PadLeft(3, '0');
         var debitForEdit = "0.00";
@@ -22,7 +21,6 @@
             debitForEdit = parsedAmount.ToString("0.00");
         }
 
-        Console.WriteLine($"Parsed: {debitForEdit}");
         Value = debitForEdit;
 
         if (textField != null)
