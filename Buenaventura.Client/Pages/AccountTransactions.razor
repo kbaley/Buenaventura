@@ -1,8 +1,10 @@
 @page "/account/{accountId:guid}"
 @using Buenaventura.Shared
+@using Buenaventura.Client.Components
 
 <MudText Typo="Typo.h4" GutterBottom="true">@Account.Name</MudText>
 
+<MoneyTextField />
 <MudTable T="TransactionForDisplay" ServerData="ServerReload" Hover="true" Bordered="true" Striped="true" Dense="true"
           Loading="@loading" @ref="transactionTable" RowsPerPage="25" Elevation="6"
           OnRowClick="BeginEdit"
@@ -55,14 +57,13 @@
                               Immediate="true"/>
             </MudTd>
             <MudTd DataLabel="Debit" Class="mud-table-small-cell align-right">
-                <MudTextField @bind-Value="@context.DebitForEdit" Variant="@textVariant"
-                              OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
-                              Immediate="true"/>
+                <MoneyTextField @bind-Value="@context.DebitForEdit" Variant="@textVariant"
+                                OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                                />
             </MudTd>
-            <MudTd DataLabel="Description" Class="mud-table-small-cell align-right">
-                <MudTextField @bind-Value="@context.CreditForEdit" Variant="@textVariant"
-                              OnKeyDown="@(e => HandleKeyDown(e, context))"
-                              Typo="Typo.inherit" Immediate="true"
+            <MudTd DataLabel="Credit" Class="mud-table-small-cell align-right">
+                <MoneyTextField @bind-Value="@context.CreditForEdit" Variant="@textVariant"
+                                OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
                 />
             </MudTd>
             <MudTd DataLabel="Balance" Class="transaction-amount">

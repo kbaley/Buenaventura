@@ -12,6 +12,7 @@ public partial class AccountTransactions(
     IAccountService accountService,
     ICategoryService categoryService,
     IVendorService vendorService,
+    AccountSyncService accountSyncService,
     IJSRuntime jsRuntime)
 {
     [Parameter] public Guid AccountId { get; set; }
@@ -185,6 +186,7 @@ public partial class AccountTransactions(
                 TransactionDateForEdit = transaction.TransactionDate.ToString("MM/dd/yyyy")
             };
             await ReloadTransactions();
+            await accountSyncService.RefreshAccounts();
             await SetFocus();
             return;
         }
@@ -193,6 +195,7 @@ public partial class AccountTransactions(
         transactionBackup = null;
         await accountService.UpdateTransaction(transaction);
         await ReloadTransactions();
+        await accountSyncService.RefreshAccounts();
     }
 
     private async Task SetFocus()
@@ -241,6 +244,7 @@ public partial class AccountTransactions(
     {
         await accountService.DeleteTransaction(context.TransactionId);
         await ReloadTransactions();
+        await accountSyncService.RefreshAccounts();
     }
 
     private async Task CopyBalance(TransactionForDisplay context)

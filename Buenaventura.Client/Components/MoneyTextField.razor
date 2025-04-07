@@ -1,0 +1,38 @@
+<MudTextField T="string" ValueChanged="OnValueChanged" Value="@Value" Immediate="true" @ref="textField"
+              Variant="@Variant" Typo="@Typo" OnKeyDown="@OnKeyDown"
+/>
+
+@code {
+
+    private MudTextField<string>? textField;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    [Parameter] public Typo Typo { get; set; } = Typo.inherit;
+    [Parameter] public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
+    private async Task OnValueChanged(string input)
+    {
+        Console.WriteLine($"Input: {input}");
+        var rawDigits = new string(input.Where(char.IsDigit).ToArray());
+        rawDigits = rawDigits.PadLeft(3, '0');
+        var debitForEdit = "0.00";
+        if (decimal.TryParse(rawDigits.Insert(rawDigits.Length - 2, "."), out var parsedAmount))
+        {
+            debitForEdit = parsedAmount.ToString("0.00");
+        }
+
+        Console.WriteLine($"Parsed: {debitForEdit}");
+        Value = debitForEdit;
+
+        if (textField != null)
+        {
+            await textField!.SetText(debitForEdit);
+        }
+        if (ValueChanged.HasDelegate)
+        {
+            await ValueChanged.InvokeAsync(debitForEdit);
+        }
+    }
+
+}

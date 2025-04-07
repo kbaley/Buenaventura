@@ -72,6 +72,8 @@ builder.Services.AddScoped<IUserPasswordStore<User>, BuenaventuraUserStore>();
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddSingleton<AccountSyncService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -20,5 +20,7 @@ builder.Services.Scan(scan => scan
     .WithScopedLifetime());
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthenticationStateDeserialization();
+builder.Services
+    .AddSingleton<AccountSyncService>();
 
 await builder.Build().RunAsync();
