@@ -1,5 +1,5 @@
-﻿using Buenaventura.Data;
-using Buenaventura.Domain;
+﻿using Buenaventura.Client.Services;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,11 +8,11 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class VendorsController(CoronadoDbContext context) : ControllerBase
+public class VendorsController(IVendorService vendorService) : ControllerBase
 {
     [HttpGet]
-    public IEnumerable<Vendor> GetVendors()
+    public async Task<IEnumerable<VendorDto>> GetVendors()
     {
-        return context.Vendors;
+        return await vendorService.GetVendors();
     }
 }

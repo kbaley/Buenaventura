@@ -86,7 +86,7 @@ public class ServerAccountService(
         transaction.AccountId = accountId;
         transaction.SetAmount();
         transaction.EnteredDate = DateTime.UtcNow;
-        if (transaction.CategoryId.IsNullOrEmpty() && !string.IsNullOrWhiteSpace(transaction.CategoryDisplay))
+        if (!string.IsNullOrWhiteSpace(transaction.CategoryDisplay))
         {
             transaction.CategoryId = (await context.GetOrCreateCategory(transaction.CategoryDisplay)).CategoryId;
         }
