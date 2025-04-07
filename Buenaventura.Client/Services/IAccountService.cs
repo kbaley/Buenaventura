@@ -11,6 +11,7 @@ public interface IAccountService : IAppService
      Task<AccountWithBalance> GetAccount(Guid id);
      Task UpdateTransaction(TransactionForDisplay transaction);
      Task AddTransaction(Guid accountId, TransactionForDisplay transaction);
+     Task DeleteTransaction(Guid transactionId);
 }
 
 public class ClientAccountService(HttpClient httpClient) : IAccountService
@@ -51,6 +52,17 @@ public class ClientAccountService(HttpClient httpClient) : IAccountService
     {
         var url = $"api/accounts/{accountId}/transactions";
         var result = await httpClient.PostAsJsonAsync(url, transaction);
+        if (result.IsSuccessStatusCode)
+        {
+            return;
+        }
+        throw new Exception(result.ReasonPhrase);
+    }
+
+    public async Task DeleteTransaction(Guid transactionId)
+    {
+        var url = $"api/transactions/{transactionId}";
+        var result = await httpClient.DeleteAsync(url);
         if (result.IsSuccessStatusCode)
         {
             return;

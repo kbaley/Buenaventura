@@ -3,6 +3,8 @@
 @using Buenaventura.Dtos
 @using Buenaventura.Shared
 @inject IAccountService AccountService
+@inject ICategoryService CategoryService
+@inject IJSRuntime JS
 
 <MudText Typo="Typo.h4" GutterBottom="true">@Account.Name</MudText>
 
@@ -37,7 +39,7 @@
                 <MudTextField @bind-Value="@context.TransactionDateForEdit" Variant="@textVariant"
                               OnKeyDown="@(e => HandleKeyDown(e, context, true))" Typo="Typo.inherit"
                               Immediate="true" @ref="@transactionDateField"
-                              />
+                />
             </MudTd>
             <MudTd DataLabel="Vendor" Class="mud-table-small-cell">
                 <MudTextField @bind-Value="@context.Vendor" Variant="@textVariant"
@@ -45,9 +47,10 @@
                               Immediate="true"/>
             </MudTd>
             <MudTd DataLabel="Category" Class="mud-table-small-cell">
-                <MudTextField @bind-Value="@context.CategoryDisplay" Variant="@textVariant"
-                              OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
-                              Immediate="true"/>
+                <MudAutocomplete @bind-Value="@context.CategoryDisplay" Variant="@textVariant"
+                                 ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true"
+                                 SearchFunc="SearchCategories" Adornment="Adornment.None"/>
+
             </MudTd>
             <MudTd DataLabel="Description" Class="mud-table-small-cell">
                 <MudTextField @bind-Value="@context.Description" Variant="@textVariant"
@@ -81,14 +84,24 @@
             <MudTd DataLabel="Debit" Class="transaction-amount">@context.Debit?.ToString("N2")</MudTd>
             <MudTd DataLabel="Credit" Class="transaction-amount">@context.Credit?.ToString("N2")</MudTd>
             <MudTd DataLabel="Balance" Class="transaction-amount">
-                @if (string.IsNullOrEmpty(searchString))
-                {
-                    @context.RunningTotal.ToString("N2")
-                }
-                else
-                {
-                    <span>--</span>
-                }
+                <div class="row-with-actions">
+                    <div class="hover-row-content">
+                    @if (string.IsNullOrEmpty(searchString))
+                    {
+                        @context.RunningTotal.ToString("N2")
+                    }
+                    else
+                    {
+                        <span>--</span>
+                    }
+                    </div>
+                    <div class="action-buttons">
+                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                                       OnClick="@(() => CopyBalance(context))"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       OnClick="@(() => DeleteTransaction(context))"/>
+                    </div>
+                </div>
             </MudTd>
         }
     </RowTemplate>
@@ -109,6 +122,14 @@
     private TransactionForDisplay? transactionBackup { get; set; }
     private readonly Variant textVariant = Variant.Text;
     private MudTextField<string>? transactionDateField;
+    private IEnumerable<CategoryDto> categories { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        categories = await CategoryService.GetCategories();
+    }
 
     private TransactionForDisplay newTransaction { get; set; } = new()
     {
@@ -187,7 +208,7 @@
         return new TableData<TransactionForDisplay>
         {
             TotalItems = transactions.TotalTransactionCount,
-            Items = transactions.Transactions.ToList().Prepend(newTransaction)!
+            Items = transactions.Transactions.ToList().Prepend(newTransaction)
         };
     }
 
@@ -230,7 +251,7 @@
         {
             transaction.Debit = null;
         }
-        
+
         if (DateTime.TryParse(transaction.TransactionDateForEdit, out var date))
         {
             transaction.TransactionDate = date;
@@ -239,7 +260,7 @@
         {
             transaction.TransactionDate = DateTime.Today;
         }
-        
+
         if (transaction == newTransaction)
         {
             await AccountService.AddTransaction(AccountId, transaction);
@@ -258,7 +279,7 @@
         await AccountService.UpdateTransaction(transaction);
         await ReloadTransactions();
     }
-    
+
     private async Task SetFocus()
     {
         if (transactionDateField != null)
@@ -273,6 +294,30 @@
         {
             await transactionTable.ReloadServerData();
         }
+    }
+
+    private Task<IEnumerable<string>> SearchCategories(string? search, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+        }
+
+        var searchLower = search.ToLower();
+        return Task.FromResult(categories
+            .Where(c => c.Name.ToLower().Contains(searchLower, StringComparison.CurrentCultureIgnoreCase))
+            .Select(c => c.Name));
+    }
+
+    private async Task DeleteTransaction(TransactionForDisplay context)
+    {
+         await AccountService.DeleteTransaction(context.TransactionId);
+         await ReloadTransactions();
+    }
+
+    private async Task CopyBalance(TransactionForDisplay context)
+    {
+        await JS.InvokeVoidAsync("copyToClipboard", context.RunningTotal.ToString("N2"));
     }
 
 }

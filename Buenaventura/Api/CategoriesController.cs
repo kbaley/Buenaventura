@@ -1,5 +1,7 @@
-﻿using Buenaventura.Data;
+﻿using Buenaventura.Client.Services;
+using Buenaventura.Data;
 using Buenaventura.Domain;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +11,12 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class CategoriesController(CoronadoDbContext context) : ControllerBase
+public class CategoriesController(CoronadoDbContext context, ICategoryService categoryService) : ControllerBase
 {
     [HttpGet]
-    public IEnumerable<Category> GetCategory()
+    public async Task<IEnumerable<CategoryDto>> GetCategory()
     {
-        return context.Categories.OrderBy(c => c.Name);
+        return await categoryService.GetCategories();
     }
 
     [HttpPut("{id}")]

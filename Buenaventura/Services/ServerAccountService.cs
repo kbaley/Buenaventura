@@ -85,12 +85,28 @@ public class ServerAccountService(
         if (transaction.TransactionId == Guid.Empty) transaction.TransactionId = Guid.NewGuid();
         transaction.AccountId = accountId;
         transaction.SetAmount();
-        transaction.EnteredDate = DateTime.Now;
-        if (transaction.CategoryId.IsNullOrEmpty() && !string.IsNullOrWhiteSpace(transaction.CategoryName))
+        transaction.EnteredDate = DateTime.UtcNow;
+        if (transaction.CategoryId.IsNullOrEmpty() && !string.IsNullOrWhiteSpace(transaction.CategoryDisplay))
         {
-            transaction.CategoryId = context.GetOrCreateCategory(transaction.CategoryName).GetAwaiter().GetResult().CategoryId;
+            transaction.CategoryId = (await context.GetOrCreateCategory(transaction.CategoryDisplay)).CategoryId;
         }
 
         await transactionRepo.Insert(transaction);
+    }
+
+    public async Task DeleteTransaction(Guid transactionId)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var transaction = await transactionRepo.Get(transactionId);
+        if (transaction.InvoiceId.HasValue)
+        {
+            var invoice = await context.Invoices.FindAsync(transaction.InvoiceId.Value);
+            if (invoice != null)
+            {
+                await context.Entry(invoice).Collection(i => i.LineItems).LoadAsync();
+                await context.Entry(invoice).Reference(i => i.Customer).LoadAsync();
+            }
+        }
+        await transactionRepo.Delete(transactionId);
     }
 }

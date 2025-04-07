@@ -75,7 +75,12 @@ namespace Buenaventura.Data
             dbTransaction.InvoiceId = transaction.InvoiceId;
             dbTransaction.TransactionDate = DateTime.SpecifyKind(transaction.TransactionDate, DateTimeKind.Utc);
             if (transaction.CategoryId.HasValue)
+            {
                 dbTransaction.CategoryId = transaction.CategoryId;
+            } else if (!string.IsNullOrWhiteSpace(transaction.CategoryDisplay))
+            {
+                dbTransaction.CategoryId = (await context.GetOrCreateCategory(transaction.CategoryDisplay)).CategoryId;
+            }
 
             await UpdateAmount(dbTransaction, transaction);
 
