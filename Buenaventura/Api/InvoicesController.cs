@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Dtos;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,16 +13,14 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class InvoicesController(CoronadoDbContext context, IMapper mapper) : ControllerBase
+public class InvoicesController(
+    IInvoiceService invoiceService,
+    CoronadoDbContext context, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    public IEnumerable<InvoiceForPosting> GetInvoices()
+    public async Task<IEnumerable<InvoiceAsCategory>> GetInvoices([FromQuery] string type)
     {
-        var invoices = context.Invoices
-            .Include(i => i.Customer)
-            .Include(i => i.LineItems)
-            .ToArray();
-        return mapper.Map<Invoice[], IEnumerable<InvoiceForPosting>>(invoices);
+        return await invoiceService.GetInvoicesForTransactionCategories();
     }
 
     [HttpPut("{id}")]

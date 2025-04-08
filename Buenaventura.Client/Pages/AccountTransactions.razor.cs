@@ -13,6 +13,7 @@ public partial class AccountTransactions(
     ICategoryService categoryService,
     IVendorService vendorService,
     AccountSyncService accountSyncService,
+    IInvoiceService invoiceService,
     IJSRuntime jsRuntime)
 {
     [Parameter] public Guid AccountId { get; set; }
@@ -33,7 +34,18 @@ public partial class AccountTransactions(
     {
         await base.OnInitializedAsync();
 
-        categories = await categoryService.GetCategories();
+        categories = (await categoryService.GetCategories()).ToList();
+        var invoices = await invoiceService.GetInvoicesForTransactionCategories();
+        foreach (var invoice in invoices)
+        {
+            categories = categories.Append(new CategoryDto
+            {
+                CategoryId = Guid.Empty,
+                Name = $"PAYMENT: {invoice.InvoiceNumber} ({invoice.CustomerName} - ${invoice.Balance:N2}",
+                Type = "INVOICE_PAYMENT",
+                InvoiceId = invoice.InvoiceId
+            });
+        }
         vendors = await vendorService.GetVendors();
     }
 
