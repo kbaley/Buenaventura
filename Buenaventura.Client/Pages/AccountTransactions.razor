@@ -4,7 +4,7 @@
 
 <MudText Typo="Typo.h4" GutterBottom="true">@Account.Name</MudText>
 
-<MoneyTextField />
+<MoneyTextField/>
 <MudTable T="TransactionForDisplay" ServerData="ServerReload" Hover="true" Bordered="true" Striped="true" Dense="true"
           Loading="@loading" @ref="transactionTable" RowsPerPage="25" Elevation="6"
           OnRowClick="BeginEdit"
@@ -46,11 +46,14 @@
                                  SearchFunc="SearchVendors" Adornment="Adornment.None"/>
             </MudTd>
             <MudTd DataLabel="Category" Class="mud-table-small-cell">
-                <MudAutocomplete @bind-Value="@context.CategoryDisplay" Variant="@textVariant"
-                                 ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true"
-                                 Typo="Typo.inherit"
-                                 RelativeWidth="DropdownWidth.Adaptive"
-                                 SearchFunc="SearchCategories" Adornment="Adornment.None"/>
+                <MudAutocomplete
+                    T="CategoryDto"
+                    @bind-Value="@context.Category" Variant="@textVariant"
+                    ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true"
+                    Typo="Typo.inherit"
+                    ToStringFunc="@(cat => cat?.Name)"
+                    RelativeWidth="DropdownWidth.Adaptive"
+                    SearchFunc="SearchCategories" Adornment="Adornment.None"/>
 
             </MudTd>
             <MudTd DataLabel="Description" Class="mud-table-small-cell">
@@ -61,7 +64,7 @@
             <MudTd DataLabel="Debit" Class="mud-table-small-cell align-right">
                 <MoneyTextField @bind-Value="@context.DebitForEdit" Variant="@textVariant"
                                 OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
-                                />
+                />
             </MudTd>
             <MudTd DataLabel="Credit" Class="mud-table-small-cell align-right">
                 <MoneyTextField @bind-Value="@context.CreditForEdit" Variant="@textVariant"
@@ -79,7 +82,7 @@
         {
             <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
             <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-            <MudTd DataLabel="Category">@context.CategoryDisplay</MudTd>
+            <MudTd DataLabel="Category">@context.Category.Name</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="Debit" Class="transaction-amount">@context.Debit?.ToString("N2")</MudTd>
             <MudTd DataLabel="Credit" Class="transaction-amount">@context.Credit?.ToString("N2")</MudTd>

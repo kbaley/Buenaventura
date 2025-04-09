@@ -9,3 +9,14 @@ public enum TransactionType
     MORTGAGE_PAYMENT,
     DIVIDEND,
 }
+
+public enum CategoryType
+{
+    REGULAR,
+    TRANSFER,
+    INVOICE_PAYMENT,
+    INVESTMENT,
+    MORTGAGE_PAYMENT,
+    DIVIDEND,
+    FREEFORM
+}

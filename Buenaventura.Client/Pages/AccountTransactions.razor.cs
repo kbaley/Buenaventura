@@ -27,7 +27,9 @@ public partial class AccountTransactions(
     private TransactionForDisplay? transactionBackup { get; set; }
     private readonly Variant textVariant = Variant.Text;
     private MudTextField<string>? transactionDateField;
+
     private List<CategoryDto> categories { get; set; } = [];
+
     // List of categories not including the accounts for transfers
     private IEnumerable<CategoryDto> masterCategoryList { get; set; } = [];
     private IEnumerable<VendorDto> vendors { get; set; } = [];
@@ -46,7 +48,7 @@ public partial class AccountTransactions(
                 CategoryId = Guid.Empty,
                 Name = $"PAYMENT: {invoice.InvoiceNumber} ({invoice.CustomerName} - ${invoice.Balance:N2}",
                 InvoiceId = invoice.InvoiceId,
-                TransactionType = TransactionType.INVOICE_PAYMENT
+                Type = CategoryType.INVOICE_PAYMENT
             });
         }
 
@@ -77,9 +79,8 @@ public partial class AccountTransactions(
                 {
                     CategoryId = Guid.Empty,
                     Name = $"TRANSFER: {account.Name}",
-                    TransactionType = TransactionType.TRANSFER,
+                    Type = CategoryType.TRANSFER,
                     TransferAccountId = account.AccountId,
-                    Type = "Transfer"
                 });
             }
 
@@ -104,7 +105,7 @@ public partial class AccountTransactions(
         {
             TransactionDate = transaction.TransactionDate,
             Vendor = transaction.Vendor,
-            CategoryDisplay = transaction.CategoryDisplay,
+            Category = transaction.Category,
             Description = transaction.Description,
             Debit = transaction.Debit,
             Credit = transaction.Credit,
@@ -120,7 +121,7 @@ public partial class AccountTransactions(
             transaction.TransactionDate = transactionBackup.TransactionDate;
             transaction.TransactionDateForEdit = transactionBackup.TransactionDate.ToString("MM/dd/yyyy");
             transaction.Vendor = transactionBackup.Vendor;
-            transaction.CategoryDisplay = transactionBackup.CategoryDisplay;
+            transaction.Category = transactionBackup.Category;
             transaction.Description = transactionBackup.Description;
             transaction.Debit = transactionBackup.Debit;
             transaction.Credit = transactionBackup.Credit;
@@ -245,17 +246,16 @@ public partial class AccountTransactions(
         }
     }
 
-    private Task<IEnumerable<string>> SearchCategories(string? search, CancellationToken token)
+    private Task<IEnumerable<CategoryDto>> SearchCategories(string? search, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(search))
         {
-            return Task.FromResult<IEnumerable<string>>(Array.Empty<string>());
+            return Task.FromResult<IEnumerable<CategoryDto>>(Array.Empty<CategoryDto>());
         }
 
         var searchLower = search.ToLower();
         return Task.FromResult(categories
-            .Where(c => c.Name.ToLower().Contains(searchLower, StringComparison.CurrentCultureIgnoreCase))
-            .Select(c => c.Name));
+            .Where(c => c.Name.ToLower().Contains(searchLower, StringComparison.CurrentCultureIgnoreCase)));
     }
 
     private Task<IEnumerable<string>> SearchVendors(string? search, CancellationToken token)
@@ -305,6 +305,6 @@ public partial class AccountTransactions(
             return;
         }
 
-        context.CategoryDisplay = category.Name;
+        context.Category = category;
     }
 }

@@ -16,7 +16,7 @@ public class MappingProfile : Profile
             .ReverseMap();  
         CreateMap<Investment, InvestmentForUpdateDto>().ReverseMap();
         CreateMap<InvestmentTransaction, InvestmentTransactionDto>()
-            .ForMember(i => i.SourceAccountName, opt => opt.MapFrom(src => src.Transaction.Account.Name))
+            .ForMember(i => i.SourceAccountName, opt => opt.MapFrom(src => src.Transaction.Account!.Name))
             .ReverseMap();
         CreateMap<InvoiceLineItem, InvoiceLineItemsForPosting>()
             .ReverseMap();
@@ -26,9 +26,6 @@ public class MappingProfile : Profile
             .ReverseMap()
             .ForMember(dest => dest.Customer, opt => opt.Ignore());
         CreateMap<Account, AccountForPosting>().ReverseMap();
-        CreateMap<Transaction, TransactionForDisplay>()
-            .ForMember(t => t.CategoryDisplay, opt => opt.MapFrom(src => src.GetCategoryDisplay()))
-            .ReverseMap();
         CreateMap<Investment, InvestmentDetailDto>()
             .ForMember(i => i.Dividends, opt => opt.Ignore())
             .ForMember(i => i.AveragePrice, opt => opt.MapFrom(src => Math.Round(src.GetAveragePricePaid(), 2)))

@@ -155,7 +155,7 @@ public class TransactionParser(CoronadoDbContext context)
                                 var relatedAccountName = trx.Vendor.Replace("Transfer : ", "");
                                 var relatedAccount = context.Accounts.Single(a => a.Name == relatedAccountName);
                                 trx.TransactionType = TransactionType.TRANSFER;
-                                trx.RelatedAccountId = relatedAccount.AccountId;
+                                trx.Category.TransferAccountId = relatedAccount.AccountId;
                                 trx.Vendor = "";
                             }
                             trx.SetDebitAndCredit();
@@ -184,7 +184,7 @@ public class TransactionParser(CoronadoDbContext context)
                             .Replace("Everyday Expenses:", "")
                             .Replace("Rainy Day Funds:", "")
                             .Replace("Monthly Bills:", "");
-                        trx.CategoryId = context.GetOrCreateCategory(category).GetAwaiter().GetResult().CategoryId;
+                        trx.Category.CategoryId = context.GetOrCreateCategory(category).GetAwaiter().GetResult().CategoryId;
                         break;
                     case 'M':
                         trx.Description = line.Substring(1);

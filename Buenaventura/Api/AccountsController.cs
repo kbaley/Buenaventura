@@ -114,7 +114,7 @@ public class AccountsController(
         {
             AccountId = mappedAccount.AccountId,
             Name = mappedAccount.Name,
-            Transactions = new List<TransactionForDisplay>([mapper.Map<TransactionForDisplay>(transaction)]),
+            Transactions = new List<TransactionForDisplay>([transaction.ToDto()]),
             CurrentBalance = account.StartingBalance
         };
         await context.SaveChangesAsync().ConfigureAwait(false);

@@ -71,27 +71,42 @@ public static class DbContextExtensions
         return Irr.CalculateIrr(payments.ToArray(), days.ToArray());
     }
 
-    public async static Task<Category> GetOrCreateCategory(this CoronadoDbContext context, string newCategoryName)
+    public static async Task<Category> GetOrCreateCategory(this CoronadoDbContext context, string name)
     {
-        var categories = await context.Categories.ToListAsync().ConfigureAwait(false);
-        var category = categories
-            .SingleOrDefault(c => c.Name.Equals(newCategoryName, StringComparison.CurrentCultureIgnoreCase));
-        if (category == null)
+        var category = await context.Categories.SingleOrDefaultAsync(c => c.Name == name);
+        if (category != null)
         {
-            category = new Category
-            {
-                CategoryId = Guid.NewGuid(),
-                Name = newCategoryName,
-                Type = "Expense"
-            };
-            await context.Categories.AddAsync(category).ConfigureAwait(false);
-            await context.SaveChangesAsync();
+            return category;
         }
 
+        category = new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = name,
+            Type = "Expense"
+        };
+        await context.Categories.AddAsync(category).ConfigureAwait(false);
+        await context.SaveChangesAsync();
         return category;
     }
 
-    public async static Task RemoveByIdAsync<T>(this DbSet<T> items, Guid id) where T : class
+    public static async Task<Category?> GetOrCreateCategory(this CoronadoDbContext context, CategoryDto categoryDto)
+    {
+        var categories = await context.Categories.ToListAsync().ConfigureAwait(false);
+        if (categoryDto is { Type: CategoryType.REGULAR, CategoryId: not null })
+        {
+            return categories.Single(c => c.CategoryId == categoryDto.CategoryId);
+        }
+
+        if (categoryDto.Type == CategoryType.FREEFORM)
+        {
+            return await GetOrCreateCategory(context, categoryDto.Name);
+        }
+
+        return null;
+    }
+
+    public static async Task RemoveByIdAsync<T>(this DbSet<T> items, Guid id) where T : class
     {
         var item = await items.FindAsync(id).ConfigureAwait(false);
         items.Remove(item);

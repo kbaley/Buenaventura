@@ -13,12 +13,12 @@ public static class DomainExtensions
             AccountId = transaction.AccountId!.Value,
             TransactionDate = DateTime.SpecifyKind(transaction.TransactionDate, DateTimeKind.Utc),
             TransactionType = transaction.TransactionType,
-            CategoryId = transaction.CategoryId,
+            CategoryId = transaction.Category.CategoryId,
             Vendor = transaction.Vendor,
             Description = transaction.Description,
             Amount = transaction.Amount,
             IsReconciled = transaction.IsReconciled,
-            InvoiceId = transaction.InvoiceId,
+            InvoiceId = transaction.Category.InvoiceId,
             AmountInBaseCurrency = transaction.AmountInBaseCurrency,
             DownloadId = transaction.DownloadId
         };

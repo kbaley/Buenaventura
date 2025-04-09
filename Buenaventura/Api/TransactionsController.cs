@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Buenaventura.Client.Services;
+﻿using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
@@ -13,8 +12,7 @@ namespace Buenaventura.Api;
 public class TransactionsController(
     CoronadoDbContext context,
     ITransactionRepository transactionRepo,
-    IAccountService accountService,
-    IMapper mapper)
+    IAccountService accountService)
     : ControllerBase
 {
     [HttpDelete("{id}")]

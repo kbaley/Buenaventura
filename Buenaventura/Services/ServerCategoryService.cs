@@ -17,8 +17,7 @@ public class ServerCategoryService(
         {
             CategoryId = c.CategoryId,
             Name = c.Name,
-            Type = c.Type,
-            ParentCategoryId = c.ParentCategoryId
+            Type = CategoryType.REGULAR
         });
     }
 }

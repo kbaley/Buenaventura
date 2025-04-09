@@ -243,9 +243,11 @@ namespace Buenaventura.Api
                     TransactionId = Guid.NewGuid(),
                     AccountId = investmentAccount.AccountId,
                     Amount = difference,
-                    CategoryId = category.CategoryId,
-                    CategoryName = category.Name,
-                    CategoryDisplay = category.Name,
+                    Category = new CategoryDto
+                    {
+                        CategoryId = category.CategoryId,
+                        Name = category.Name,
+                    },
                     TransactionDate = DateTime.Now,
                     EnteredDate = DateTime.Now,
                     Description = ""

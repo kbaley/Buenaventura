@@ -17,7 +17,7 @@ public class Transaction
     public decimal Amount { get; set; }
     public bool IsReconciled { get; set; }
     public DateTime TransactionDate { get; set; }
-    public Category Category { get; set; } = new();
+    public Category? Category { get; set; }
     public Guid? CategoryId { get; set; }
     public DateTime EnteredDate { get; set; } = DateTime.UtcNow;
     public Guid? InvoiceId { get; set; }
@@ -37,7 +37,7 @@ public class Transaction
             TransactionType.INVOICE_PAYMENT => Invoice == null ? "PAYMENT" : "PAYMENT: " + Invoice.InvoiceNumber,
             TransactionType.TRANSFER => LeftTransfer == null
                 ? "TRANSFER"
-                : "TRANSFER: " + LeftTransfer.RightTransaction.Account.Name,
+                : "TRANSFER: " + LeftTransfer.RightTransaction!.Account!.Name,
             TransactionType.INVESTMENT => "INVESTMENT",
             TransactionType.DIVIDEND => Category == null ? "DIVIDEND" : Category.Name,
             _ => "",
