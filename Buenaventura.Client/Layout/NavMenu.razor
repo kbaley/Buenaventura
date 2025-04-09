@@ -1,7 +1,4 @@
-﻿@using Buenaventura.Client.Services
-@using Buenaventura.Shared
-@inject IAccountService accountService
-@inject AccountSyncService accountSyncService
+﻿@using Buenaventura.Shared
 
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
@@ -22,20 +19,7 @@
 </MudNavMenu>
 
 @code {
-    private IEnumerable<AccountWithBalance> accounts = [];
-
-    protected override async Task OnInitializedAsync()
-    {
-        accounts = await accountService.GetAccounts();
-        accountSyncService.OnAccountsUpdated += OnAccountsUpdated; 
-        await base.OnInitializedAsync();
-    }
-
-    private async Task OnAccountsUpdated()
-    {
-        accounts = await accountService.GetAccounts();
-        StateHasChanged();
-    }
+    [CascadingParameter] public IEnumerable<AccountWithBalance> accounts { get; set; } = [];
 
     private string? GetIcon(string accountType)
     {

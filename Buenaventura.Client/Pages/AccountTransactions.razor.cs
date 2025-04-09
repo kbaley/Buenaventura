@@ -27,25 +27,30 @@ public partial class AccountTransactions(
     private TransactionForDisplay? transactionBackup { get; set; }
     private readonly Variant textVariant = Variant.Text;
     private MudTextField<string>? transactionDateField;
-    private IEnumerable<CategoryDto> categories { get; set; } = [];
+    private List<CategoryDto> categories { get; set; } = [];
+    // List of categories not including the accounts for transfers
+    private IEnumerable<CategoryDto> masterCategoryList { get; set; } = [];
     private IEnumerable<VendorDto> vendors { get; set; } = [];
+    [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        categories = (await categoryService.GetCategories()).ToList();
+        masterCategoryList = (await categoryService.GetCategories()).ToList();
         var invoices = await invoiceService.GetInvoicesForTransactionCategories();
         foreach (var invoice in invoices)
         {
-            categories = categories.Append(new CategoryDto
+            masterCategoryList = masterCategoryList.Append(new CategoryDto
             {
                 CategoryId = Guid.Empty,
                 Name = $"PAYMENT: {invoice.InvoiceNumber} ({invoice.CustomerName} - ${invoice.Balance:N2}",
-                Type = "INVOICE_PAYMENT",
-                InvoiceId = invoice.InvoiceId
+                InvoiceId = invoice.InvoiceId,
+                TransactionType = TransactionType.INVOICE_PAYMENT
             });
         }
+
+        categories = masterCategoryList.ToList();
         vendors = await vendorService.GetVendors();
     }
 
@@ -63,6 +68,20 @@ public partial class AccountTransactions(
             Account = await accountService.GetAccount(AccountId);
             searchString = string.Empty;
             await ReloadTransactions();
+            categories = [];
+            categories.AddRange(masterCategoryList);
+            foreach (var account in accounts.Where(
+                         a => a.AccountId != AccountId && a.IsHidden == false))
+            {
+                categories.Add(new CategoryDto
+                {
+                    CategoryId = Guid.Empty,
+                    Name = $"TRANSFER: {account.Name}",
+                    TransactionType = TransactionType.TRANSFER,
+                    TransferAccountId = account.AccountId,
+                    Type = "Transfer"
+                });
+            }
 
             loading = false;
             previousAccountId = AccountId;

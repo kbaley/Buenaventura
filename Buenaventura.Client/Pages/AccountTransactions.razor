@@ -42,12 +42,14 @@
                 <MudAutocomplete Value="@context.Vendor" Variant="@textVariant" T="string"
                                  ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true"
                                  Typo="Typo.inherit" ValueChanged="@(vendor => FindCategoryForVendor(vendor, context))"
+                                 RelativeWidth="DropdownWidth.Adaptive"
                                  SearchFunc="SearchVendors" Adornment="Adornment.None"/>
             </MudTd>
             <MudTd DataLabel="Category" Class="mud-table-small-cell">
                 <MudAutocomplete @bind-Value="@context.CategoryDisplay" Variant="@textVariant"
                                  ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true"
                                  Typo="Typo.inherit"
+                                 RelativeWidth="DropdownWidth.Adaptive"
                                  SearchFunc="SearchCategories" Adornment="Adornment.None"/>
 
             </MudTd>

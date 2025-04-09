@@ -1,43 +1,49 @@
-﻿@inherits LayoutComponentBase
+﻿@using Buenaventura.Client.Services
+@using Buenaventura.Shared
+@inherits LayoutComponentBase
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
+@inject AccountSyncService accountSyncService
+@inject IAccountService accountService
 
 <MudThemeProvider @ref="@mudThemeProvider" Theme="@theme" @bind-IsDarkMode="isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
-<MudLayout>
-    <MudAppBar Elevation="25">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
-                       OnClick="@((e) => DrawerToggle())"/>
-        <MudImage Class="ml-3" Src="images/logo-horizontal-light.png" Height="35" />
-        <MudSpacer/>
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
-        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" >
-            <MudMenuItem Icon="@Icons.Material.Filled.Person" IconColor="Color.Primary" Label="Profile"/>
-            <MudMenuItem Icon="@Icons.Material.Filled.Logout"
-                         OnClick="Logout"
-                         IconColor="Color.Primary" Label="Logout"/>
-        </MudMenu>
-        <form action="Account/Logout" method="post">
-            <AntiforgeryToken/>
-            <input type="hidden" name="ReturnUrl" value=""/>
-            <button type="submit" class="nav-link">
-                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-            </button>
-        </form>
-    </MudAppBar>
-    <MudDrawer id="nav-drawer" @bind-Open="drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="7" Width="350px">
-        <NavMenu/>
-    </MudDrawer>
-    <MudMainContent Class="pt-16 pa-4">
-        <MudContainer Class="pt-6" Gutters="false">
-            <CascadingAuthenticationState>
-                @Body
-            </CascadingAuthenticationState>
-        </MudContainer>
-    </MudMainContent>
-</MudLayout>
+<CascadingValue Value="accounts">
+    <MudLayout>
+        <MudAppBar Elevation="25">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                           OnClick="@((e) => DrawerToggle())"/>
+            <MudImage Class="ml-3" Src="images/logo-horizontal-light.png" Height="35"/>
+            <MudSpacer/>
+            <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit">
+                <MudMenuItem Icon="@Icons.Material.Filled.Person" IconColor="Color.Primary" Label="Profile"/>
+                <MudMenuItem Icon="@Icons.Material.Filled.Logout"
+                             OnClick="Logout"
+                             IconColor="Color.Primary" Label="Logout"/>
+            </MudMenu>
+            <form action="Account/Logout" method="post">
+                <AntiforgeryToken/>
+                <input type="hidden" name="ReturnUrl" value=""/>
+                <button type="submit" class="nav-link">
+                    <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                </button>
+            </form>
+        </MudAppBar>
+        <MudDrawer id="nav-drawer" @bind-Open="drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="7" Width="350px">
+            <NavMenu/>
+        </MudDrawer>
+        <MudMainContent Class="pt-16 pa-4">
+            <MudContainer Class="pt-6" Gutters="false">
+                <CascadingAuthenticationState>
+                    @Body
+                </CascadingAuthenticationState>
+            </MudContainer>
+        </MudMainContent>
+    </MudLayout>
+</CascadingValue>
 
 <form id="logoutForm" method="post" action="Account/Logout">
     <AntiforgeryToken/>
@@ -58,10 +64,20 @@
     private MudTheme? theme;
     private string? currentUrl;
     private MudThemeProvider? mudThemeProvider;
+    private IEnumerable<AccountWithBalance> accounts = [];
+
+    private async Task OnAccountsUpdated()
+    {
+        accounts = await accountService.GetAccounts();
+        StateHasChanged();
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        accounts = await accountService.GetAccounts();
+        accountSyncService.OnAccountsUpdated += OnAccountsUpdated;
 
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;

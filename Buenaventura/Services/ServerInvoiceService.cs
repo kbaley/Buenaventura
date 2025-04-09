@@ -14,7 +14,7 @@ public class ServerInvoiceService(
         var context = await dbContextFactory.CreateDbContextAsync();
         var invoices = await context.Invoices
             .Include(i => i.Customer)
-            .Where(i => i.IsPaidInFull == false)
+            .Where(i => i.Balance > 0)
             .ToListAsync();
         return invoices.Select(i => new InvoiceAsCategory
         {
