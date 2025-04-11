@@ -75,19 +75,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-        accounts = await accountService.GetAccounts();
-        accountSyncService.OnAccountsUpdated += OnAccountsUpdated;
-
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        NavigationManager.LocationChanged += OnLocationChanged;
         theme = new MudTheme
         {
             PaletteLight = Themes.Light(),
             PaletteDark = Themes.Dark(),
             LayoutProperties = new LayoutProperties()
         };
-        StateHasChanged();
+        await base.OnInitializedAsync();
+        accounts = await accountService.GetAccounts();
+        accountSyncService.OnAccountsUpdated += OnAccountsUpdated;
+
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -102,12 +101,12 @@
         drawerOpen = !drawerOpen;
     }
 
-    private async Task DarkModeToggle()
+    private void DarkModeToggle()
     {
         isDarkMode = !isDarkMode;
     }
 
-    public string DarkLightModeButtonIcon => isDarkMode switch
+    private string DarkLightModeButtonIcon => isDarkMode switch
     {
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
