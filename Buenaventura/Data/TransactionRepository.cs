@@ -175,9 +175,9 @@ namespace Buenaventura.Data
             }
             await UpdateInvoiceBalance(transaction.InvoiceId);
             await AddOrUpdateVendor(transactionDto.Vendor!, transactionDto.Category.CategoryId);
-            if (transactionDto.TransactionType == TransactionType.TRANSFER)
+            if (transactionDto.Category.Type == CategoryType.TRANSFER)
             {
-                await CreateTransferFrom(transactionDto, transaction.TransactionId);
+                await CreateTransferFrom(transactionDto, transaction.TransactionId, context);
             }
             await context.SaveChangesAsync();
         }
@@ -188,33 +188,36 @@ namespace Buenaventura.Data
             return (await context.Accounts.FindAsync(accountId))!.Currency;
         }
 
-        private async Task CreateTransferFrom(TransactionForDisplay transactionDto, Guid relatedTransactionId)
+        private async Task CreateTransferFrom(TransactionForDisplay transactionDto, Guid relatedTransactionId,
+            CoronadoDbContext context)
         {
-            var context = await dbContextFactory.CreateDbContextAsync();
+            if (transactionDto.Category.TransferAccountId == null)
+            {
+                throw new Exception("No account specified to transfer to");
+            }
             var rightTransaction = transactionDto.ShallowMap();
             rightTransaction.TransactionId = Guid.NewGuid();
-            rightTransaction.AccountId = transactionDto.Category.TransferAccountId!.Value;
+            rightTransaction.AccountId = transactionDto.Category.TransferAccountId.Value;
             rightTransaction.Amount = 0 - transactionDto.Amount;
             await LoadCadExchangeRate();
             var sourceCurrency = await GetCurrencyFor(transactionDto.AccountId!.Value);
-            var destCurrency = await GetCurrencyFor(transactionDto.Category.TransferAccountId!.Value);
-            if (sourceCurrency == "USD" && destCurrency == "CAD")
+            var destCurrency = await GetCurrencyFor(transactionDto.Category.TransferAccountId.Value);
+            switch (sourceCurrency)
             {
-                rightTransaction.AmountInBaseCurrency = rightTransaction.Amount;
-                rightTransaction.Amount = Math.Round(rightTransaction.Amount * _cadExchangeRate, 2);
-            }
-            else if (sourceCurrency == "CAD" && destCurrency == "USD")
-            {
-                rightTransaction.AmountInBaseCurrency = Math.Round(rightTransaction.Amount / _cadExchangeRate, 2);
-                rightTransaction.Amount = Math.Round(rightTransaction.Amount / _cadExchangeRate, 2);
-            }
-            else if (sourceCurrency == "CAD" && destCurrency == "CAD")
-            {
-                rightTransaction.AmountInBaseCurrency = Math.Round(rightTransaction.Amount / _cadExchangeRate, 2);
-            }
-            else
-            {
-                rightTransaction.AmountInBaseCurrency = rightTransaction.Amount;
+                case "USD" when destCurrency == "CAD":
+                    rightTransaction.AmountInBaseCurrency = rightTransaction.Amount;
+                    rightTransaction.Amount = Math.Round(rightTransaction.Amount * _cadExchangeRate, 2);
+                    break;
+                case "CAD" when destCurrency == "USD":
+                    rightTransaction.AmountInBaseCurrency = Math.Round(rightTransaction.Amount / _cadExchangeRate, 2);
+                    rightTransaction.Amount = Math.Round(rightTransaction.Amount / _cadExchangeRate, 2);
+                    break;
+                case "CAD" when destCurrency == "CAD":
+                    rightTransaction.AmountInBaseCurrency = Math.Round(rightTransaction.Amount / _cadExchangeRate, 2);
+                    break;
+                default:
+                    rightTransaction.AmountInBaseCurrency = rightTransaction.Amount;
+                    break;
             }
             context.Transactions.Add(rightTransaction);
             context.Transfers.Add(new Transfer
