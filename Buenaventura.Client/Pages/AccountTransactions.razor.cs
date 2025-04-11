@@ -280,7 +280,7 @@ public partial class AccountTransactions(
 
     private async Task CopyBalance(TransactionForDisplay context)
     {
-        await jsRuntime.InvokeVoidAsync("copyToClipboard", context.RunningTotal.ToString("N2"));
+        await jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", context.RunningTotal.ToString("N2"));
     }
 
     private void FindCategoryForVendor(string? vendor, TransactionForDisplay context)

@@ -19,6 +19,9 @@
                           Clearable="true" Immediate="true"
             />
         </div>
+        <MudIconButton Icon="@Icons.Material.Filled.Download" 
+                       Href="@($"api/accounts/{Account.AccountId}/transactions/csv")"
+                       Target="_blank" Class="ml-2"/>
     </ToolBarContent>
     <HeaderContent>
         <MudTh Style="width: 125px;">Date</MudTh>
