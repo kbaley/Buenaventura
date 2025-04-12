@@ -3,6 +3,7 @@
 @using Buenaventura.Shared
 @inject IInvestmentService investmentService
 @inject NavigationManager NavigationManager
+@inject AccountSyncService accountSyncService
 
 <MudText Typo="Typo.h4" GutterBottom="true">Investments</MudText>
 
@@ -130,8 +131,10 @@ else
         StateHasChanged();
     }
 
-    private void SyncPortfolioValue()
+    private async Task SyncPortfolioValue()
     {
+        await investmentService.MakeCorrectingEntry();
+        await accountSyncService.RefreshAccounts();
     }
 
     private void ComparePortfolioRatios()

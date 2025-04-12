@@ -33,6 +33,7 @@ namespace Buenaventura.Api
             {
                 return NotFound();
             }
+
             await context.Entry(investment).Collection(i => i.Transactions).LoadAsync().ConfigureAwait(false);
             var dividends = GetDividendDtosFrom(investment);
             var mappedInvestment = mapper.Map<InvestmentDetailDto>(investment);
@@ -45,8 +46,8 @@ namespace Buenaventura.Api
             return mappedInvestment;
         }
 
-        private IEnumerable<InvestmentDividendDto> GetDividendDtosFrom(Investment investment) {
-
+        private IEnumerable<InvestmentDividendDto> GetDividendDtosFrom(Investment investment)
+        {
             var dividendTransactions = investment.Dividends
                 .OrderBy(d => d.TransactionDate)
                 .ThenBy(d => d.EnteredDate)
@@ -58,14 +59,17 @@ namespace Buenaventura.Api
             // Some dividends have income tax; the sort order means we'll get all dividends
             // order by transaction date, then it will be pairs of transactions with the first one
             // being the tax (the amount is < 0) and the second being the actual dividend
-            while (i < dividendTransactions.Count) {
+            while (i < dividendTransactions.Count)
+            {
                 var dividend = new InvestmentDividendDto
                 {
                     Date = dividendTransactions[i].TransactionDate,
                 };
-                if (dividendTransactions[i].Amount < 0) {
+                if (dividendTransactions[i].Amount < 0)
+                {
                     dividend.IncomeTax = -dividendTransactions[i++].Amount;
                 }
+
                 dividend.Amount = dividendTransactions[i++].Amount;
                 dividend.Total = dividend.Amount - dividend.IncomeTax;
 
@@ -73,7 +77,6 @@ namespace Buenaventura.Api
             }
 
             return dividends;
-
         }
 
         [HttpGet]
@@ -96,6 +99,7 @@ namespace Buenaventura.Api
                     investment.LastPrice = item.LastPrice;
                 }
             }
+
             await context.SaveChangesAsync().ConfigureAwait(false);
             return await GetInvestments();
         }
@@ -111,7 +115,6 @@ namespace Buenaventura.Api
         [Route("[action]")]
         public async Task<IActionResult> RecordDividend(InvestmentDividendDto investmentDto)
         {
-
             var investment = await context.Investments.FindAsync(investmentDto.InvestmentId);
             var investmentIncomeCategory = await context.Categories
                 .SingleAsync(c => c.Name == "Investment Income");
@@ -151,6 +154,7 @@ namespace Buenaventura.Api
                 taxTransaction.SetAmountInBaseCurrency(accountCurrency, exchangeRate);
                 context.Transactions.Add(taxTransaction);
             }
+
             await context.SaveChangesAsync();
 
             return Ok(investment);
@@ -160,7 +164,6 @@ namespace Buenaventura.Api
         [Route("[action]")]
         public async Task<IActionResult> BuySell(InvestmentForListDto investmentDto)
         {
-
             var investment = await context.Investments.FindAsync(investmentDto.InvestmentId).ConfigureAwait(false);
             await CreateInvestmentTransaction(investmentDto, investment!).ConfigureAwait(false);
             await context.SaveChangesAsync().ConfigureAwait(false);
@@ -170,64 +173,21 @@ namespace Buenaventura.Api
 
         [HttpPost]
         [Route("[action]")]
-        public async Task<IActionResult> MakeCorrectingEntries()
+        public async Task<IActionResult> MakeCorrectingEntry()
         {
-            var investments = context.Investments
-                .Include(i => i.Transactions);
-            var currencyController = new CurrenciesController(context);
-            var currency = currencyController.GetExchangeRateFor("CAD").GetAwaiter().GetResult();
-            var investmentsTotal = investments
-                .Where(i => i.Currency == "CAD").ToList()
-                .Sum(i => i.GetCurrentValue() / currency);
-            investmentsTotal += investments
-                .Where(i => i.Currency == "USD").ToList()
-                .Sum(i => i.GetCurrentValue());
-            var investmentAccount = context.Accounts.FirstOrDefault(a => a.AccountType == "Investment");
-            if (investmentAccount == null)
-                return Ok();
-
-            var bookBalance = context.Transactions
-                .Where(t => t.AccountId == investmentAccount.AccountId).ToList()
-                .Sum(i => i.Amount);
-
-            var difference = Math.Round(investmentsTotal - bookBalance, 2);
-            if (Math.Abs(difference) >= 1)
-            {
-                var category = await context.GetOrCreateCategory("Gain/loss on investments").ConfigureAwait(false);
-                var transaction = new TransactionForDisplay
-                {
-                    TransactionId = Guid.NewGuid(),
-                    AccountId = investmentAccount.AccountId,
-                    Amount = difference,
-                    Category = new CategoryDto
-                    {
-                        CategoryId = category.CategoryId,
-                        Name = category.Name,
-                    },
-                    TransactionDate = DateTime.Now,
-                    EnteredDate = DateTime.Now,
-                    Description = ""
-                };
-                transaction.SetDebitAndCredit();
-                await transactionRepo.Insert(transaction);
-                var accountBalances = (await context.GetAccountBalances()).ToList();
-                var transactions = new[] { transaction };
-
-                return CreatedAtAction("MakeCorrectingEntries", new { id = transaction.TransactionId }, new { transactions, accountBalances });
-            }
-            else
-            {
-                return Ok();
-            }
+            await investmentService.MakeCorrectingEntry();
+            return Ok();
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutInvestment([FromRoute] Guid id, [FromBody] InvestmentForUpdateDto investment)
+        public async Task<IActionResult> PutInvestment([FromRoute] Guid id,
+            [FromBody] InvestmentForUpdateDto investment)
         {
             if (id != investment.InvestmentId)
             {
                 return BadRequest();
             }
+
             // Don't update the price
             var investmentFromDb = await context.Investments.FindAsync(investment.InvestmentId).ConfigureAwait(false);
             context.Entry(investmentFromDb).State = EntityState.Detached;
@@ -242,6 +202,7 @@ namespace Buenaventura.Api
             {
                 investmentMapped.CategoryId = null;
             }
+
             await context.SaveChangesAsync();
             await context.Entry(investmentMapped).ReloadAsync().ConfigureAwait(false);
             await context.Entry(investmentMapped).Collection(i => i.Transactions).LoadAsync().ConfigureAwait(false);
@@ -253,14 +214,17 @@ namespace Buenaventura.Api
         [HttpPost]
         public async Task<IActionResult> PostInvestment([FromBody] InvestmentForListDto investmentDto)
         {
-            var investment = await context.Investments.SingleOrDefaultAsync(i => i.Symbol == investmentDto.Symbol).ConfigureAwait(false);
+            var investment = await context.Investments.SingleOrDefaultAsync(i => i.Symbol == investmentDto.Symbol)
+                .ConfigureAwait(false);
             if (investment == null)
             {
                 investmentDto.InvestmentId = Guid.NewGuid();
                 var mappedInvestment = mapper.Map<Investment>(investmentDto);
                 investment = context.Investments.Add(mappedInvestment).Entity;
             }
-            var investmentTransaction = await CreateInvestmentTransaction(investmentDto, investment).ConfigureAwait(false);
+
+            var investmentTransaction =
+                await CreateInvestmentTransaction(investmentDto, investment).ConfigureAwait(false);
             await context.SaveChangesAsync().ConfigureAwait(false);
 
             var accountBalances = (await context.GetAccountBalances()).ToList();
@@ -274,12 +238,16 @@ namespace Buenaventura.Api
             );
         }
 
-        private async Task<InvestmentTransaction> CreateInvestmentTransaction(InvestmentForListDto investmentDto, Investment investment)
+        private async Task<InvestmentTransaction> CreateInvestmentTransaction(InvestmentForListDto investmentDto,
+            Investment investment)
         {
-            var buySell = investmentDto.Shares > 0 ? $"Buy {investmentDto.Shares} share" : $"Sell {investmentDto.Shares} share";
+            var buySell = investmentDto.Shares > 0
+                ? $"Buy {investmentDto.Shares} share"
+                : $"Sell {investmentDto.Shares} share";
             if (investmentDto.Shares != 1) buySell += "s";
             var description = $"Investment: {buySell} of {investmentDto.Symbol} at {investmentDto.LastPrice}";
-            var investmentAccount = await context.Accounts.FirstAsync(a => a.AccountType == "Investment").ConfigureAwait(false);
+            var investmentAccount =
+                await context.Accounts.FirstAsync(a => a.AccountType == "Investment").ConfigureAwait(false);
             var enteredDate = DateTime.Now;
             var exchangeRate = await context.Currencies.GetCadExchangeRate();
             var investmentAccountTransaction = new Transaction
