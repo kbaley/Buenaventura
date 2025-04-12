@@ -1,6 +1,5 @@
 @page "/account/{accountId:guid}"
 @using Buenaventura.Shared
-@using Buenaventura.Client.Components
 
 <MudText Typo="Typo.h4" GutterBottom="true">@Account.Name</MudText>
 
@@ -60,18 +59,18 @@
 
             </MudTd>
             <MudTd DataLabel="Description" Class="mud-table-small-cell">
-                <MudTextField @bind-Value="@context.Description" Variant="@textVariant"
-                              OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                <MudTextField @bind-Value="@context.Description" Variant="@textVariant" T="string"
+                              OnKeyDown="@(async e => await HandleKeyDown(e, context))" Typo="Typo.inherit"
                               Immediate="true"/>
             </MudTd>
             <MudTd DataLabel="Debit" Class="mud-table-small-cell align-right">
                 <MoneyTextField @bind-Value="@context.DebitForEdit" Variant="@textVariant"
-                                OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                                OnKeyDown="@(async e => await HandleKeyDown(e, context))" Typo="Typo.inherit"
                 />
             </MudTd>
             <MudTd DataLabel="Credit" Class="mud-table-small-cell align-right">
                 <MoneyTextField @bind-Value="@context.CreditForEdit" Variant="@textVariant"
-                                OnKeyDown="@(e => HandleKeyDown(e, context))" Typo="Typo.inherit"
+                                OnKeyDown="@(async e => await HandleKeyDown(e, context))" Typo="Typo.inherit"
                 />
             </MudTd>
             <MudTd DataLabel="Balance" Class="transaction-amount">
