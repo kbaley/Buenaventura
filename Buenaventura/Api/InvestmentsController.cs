@@ -104,19 +104,7 @@ namespace Buenaventura.Api
         [Route("[action]")]
         public async Task<InvestmentListModel> UpdateCurrentPrices()
         {
-            var mustUpdatePrices = context.Investments
-                .Any(i => !i.DontRetrievePrices && i.LastPriceRetrievalDate < DateTime.Today);
-            if (mustUpdatePrices)
-            {
-                await priceParser.UpdatePricesFor(context).ConfigureAwait(false);
-            }
-            if (mustUpdatePrices)
-                return await GetInvestments();
-            return new InvestmentListModel
-            {
-                Investments = new List<InvestmentForListDto>(),
-                PortfolioIrr = await context.Investments.GetAnnualizedIrr()
-            };
+            return await investmentService.UpdateCurrentPrices();
         }
 
         [HttpPost]

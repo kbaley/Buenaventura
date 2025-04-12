@@ -1,3 +1,4 @@
+using Buenaventura.Api;
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Shared;
@@ -5,7 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public class ServerInvestmentService(IDbContextFactory<CoronadoDbContext> contextFactory) : IInvestmentService
+public class ServerInvestmentService(
+    IDbContextFactory<CoronadoDbContext> contextFactory,
+    IInvestmentPriceParser priceParser
+    ) : IInvestmentService
 {
     public async Task<InvestmentListModel> GetInvestments()
     {
@@ -45,5 +49,23 @@ public class ServerInvestmentService(IDbContextFactory<CoronadoDbContext> contex
             Investments = investments,
             PortfolioIrr = totalIrr
         };
+    }
+    
+    public async Task<InvestmentListModel> UpdateCurrentPrices()
+    {
+        var context = await contextFactory.CreateDbContextAsync();
+            var mustUpdatePrices = context.Investments
+                .Any(i => !i.DontRetrievePrices && i.LastPriceRetrievalDate < DateTime.Today);
+            if (mustUpdatePrices)
+            {
+                await priceParser.UpdatePricesFor(context).ConfigureAwait(false);
+            }
+            if (mustUpdatePrices)
+                return await GetInvestments();
+            return new InvestmentListModel
+            {
+                Investments = new List<InvestmentForListDto>(),
+                PortfolioIrr = await context.Investments.GetAnnualizedIrr()
+            };
     }
 }
