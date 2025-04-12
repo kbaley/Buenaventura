@@ -29,4 +29,9 @@ public class ServerInvoiceService(
             Total = i.LineItems.Sum(li => li.Amount)
         });
     }
+
+    public Task DeleteInvoice(Guid invoiceId)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -1,7 +1,149 @@
 @page "/Invoices"
+@using Buenaventura.Shared
+@using Buenaventura.Client
+@using MudBlazor
+@using Buenaventura.Client.Components
 @inject IInvoiceService invoiceService
-<h3>Invoices</h3>
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@inject IDialogService DialogService
+
+<MudText Typo="Typo.h4" GutterBottom="true">Invoices</MudText>
+
+@if (invoices == null)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudText Typo="Typo.h5" GutterBottom="true" Class="mt-4">Unpaid Invoices</MudText>
+    <MudGrid>
+        @foreach (var invoice in unpaidInvoices)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="2" Style="height: 250px; display: flex; flex-direction: column;">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@invoice.InvoiceNumber</MudText>
+                            <MudText Typo="Typo.body2">@invoice.Date.ToShortDateString()</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="() => EditInvoice(invoice)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteInvoice(invoice)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Info" OnClick="() => DownloadInvoice(invoice)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Email" Color="Color.Success" OnClick="() => EmailInvoice(invoice)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Color="Color.Secondary" OnClick="() => OpenInvoice(invoice)" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent Style="flex: 1; display: flex; flex-direction: column;">
+                        <div style="flex: 1;">
+                            <MudText Typo="Typo.body1">Customer: @invoice.CustomerName</MudText>
+                            <MudText Typo="Typo.body2">Email: @invoice.CustomerEmail</MudText>
+                            <MudText Typo="Typo.body2">Sent: @(invoice.LastSentToCustomer?.ToShortDateString() ?? "Not sent")</MudText>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; align-items: flex-end; margin-top: auto;">
+                            <div style="text-align: right;">
+                                <MudText Typo="Typo.h5" Color="Color.Primary" Class="font-weight-bold">@invoice.Total.ToString("C2")</MudText>
+                                @if (invoice.Balance != invoice.Total)
+                                {
+                                    <MudText Typo="Typo.body1" Color="Color.Warning">Balance: @invoice.Balance.ToString("C2")</MudText>
+                                }
+                            </div>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
+    <MudText Typo="Typo.h5" GutterBottom="true" Class="mt-4">Paid Invoices</MudText>
+    <MudTable T="InvoiceDto" ServerData="ServerReload" Hover="true" Bordered="true" Striped="true" Dense="true"
+              Loading="@loading" @ref="paidInvoicesTable" RowsPerPage="10" Elevation="6">
+        <HeaderContent>
+            <MudTh>Invoice #</MudTh>
+            <MudTh>Date</MudTh>
+            <MudTh>Customer</MudTh>
+            <MudTh>Sent</MudTh>
+            <MudTh>Amount</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Invoice #">@context.InvoiceNumber</MudTd>
+            <MudTd DataLabel="Date">@context.Date.ToShortDateString()</MudTd>
+            <MudTd DataLabel="Customer">@context.CustomerName [@context.CustomerEmail]</MudTd>
+            <MudTd DataLabel="Sent">@(context.LastSentToCustomer?.ToShortDateString() ?? "Not sent")</MudTd>
+            <MudTd DataLabel="Amount">@context.Total.ToString("C2")</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
 
 @code {
-    
+    private IEnumerable<InvoiceDto>? invoices;
+    private IEnumerable<InvoiceDto> unpaidInvoices => invoices?.Where(i => !i.IsPaidInFull) ?? [];
+    private MudTable<InvoiceDto>? paidInvoicesTable;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInvoices();
+    }
+
+    private async Task LoadInvoices()
+    {
+        loading = true;
+        invoices = await invoiceService.GetInvoices();
+        loading = false;
+        StateHasChanged();
+    }
+
+    private async Task<TableData<InvoiceDto>> ServerReload(TableState state, CancellationToken cancellationToken)
+    {
+        var paidInvoices = invoices?.Where(i => i.IsPaidInFull)
+            .OrderByDescending(i => i.Date)
+            .Skip(state.Page * state.PageSize)
+            .Take(state.PageSize)
+            .ToList() ?? [];
+
+        return new TableData<InvoiceDto>
+        {
+            TotalItems = invoices?.Count(i => i.IsPaidInFull) ?? 0,
+            Items = paidInvoices
+        };
+    }
+
+    private void EditInvoice(InvoiceDto invoice)
+    {
+        NavigationManager.NavigateTo($"/invoice/{invoice.InvoiceId}");
+    }
+
+    private async Task DeleteInvoice(InvoiceDto invoice)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to delete invoice {invoice.InvoiceNumber}?",
+            ["ButtonText"] = "Delete",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await DialogService.Show<ConfirmationDialog>("Delete Invoice", parameters).Result;
+        if (!dialog.Canceled)
+        {
+            await invoiceService.DeleteInvoice(invoice.InvoiceId);
+            await LoadInvoices();
+        }
+    }
+
+    private async Task DownloadInvoice(InvoiceDto invoice)
+    {
+        await JS.InvokeVoidAsync("open", $"/api/invoices/{invoice.InvoiceId}/download", "_blank");
+    }
+
+    private async Task EmailInvoice(InvoiceDto invoice)
+    {
+        await JS.InvokeVoidAsync("open", $"mailto:{invoice.CustomerEmail}?subject=Invoice {invoice.InvoiceNumber}&body=Please find attached invoice {invoice.InvoiceNumber}");
+    }
+
+    private async Task OpenInvoice(InvoiceDto invoice)
+    {
+        await JS.InvokeVoidAsync("open", $"/invoice/{invoice.InvoiceId}", "_blank");
+    }
 }

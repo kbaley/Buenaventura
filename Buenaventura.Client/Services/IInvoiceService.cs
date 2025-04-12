@@ -6,6 +6,7 @@ namespace Buenaventura.Client.Services;
 public interface IInvoiceService : IAppService
 {
     public Task<IEnumerable<InvoiceDto>> GetInvoices();
+    public Task DeleteInvoice(Guid invoiceId);
 }
 
 public class ClientInvoiceService(HttpClient httpClient) : IInvoiceService
@@ -15,5 +16,10 @@ public class ClientInvoiceService(HttpClient httpClient) : IInvoiceService
         var url = "api/invoices/?type=transactioncategory";
         var result = await httpClient.GetFromJsonAsync<IEnumerable<InvoiceDto>>(url);
         return result ?? Array.Empty<InvoiceDto>();
+    }
+
+    public async Task DeleteInvoice(Guid invoiceId)
+    {
+        await httpClient.DeleteAsync($"api/invoices/{invoiceId}");
     }
 }
