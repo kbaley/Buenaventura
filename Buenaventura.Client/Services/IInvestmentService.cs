@@ -20,7 +20,7 @@ public class ClientInvestmentService(HttpClient httpClient) : IInvestmentService
 
     public async Task<InvestmentListModel> UpdateCurrentPrices()
     {
-        var url = $"api/accounts/updatecurrentprices";
+        var url = $"api/investments/updatecurrentprices";
         var result = await httpClient.PostAsync(url, null);
         if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
         var investments = await result.Content.ReadFromJsonAsync<InvestmentListModel>();
