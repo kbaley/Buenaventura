@@ -12,13 +12,24 @@
 }
 else
 {
-    <MudText Typo="Typo.h6" GutterBottom="true">Portfolio IRR: @portfolioIrr.ToString("P2")</MudText>
+    <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background-color: var(--mud-palette-surface);">
+        <MudGrid>
+            <MudItem xs="12" sm="4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Portfolio Value</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Primary">@investments.Sum(i => i.CurrentValue).ToString("C2")</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Portfolio IRR</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Primary">@portfolioIrr.ToString("P2")</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
     <MudGrid>
         @foreach (var investment in investments)
         {
             <MudItem xs="12" sm="6" md="4">
-                <MudCard Elevation="2" Style="height: 350px; display: flex; flex-direction: column;">
+                <MudCard Elevation="2" Style="height: 370px; display: flex; flex-direction: column;">
                     <MudCardHeader>
                         <CardHeaderContent>
                             <MudText Typo="Typo.h6">@investment.Name (@investment.Symbol)</MudText>
@@ -45,13 +56,10 @@ else
                             <MudItem xs="6">
                                 <MudStack Spacing="2">
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">IRR</MudText>
-                                    <MudText Typo="Typo.body1">@investment.AnnualizedIrr.ToString("P2")</MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Primary">@investment.AnnualizedIrr.ToString("P2")</MudText>
                                     
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">Current Value</MudText>
-                                    <MudText Typo="Typo.body1">@investment.CurrentValue.ToString("C2")</MudText>
-                                    
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Currency</MudText>
-                                    <MudText Typo="Typo.body1">@investment.Currency</MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Primary">@investment.CurrentValue.ToString("C2")</MudText>
                                 </MudStack>
                             </MudItem>
                         </MudGrid>
