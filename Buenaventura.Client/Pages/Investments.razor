@@ -18,27 +18,41 @@ else
         @foreach (var investment in investments)
         {
             <MudItem xs="12" sm="6" md="4">
-                <MudCard Elevation="2" Style="height: 250px; display: flex; flex-direction: column;">
+                <MudCard Elevation="2" Style="height: 350px; display: flex; flex-direction: column;">
                     <MudCardHeader>
                         <CardHeaderContent>
                             <MudText Typo="Typo.h6">@investment.Name (@investment.Symbol)</MudText>
                         </CardHeaderContent>
                         <CardHeaderActions>
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="() => EditInvestment(investment)" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteInvestment(investment)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Primary" OnClick="() => DeleteInvestment(investment)" />
                         </CardHeaderActions>
                     </MudCardHeader>
-                    <MudCardContent Style="flex: 1;">
+                    <MudCardContent Style="flex: 1; padding: 16px;">
                         <MudGrid>
                             <MudItem xs="6">
-                                <MudText Typo="Typo.body2">Current Price: @investment.LastPrice.ToString("C2")</MudText>
-                                <MudText Typo="Typo.body2">Shares: @investment.Shares.ToString("N2")</MudText>
-                                <MudText Typo="Typo.body2">Average Price: @investment.AveragePrice.ToString("C2")</MudText>
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Current Price</MudText>
+                                    <MudText Typo="Typo.body1">@investment.LastPrice.ToString("C2")</MudText>
+                                    
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Shares</MudText>
+                                    <MudText Typo="Typo.body1">@investment.Shares.ToString("N4")</MudText>
+                                    
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Average Price</MudText>
+                                    <MudText Typo="Typo.body1">@investment.AveragePrice.ToString("C2")</MudText>
+                                </MudStack>
                             </MudItem>
                             <MudItem xs="6">
-                                <MudText Typo="Typo.body2">IRR: @investment.AnnualizedIrr.ToString("P2")</MudText>
-                                <MudText Typo="Typo.body2">Current Value: @investment.CurrentValue.ToString("C2")</MudText>
-                                <MudText Typo="Typo.body2">Currency: @investment.Currency</MudText>
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">IRR</MudText>
+                                    <MudText Typo="Typo.body1">@investment.AnnualizedIrr.ToString("P2")</MudText>
+                                    
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Current Value</MudText>
+                                    <MudText Typo="Typo.body1">@investment.CurrentValue.ToString("C2")</MudText>
+                                    
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Currency</MudText>
+                                    <MudText Typo="Typo.body1">@investment.Currency</MudText>
+                                </MudStack>
                             </MudItem>
                         </MudGrid>
                     </MudCardContent>
