@@ -1,5 +1,4 @@
 @page "/Investments"
-@using Buenaventura.Client.Services
 @using Buenaventura.Shared
 @inject IInvestmentService investmentService
 @inject NavigationManager NavigationManager
@@ -43,8 +42,8 @@ else
         @foreach (var investment in investments)
         {
             <MudItem xs="12" sm="6" md="4">
-                <MudCard Elevation="2" Style="height: 370px; display: flex; flex-direction: column;">
-                    <MudCardHeader>
+                <MudCard Elevation="2" Style="height: 350px; display: flex; flex-direction: column;">
+                    <MudCardHeader Style="height: 75px; align-items: flex-start; padding: 16px 16px 0 16px;">
                         <CardHeaderContent>
                             <MudText Typo="Typo.h6">@investment.Name (@investment.Symbol)</MudText>
                         </CardHeaderContent>

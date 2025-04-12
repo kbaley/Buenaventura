@@ -5,15 +5,15 @@ namespace Buenaventura.Client.Services;
 
 public interface IInvoiceService : IAppService
 {
-    public Task<IEnumerable<InvoiceAsCategory>> GetInvoicesForTransactionCategories();
+    public Task<IEnumerable<InvoiceDto>> GetInvoices();
 }
 
 public class ClientInvoiceService(HttpClient httpClient) : IInvoiceService
 {
-    public async Task<IEnumerable<InvoiceAsCategory>> GetInvoicesForTransactionCategories()
+    public async Task<IEnumerable<InvoiceDto>> GetInvoices()
     {
         var url = "api/invoices/?type=transactioncategory";
-        var result = await httpClient.GetFromJsonAsync<IEnumerable<InvoiceAsCategory>>(url);
-        return result ?? Array.Empty<InvoiceAsCategory>();
+        var result = await httpClient.GetFromJsonAsync<IEnumerable<InvoiceDto>>(url);
+        return result ?? Array.Empty<InvoiceDto>();
     }
 }

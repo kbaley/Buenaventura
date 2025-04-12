@@ -9,14 +9,15 @@ public class ServerInvoiceService(
     IDbContextFactory<CoronadoDbContext> dbContextFactory
 ) : IInvoiceService
 {
-    public async Task<IEnumerable<InvoiceAsCategory>> GetInvoicesForTransactionCategories()
+    public async Task<IEnumerable<InvoiceDto>> GetInvoices()
     {
         var context = await dbContextFactory.CreateDbContextAsync();
         var invoices = await context.Invoices
             .Include(i => i.Customer)
+            .Include(i => i.LineItems)
             .Where(i => i.Balance > 0)
             .ToListAsync();
-        return invoices.Select(i => new InvoiceAsCategory
+        return invoices.Select(i => new InvoiceDto
         {
             InvoiceId = i.InvoiceId,
             InvoiceNumber = i.InvoiceNumber,
@@ -24,7 +25,8 @@ public class ServerInvoiceService(
             Balance = i.Balance,
             IsPaidInFull = i.IsPaidInFull,
             CustomerId = i.CustomerId,
-            Date = i.Date
+            Date = i.Date,
+            Total = i.LineItems.Sum(li => li.Amount)
         });
     }
 }

@@ -1,6 +1,6 @@
 namespace Buenaventura.Shared;
 
-public class InvoiceAsCategory
+public class InvoiceDto
 {
     public Guid InvoiceId { get; set; }
     public string InvoiceNumber { get; set; } = "";
@@ -9,4 +9,5 @@ public class InvoiceAsCategory
     public Guid CustomerId { get; set; }
     public decimal Balance { get; set; }
     public bool IsPaidInFull { get; set; }
+    public decimal Total { get; set; }
 }

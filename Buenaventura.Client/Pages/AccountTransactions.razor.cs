@@ -40,7 +40,7 @@ public partial class AccountTransactions(
         await base.OnInitializedAsync();
 
         masterCategoryList = (await categoryService.GetCategories()).ToList();
-        var invoices = await invoiceService.GetInvoicesForTransactionCategories();
+        var invoices = await invoiceService.GetInvoices();
         foreach (var invoice in invoices)
         {
             masterCategoryList = masterCategoryList.Append(new CategoryDto
