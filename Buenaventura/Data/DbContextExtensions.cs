@@ -36,16 +36,16 @@ public static class DbContextExtensions
             }).ToListAsync();
     }
 
-    public static double GetAnnualizedIrr(this DbSet<Investment> investments)
+    public static async Task<double> GetAnnualizedIrr(this DbSet<Investment> investments)
     {
-        var transactions = investments
+        var transactions = await investments
             .SelectMany(i => i.Transactions)
             .OrderBy(t => t.Date)
-            .ToList();
-        var dividends = investments
+            .ToListAsync();
+        var dividends = await investments
             .SelectMany(i => i.Dividends)
             .OrderBy(t => t.TransactionDate)
-            .ToList();
+            .ToListAsync();
         if (!transactions.Any() && !dividends.Any()) return 0.0;
         var startDate = transactions.First().Date;
         var payments = new List<double>();

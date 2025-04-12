@@ -1,0 +1,7 @@
+namespace Buenaventura.Shared;
+
+public class InvestmentListModel
+{
+    public IEnumerable<InvestmentForListDto> Investments { get; set; } = [];
+    public double PortfolioIrr { get; set; }
+}

@@ -1,4 +1,4 @@
-namespace Buenaventura.Dtos;
+namespace Buenaventura.Shared;
 
 public class InvestmentDividendDto
 {
