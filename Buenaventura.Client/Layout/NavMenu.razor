@@ -1,7 +1,15 @@
 ﻿@using Buenaventura.Shared
 
 <MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">
+        <MudGrid>
+            <MudItem xs="8">Dashboard</MudItem>
+            <MudItem xs="4" Class="d-flex justify-end">
+                <MudText Typo="Typo.body1" Color="Color.Primary">@accounts.Sum(a => a.CurrentBalanceInUsd).ToString("N2")</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudNavLink>
+    <MudDivider Class="my-2" />
 
     @foreach (var account in accounts.Where(a => !a.IsHidden).OrderBy(a => a.DisplayOrder))
     {
