@@ -22,6 +22,19 @@ else
                 <MudText Typo="Typo.h6" GutterBottom="true">Portfolio IRR</MudText>
                 <MudText Typo="Typo.h4" Color="Color.Primary">@portfolioIrr.ToString("P2")</MudText>
             </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudStack Spacing="2" Row="true" Justify="Justify.FlexEnd">
+                    <MudTooltip Text="Update current prices">
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Primary" OnClick="UpdatePrices" />
+                    </MudTooltip>
+                    <MudTooltip Text="Sync portfolio value with Investments account">
+                        <MudIconButton Icon="@Icons.Material.Filled.Sync" Color="Color.Secondary" OnClick="SyncPortfolioValue" />
+                    </MudTooltip>
+                    <MudTooltip Text="Compare portfolio with desired ratios">
+                        <MudIconButton Icon="@Icons.Material.Filled.Compare" Color="Color.Info" OnClick="ComparePortfolioRatios" />
+                    </MudTooltip>
+                </MudStack>
+            </MudItem>
         </MudGrid>
     </MudPaper>
 
@@ -107,5 +120,22 @@ else
     private void RecordDividend(InvestmentForListDto investment)
     {
         NavigationManager.NavigateTo($"/Investments/Dividend/{investment.InvestmentId}");
+    }
+
+    private async Task UpdatePrices()
+    {
+        var investmentList = await investmentService.UpdateCurrentPrices();
+        investments = investmentList.Investments;
+        portfolioIrr = investmentList.PortfolioIrr;
+        StateHasChanged();
+    }
+
+    private void SyncPortfolioValue()
+    {
+    }
+
+    private void ComparePortfolioRatios()
+    {
+        NavigationManager.NavigateTo("/Investments/Ratios");
     }
 }
