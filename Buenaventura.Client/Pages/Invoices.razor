@@ -71,6 +71,9 @@ else
             <MudTd DataLabel="Sent">@(context.LastSentToCustomer?.ToShortDateString() ?? "Not sent")</MudTd>
             <MudTd DataLabel="Amount">@context.Total.ToString("C2")</MudTd>
         </RowTemplate>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
     </MudTable>
 }
 

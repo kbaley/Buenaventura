@@ -26,6 +26,7 @@ public class ServerInvoiceService(
             IsPaidInFull = i.IsPaidInFull,
             CustomerId = i.CustomerId,
             Date = i.Date,
+            LastSentToCustomer = i.LastSentToCustomer,
             Total = i.LineItems.Sum(li => li.Amount)
         });
     }
