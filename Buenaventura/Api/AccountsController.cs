@@ -41,7 +41,7 @@ public class AccountsController(
         var transactions = await accountService.GetTransactions(id, "", 0, int.MaxValue);
         
         var csvContent = "Date,Vendor,Category,Description,Debit,Credit,Balance\n";
-        foreach (var transaction in transactions.Transactions)
+        foreach (var transaction in transactions.Items)
         {
             csvContent += $"{transaction.TransactionDate:MM/dd/yyyy}," +
                          $"\"{transaction.Vendor?.Replace("\"", "\"\"")}\"," +

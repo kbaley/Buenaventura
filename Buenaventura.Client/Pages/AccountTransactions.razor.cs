@@ -1,5 +1,4 @@
 using Buenaventura.Client.Services;
-using Buenaventura.Dtos;
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -144,8 +143,8 @@ public partial class AccountTransactions(
         transactions = await accountService.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
         return new TableData<TransactionForDisplay>
         {
-            TotalItems = transactions.TotalTransactionCount,
-            Items = transactions.Transactions.ToList().Prepend(newTransaction)
+            TotalItems = transactions.TotalCount,
+            Items = transactions.Items.ToList().Prepend(newTransaction)
         };
     }
 

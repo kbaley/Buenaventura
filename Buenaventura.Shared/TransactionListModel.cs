@@ -1,13 +1,7 @@
-using Buenaventura.Shared;
-
-namespace Buenaventura.Dtos 
+namespace Buenaventura.Shared 
 {
-    public class TransactionListModel {
-        public IEnumerable<TransactionForDisplay> Transactions { get; set; }
-        public int Page { get; set; }
-        public int RemainingTransactionCount { get; set; }
-        public int TotalTransactionCount { get; set; }
-
+    public class TransactionListModel : PaginatedResults<TransactionForDisplay>
+    {
         public decimal StartingBalance { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 using Buenaventura.Domain;
-using Buenaventura.Dtos;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -289,9 +288,9 @@ namespace Buenaventura.Data
 
             var model = new TransactionListModel
             {
-                Transactions = transactions,
+                Items = transactions,
                 StartingBalance = startingBalance,
-                TotalTransactionCount = totalTransactionCount
+                TotalCount = totalTransactionCount
             };
             return model;
         }
