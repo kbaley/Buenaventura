@@ -15,13 +15,13 @@ public class ServerInvoiceService(
         var invoices = await context.Invoices
             .Include(i => i.Customer)
             .Include(i => i.LineItems)
-            .Where(i => i.Balance > 0)
             .ToListAsync();
         return invoices.Select(i => new InvoiceDto
         {
             InvoiceId = i.InvoiceId,
             InvoiceNumber = i.InvoiceNumber,
             CustomerName = i.Customer.Name,
+            CustomerEmail = i.Customer.Email,
             Balance = i.Balance,
             IsPaidInFull = i.IsPaidInFull,
             CustomerId = i.CustomerId,

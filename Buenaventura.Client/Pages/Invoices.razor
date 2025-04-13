@@ -1,7 +1,5 @@
 @page "/Invoices"
 @using Buenaventura.Shared
-@using Buenaventura.Client
-@using MudBlazor
 @using Buenaventura.Client.Components
 @inject IInvoiceService invoiceService
 @inject NavigationManager NavigationManager
@@ -58,7 +56,7 @@ else
 
     <MudText Typo="Typo.h5" GutterBottom="true" Class="mt-4">Paid Invoices</MudText>
     <MudTable T="InvoiceDto" ServerData="ServerReload" Hover="true" Bordered="true" Striped="true" Dense="true"
-              Loading="@loading" @ref="paidInvoicesTable" RowsPerPage="10" Elevation="6">
+              Loading="@loading" @ref="paidInvoicesTable" RowsPerPage="5" Elevation="6">
         <HeaderContent>
             <MudTh>Invoice #</MudTh>
             <MudTh>Date</MudTh>
@@ -78,7 +76,7 @@ else
 
 @code {
     private IEnumerable<InvoiceDto>? invoices;
-    private IEnumerable<InvoiceDto> unpaidInvoices => invoices?.Where(i => !i.IsPaidInFull) ?? [];
+    private IEnumerable<InvoiceDto> unpaidInvoices => invoices?.Where(i => i.Balance > 0) ?? [];
     private MudTable<InvoiceDto>? paidInvoicesTable;
     private bool loading = true;
 
@@ -97,7 +95,7 @@ else
 
     private async Task<TableData<InvoiceDto>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
-        var paidInvoices = invoices?.Where(i => i.IsPaidInFull)
+        var paidInvoices = invoices?.Where(i => i.Balance == 0)
             .OrderByDescending(i => i.Date)
             .Skip(state.Page * state.PageSize)
             .Take(state.PageSize)
@@ -105,7 +103,7 @@ else
 
         return new TableData<InvoiceDto>
         {
-            TotalItems = invoices?.Count(i => i.IsPaidInFull) ?? 0,
+            TotalItems = invoices?.Count(i => i.Balance == 0) ?? 0,
             Items = paidInvoices
         };
     }
