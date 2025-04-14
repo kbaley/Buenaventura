@@ -9,11 +9,11 @@ public class ServerVendorService(
     IDbContextFactory<CoronadoDbContext> dbContextFactory
 ) : IVendorService
 {
-    public async Task<IEnumerable<VendorDto>> GetVendors()
+    public async Task<IEnumerable<VendorModel>> GetVendors()
     {
         var context = await dbContextFactory.CreateDbContextAsync();
         var vendors = await context.Vendors.ToListAsync();
-        return vendors.Select(v => new VendorDto
+        return vendors.Select(v => new VendorModel
         {
             VendorId = v.VendorId,
             Name = v.Name,

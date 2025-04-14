@@ -90,17 +90,17 @@ public static class DbContextExtensions
         return category;
     }
 
-    public static async Task<Category?> GetOrCreateCategory(this CoronadoDbContext context, CategoryDto categoryDto)
+    public static async Task<Category?> GetOrCreateCategory(this CoronadoDbContext context, CategoryModel categoryModel)
     {
         var categories = await context.Categories.ToListAsync().ConfigureAwait(false);
-        if (categoryDto is { Type: CategoryType.REGULAR, CategoryId: not null })
+        if (categoryModel is { Type: CategoryType.REGULAR, CategoryId: not null })
         {
-            return categories.Single(c => c.CategoryId == categoryDto.CategoryId);
+            return categories.Single(c => c.CategoryId == categoryModel.CategoryId);
         }
 
-        if (categoryDto.Type == CategoryType.FREEFORM)
+        if (categoryModel.Type == CategoryType.FREEFORM)
         {
-            return await GetOrCreateCategory(context, categoryDto.Name);
+            return await GetOrCreateCategory(context, categoryModel.Name);
         }
 
         return null;

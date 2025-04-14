@@ -7,7 +7,7 @@ public class TransactionForDisplay
     public string Description { get; set; } = "";
     public DateTime TransactionDate { get; set; }
 
-    public CategoryDto Category { get; set; } = new();
+    public CategoryModel Category { get; set; } = new();
     // public string CategoryName { get; set; } = "";
     // public Guid? CategoryId { get; set; }
     // public string CategoryDisplay { get; set; } = "";

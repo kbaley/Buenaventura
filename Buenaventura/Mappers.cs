@@ -13,7 +13,7 @@ public static class Mappers
             AccountName = transaction.Account?.Name ?? "",
             Amount = transaction.Amount,
             AmountInBaseCurrency = transaction.AmountInBaseCurrency,
-            Category = new CategoryDto
+            Category = new CategoryModel
                 {
                     CategoryId = transaction.Category?.CategoryId,
                     Name = transaction.GetCategoryDisplay(),

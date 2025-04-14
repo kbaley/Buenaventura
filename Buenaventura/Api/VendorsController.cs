@@ -11,7 +11,7 @@ namespace Buenaventura.Api;
 public class VendorsController(IVendorService vendorService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IEnumerable<VendorDto>> GetVendors()
+    public async Task<IEnumerable<VendorModel>> GetVendors()
     {
         return await vendorService.GetVendors();
     }

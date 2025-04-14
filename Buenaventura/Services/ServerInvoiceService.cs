@@ -9,14 +9,14 @@ public class ServerInvoiceService(
     IDbContextFactory<CoronadoDbContext> dbContextFactory
 ) : IInvoiceService
 {
-    public async Task<IEnumerable<InvoiceDto>> GetInvoices()
+    public async Task<IEnumerable<InvoiceModel>> GetInvoices()
     {
         var context = await dbContextFactory.CreateDbContextAsync();
         var invoices = await context.Invoices
             .Include(i => i.Customer)
             .Include(i => i.LineItems)
             .ToListAsync();
-        return invoices.Select(i => new InvoiceDto
+        return invoices.Select(i => new InvoiceModel
         {
             InvoiceId = i.InvoiceId,
             InvoiceNumber = i.InvoiceNumber,

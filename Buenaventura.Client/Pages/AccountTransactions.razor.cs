@@ -27,11 +27,11 @@ public partial class AccountTransactions(
     private readonly Variant textVariant = Variant.Text;
     private MudTextField<string>? transactionDateField;
 
-    private List<CategoryDto> categories { get; set; } = [];
+    private List<CategoryModel> categories { get; set; } = [];
 
     // List of categories not including the accounts for transfers
-    private IEnumerable<CategoryDto> masterCategoryList { get; set; } = [];
-    private IEnumerable<VendorDto> vendors { get; set; } = [];
+    private IEnumerable<CategoryModel> masterCategoryList { get; set; } = [];
+    private IEnumerable<VendorModel> vendors { get; set; } = [];
     [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
@@ -42,7 +42,7 @@ public partial class AccountTransactions(
         var invoices = await invoiceService.GetInvoices();
         foreach (var invoice in invoices)
         {
-            masterCategoryList = masterCategoryList.Append(new CategoryDto
+            masterCategoryList = masterCategoryList.Append(new CategoryModel
             {
                 CategoryId = Guid.Empty,
                 Name = $"PAYMENT: {invoice.InvoiceNumber} ({invoice.CustomerName} - ${invoice.Balance:N2}",
@@ -74,7 +74,7 @@ public partial class AccountTransactions(
             foreach (var account in accounts.Where(
                          a => a.AccountId != AccountId && a.IsHidden == false))
             {
-                categories.Add(new CategoryDto
+                categories.Add(new CategoryModel
                 {
                     CategoryId = Guid.Empty,
                     Name = $"TRANSFER: {account.Name}",
@@ -245,11 +245,11 @@ public partial class AccountTransactions(
         }
     }
 
-    private Task<IEnumerable<CategoryDto>> SearchCategories(string? search, CancellationToken token)
+    private Task<IEnumerable<CategoryModel>> SearchCategories(string? search, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(search))
         {
-            return Task.FromResult<IEnumerable<CategoryDto>>(Array.Empty<CategoryDto>());
+            return Task.FromResult<IEnumerable<CategoryModel>>(Array.Empty<CategoryModel>());
         }
 
         var searchLower = search.ToLower();

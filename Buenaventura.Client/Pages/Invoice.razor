@@ -1,0 +1,125 @@
+@page "/invoice/new"
+@using Buenaventura.Shared
+@inject NavigationManager NavigationManager
+@inject IInvoiceService invoiceService
+@inject ICategoryService categoryService
+@inject ICustomerService customerService
+
+<MudText Typo="Typo.h4" GutterBottom="true">New Invoice</MudText>
+
+<MudPaper Elevation="3" Class="pa-4">
+    <MudGrid>
+        <MudItem xs="12" sm="4">
+            <MudTextField @bind-Value="invoiceNumber" Label="Invoice Number" Required="true" />
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudDatePicker @bind-Date="invoiceDate" Label="Date" Required="true" />
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudSelect T="CustomerModel" @bind-Value="selectedCustomer" Label="Customer" Required="true">
+                @foreach (var customer in customers)
+                {
+                    <MudSelectItem Value="customer">@customer.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+
+    <MudText Typo="Typo.h6" Class="mt-4 mb-2">Line Items</MudText>
+    
+    <MudTable Dense="true" Hover="true" Bordered="true" T="InvoiceLineItemModel" Items="@lineItems">
+        <HeaderContent>
+            <MudTh>Description</MudTh>
+            <MudTh>Category</MudTh>
+            <MudTh>Unit Price</MudTh>
+            <MudTh>Quantity</MudTh>
+            <MudTh>Total</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Description">
+                <MudTextField @bind-Value="context.Description" Required="true" />
+            </MudTd>
+            <MudTd DataLabel="Category">
+                <MudSelect T="CategoryModel" @bind-Value="context.Category" Required="true">
+                    @foreach (var category in categories)
+                    {
+                        <MudSelectItem Value="category">@category.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudTd>
+            <MudTd DataLabel="Unit Price">
+                <MudNumericField @bind-Value="context.UnitPrice" Required="true" />
+            </MudTd>
+            <MudTd DataLabel="Quantity">
+                <MudNumericField @bind-Value="context.Quantity" Required="true" />
+            </MudTd>
+            <MudTd DataLabel="Total">
+                @((context.UnitPrice * context.Quantity).ToString("C2"))
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => RemoveLineItem(context)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="AddLineItem" Class="mt-2">
+        Add Line Item
+    </MudButton>
+
+    <MudPaper Elevation="0" Class="mt-4 pa-4" Style="background-color: var(--mud-palette-surface);">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.h6">Invoice Total</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6" Class="d-flex justify-end">
+                <MudText Typo="Typo.h5" Color="Color.Primary" Class="font-weight-bold">
+                    @invoiceTotal.ToString("C2")
+                </MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveInvoice">Save Invoice</MudButton>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private string invoiceNumber = "";
+    private DateTime? invoiceDate = DateTime.Today;
+    private CustomerModel? selectedCustomer;
+    private List<CustomerModel> customers = new();
+    private List<CategoryModel> categories = new();
+    private List<InvoiceLineItemModel> lineItems = new() { new InvoiceLineItemModel()};
+
+    private decimal invoiceTotal => lineItems.Sum(item => item.UnitPrice * item.Quantity);
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = (await customerService.GetCustomers()).ToList();
+        categories = (await categoryService.GetCategories()).ToList();
+    }
+
+    private void AddLineItem()
+    {
+        lineItems.Add(new InvoiceLineItemModel());
+        StateHasChanged();
+    }
+
+    private void RemoveLineItem(InvoiceLineItemModel lineItem)
+    {
+        lineItems.Remove(lineItem);
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/invoices");
+    }
+
+    private async Task SaveInvoice()
+    {
+        // TODO: Implement save functionality
+    }
+} 

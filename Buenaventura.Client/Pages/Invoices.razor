@@ -64,7 +64,7 @@ else
     </MudGrid>
 
     <MudText Typo="Typo.h5" GutterBottom="true" Class="mt-4">Paid Invoices</MudText>
-    <MudTable T="InvoiceDto" ServerData="ServerReload" Hover="true" Bordered="true" Striped="true" Dense="true"
+    <MudTable T="InvoiceModel" ServerData="ServerReload" Hover="true" Bordered="true" Striped="true" Dense="true"
               Loading="@loading" @ref="paidInvoicesTable" RowsPerPage="5" Elevation="6">
         <HeaderContent>
             <MudTh>Invoice #</MudTh>
@@ -87,9 +87,9 @@ else
 }
 
 @code {
-    private IEnumerable<InvoiceDto>? invoices;
-    private IEnumerable<InvoiceDto> unpaidInvoices => invoices?.Where(i => i.Balance > 0) ?? [];
-    private MudTable<InvoiceDto>? paidInvoicesTable;
+    private IEnumerable<InvoiceModel>? invoices;
+    private IEnumerable<InvoiceModel> unpaidInvoices => invoices?.Where(i => i.Balance > 0) ?? [];
+    private MudTable<InvoiceModel>? paidInvoicesTable;
     private bool loading = true;
 
     protected override async Task OnInitializedAsync()
@@ -105,7 +105,7 @@ else
         StateHasChanged();
     }
 
-    private async Task<TableData<InvoiceDto>> ServerReload(TableState state, CancellationToken cancellationToken)
+    private async Task<TableData<InvoiceModel>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
         var paidInvoices = invoices?.Where(i => i.Balance == 0)
             .OrderByDescending(i => i.Date)
@@ -113,19 +113,19 @@ else
             .Take(state.PageSize)
             .ToList() ?? [];
 
-        return new TableData<InvoiceDto>
+        return new TableData<InvoiceModel>
         {
             TotalItems = invoices?.Count(i => i.Balance == 0) ?? 0,
             Items = paidInvoices
         };
     }
 
-    private void EditInvoice(InvoiceDto invoice)
+    private void EditInvoice(InvoiceModel invoice)
     {
         NavigationManager.NavigateTo($"/invoice/{invoice.InvoiceId}");
     }
 
-    private async Task DeleteInvoice(InvoiceDto invoice)
+    private async Task DeleteInvoice(InvoiceModel invoice)
     {
         var parameters = new DialogParameters
         {
@@ -142,17 +142,17 @@ else
         }
     }
 
-    private async Task DownloadInvoice(InvoiceDto invoice)
+    private async Task DownloadInvoice(InvoiceModel invoice)
     {
         await JS.InvokeVoidAsync("open", $"/api/invoices/{invoice.InvoiceId}/download", "_blank");
     }
 
-    private async Task EmailInvoice(InvoiceDto invoice)
+    private async Task EmailInvoice(InvoiceModel invoice)
     {
         await JS.InvokeVoidAsync("open", $"mailto:{invoice.CustomerEmail}?subject=Invoice {invoice.InvoiceNumber}&body=Please find attached invoice {invoice.InvoiceNumber}");
     }
 
-    private async Task OpenInvoice(InvoiceDto invoice)
+    private async Task OpenInvoice(InvoiceModel invoice)
     {
         await JS.InvokeVoidAsync("open", $"/invoice/{invoice.InvoiceId}", "_blank");
     }

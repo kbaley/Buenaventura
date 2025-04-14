@@ -1,6 +1,6 @@
 namespace Buenaventura.Shared;
 
-public class InvoiceDto
+public class InvoiceModel
 {
     public Guid InvoiceId { get; set; }
     public string InvoiceNumber { get; set; } = "";

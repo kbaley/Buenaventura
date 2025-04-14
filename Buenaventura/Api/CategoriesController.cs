@@ -14,7 +14,7 @@ namespace Buenaventura.Api;
 public class CategoriesController(CoronadoDbContext context, ICategoryService categoryService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IEnumerable<CategoryDto>> GetCategory()
+    public async Task<IEnumerable<CategoryModel>> GetCategory()
     {
         return await categoryService.GetCategories();
     }

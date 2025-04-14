@@ -1,6 +1,6 @@
 namespace Buenaventura.Shared;
 
-public class CategoryDto
+public class CategoryModel
 {
     public Guid? CategoryId { get; set; }
 

@@ -101,7 +101,7 @@ public class ServerInvestmentService(
                 TransactionId = Guid.NewGuid(),
                 AccountId = investmentAccount.AccountId,
                 Amount = difference,
-                Category = new CategoryDto
+                Category = new CategoryModel
                 {
                     CategoryId = category.CategoryId,
                     Name = category.Name,

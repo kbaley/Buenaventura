@@ -1,5 +1,7 @@
-﻿using Buenaventura.Data;
+﻿using Buenaventura.Client.Services;
+using Buenaventura.Data;
 using Buenaventura.Domain;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +11,12 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class CustomersController(CoronadoDbContext context) : ControllerBase
+public class CustomersController(CoronadoDbContext context, ICustomerService customerService) : ControllerBase
 {
     [HttpGet]
-    public IEnumerable<Customer> GetCustomer()
+    public async Task<IEnumerable<CustomerModel>> GetCustomer()
     {
-        return context.Customers;
+        return await customerService.GetCustomers();
     }
 
     [HttpPut("{id}")]

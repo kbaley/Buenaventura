@@ -1,6 +1,6 @@
 namespace Buenaventura.Shared;
 
-public class VendorDto
+public class VendorModel
 {
     public Guid VendorId { get; set; }
 

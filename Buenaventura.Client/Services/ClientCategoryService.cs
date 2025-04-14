@@ -5,10 +5,10 @@ namespace Buenaventura.Client.Services;
 
 public class ClientCategoryService(HttpClient httpClient) : ICategoryService
 {
-    public async Task<IEnumerable<CategoryDto>> GetCategories()
+    public async Task<IEnumerable<CategoryModel>> GetCategories()
     {
         var url = "api/categories";
-        var result = await httpClient.GetFromJsonAsync<IEnumerable<CategoryDto>>(url);
+        var result = await httpClient.GetFromJsonAsync<IEnumerable<CategoryModel>>(url);
         return result ?? [];
     }
 }

@@ -9,11 +9,11 @@ public class ServerCategoryService(
     IDbContextFactory<CoronadoDbContext> dbContextFactory
 ) : ICategoryService
 {
-    public async Task<IEnumerable<CategoryDto>> GetCategories()
+    public async Task<IEnumerable<CategoryModel>> GetCategories()
     {
         var context = await dbContextFactory.CreateDbContextAsync();
         var categories = await context.Categories.OrderBy(c => c.Name).ToListAsync();
-        return categories.Select(c => new CategoryDto
+        return categories.Select(c => new CategoryModel
         {
             CategoryId = c.CategoryId,
             Name = c.Name,

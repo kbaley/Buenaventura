@@ -4,5 +4,5 @@ namespace Buenaventura.Client.Services;
 
 public interface IVendorService : IAppService
 {
-    public Task<IEnumerable<VendorDto>> GetVendors();
+    public Task<IEnumerable<VendorModel>> GetVendors();
 }
