@@ -2,7 +2,6 @@
 @using Buenaventura.Shared
 @inject NavigationManager NavigationManager
 @inject IInvoiceService invoiceService
-@inject ICategoryService categoryService
 @inject ICustomerService customerService
 
 <MudText Typo="Typo.h4" GutterBottom="true">New Invoice</MudText>
@@ -49,10 +48,18 @@
                                Clearable="true" />
             </MudTd>
             <MudTd DataLabel="Unit Price">
-                <MudNumericField @bind-Value="context.UnitPrice" Required="true" />
+                <MudTextField @bind-Value="context.UnitPrice" 
+                            InputType="InputType.Number"
+                            Adornment="Adornment.None"
+                            Required="true"
+                            Class="hide-spinners" />
             </MudTd>
             <MudTd DataLabel="Quantity">
-                <MudNumericField @bind-Value="context.Quantity" Required="true" />
+                <MudTextField @bind-Value="context.Quantity" 
+                            InputType="InputType.Number"
+                            Adornment="Adornment.None"
+                            Required="true"
+                            Class="hide-spinners" />
             </MudTd>
             <MudTd DataLabel="Total">
                 @((context.UnitPrice * context.Quantity).ToString("C2"))
@@ -86,12 +93,23 @@
     </MudStack>
 </MudPaper>
 
+<style>
+    .hide-spinners input[type=number]::-webkit-inner-spin-button,
+    .hide-spinners input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .hide-spinners input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
 @code {
     private string invoiceNumber = "";
     private DateTime? invoiceDate = DateTime.Today;
     private CustomerModel? selectedCustomer;
     private List<CustomerModel> customers = new();
-    private List<CategoryModel> categories = new();
+    [CascadingParameter] private IEnumerable<CategoryModel> categories { get; set; } = [];
     private List<InvoiceLineItemModel> lineItems = new() { new InvoiceLineItemModel()};
 
     private decimal invoiceTotal => lineItems.Sum(item => item.UnitPrice * item.Quantity);
@@ -99,7 +117,6 @@
     protected override async Task OnInitializedAsync()
     {
         customers = (await customerService.GetCustomers()).ToList();
-        categories = (await categoryService.GetCategories()).ToList();
     }
 
     private void AddLineItem()
