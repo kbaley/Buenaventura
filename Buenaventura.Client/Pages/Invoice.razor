@@ -38,15 +38,15 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Description">
-                <MudTextField @bind-Value="context.Description" Required="true" />
+                <MudTextField @bind-Value="context.Description" />
             </MudTd>
             <MudTd DataLabel="Category">
-                <MudSelect T="CategoryModel" @bind-Value="context.Category" Required="true">
-                    @foreach (var category in categories)
-                    {
-                        <MudSelectItem Value="category">@category.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete T="CategoryModel" 
+                               @bind-Value="context.Category"
+                               SearchFunc="@SearchCategories"
+                               ToStringFunc="@(c => c?.Name ?? string.Empty)"
+                               Strict="true"
+                               Clearable="true" />
             </MudTd>
             <MudTd DataLabel="Unit Price">
                 <MudNumericField @bind-Value="context.UnitPrice" Required="true" />
@@ -121,5 +121,14 @@
     private async Task SaveInvoice()
     {
         // TODO: Implement save functionality
+    }
+
+    private async Task<IEnumerable<CategoryModel>> SearchCategories(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(value))
+            return categories;
+            
+        return categories.Where(c => 
+            c.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
     }
 } 
