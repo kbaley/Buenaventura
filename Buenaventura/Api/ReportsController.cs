@@ -1,6 +1,8 @@
-﻿using Buenaventura.Data;
+﻿using Buenaventura.Client.Services;
+using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Dtos;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +12,10 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class ReportsController(CoronadoDbContext context, IReportRepository reportRepo) : ControllerBase
+public class ReportsController(
+    CoronadoDbContext context, 
+    IDashboardService dashboardService,
+    IReportRepository reportRepo) : ControllerBase
 {
     [HttpGet]
     public IActionResult Investment([FromQuery] ReportQuery query )
@@ -31,22 +36,12 @@ public class ReportsController(CoronadoDbContext context, IReportRepository repo
     }
 
     [HttpGet]
-    public IActionResult NetWorth([FromQuery] ReportQuery query )
+    public async Task<IEnumerable<ReportDataPoint>> NetWorth([FromQuery] int? year = null)
     {
-        var netWorth = new List<dynamic>();
-
-        var date = query.EndDate;
-        var numItems = DateTime.Today.Month + 1;
-        if (query.SelectedYear != DateTime.Today.Year) {
-            numItems = 13;
-        }
-        for (var i = 0; i < numItems; i++) {
-            netWorth.Add(new {date, netWorth=reportRepo.GetNetWorthFor(date)});
-            date = date.FirstDayOfMonth().AddMinutes(-1);
-        }
-
-        return Ok(new { report = netWorth, year = query.SelectedYear});
+        var report = await dashboardService.GetNetWorthData(year);
+        return report;
     }
+    
     [HttpGet]
     public IActionResult Income([FromQuery] ReportQuery query) 
     {

@@ -6,7 +6,10 @@ namespace Buenaventura.Data
     {
         public static string ToSnakeCase(this string input)
         {
-            if (string.IsNullOrEmpty(input)) { return input; }
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
 
             var startUnderscores = Regex.Match(input, @"^_+");
             return startUnderscores + Regex.Replace(input, @"([a-z0-9])([A-Z])", "$1_$2").ToLower();
@@ -29,8 +32,24 @@ namespace Buenaventura.Data
             return id == Guid.Empty ? Guid.NewGuid() : id;
         }
 
-        public static bool IsNullOrEmpty(this Guid? id) {
+        public static bool IsNullOrEmpty(this Guid? id)
+        {
             return !id.HasValue || id.Value == Guid.Empty;
+        }
+    }
+
+    public static class IntExtensions
+    {
+        /// <summary>
+        /// Retrieves the last day of the year for the given year. If it's this year,
+        /// retrieve the last day of the current month. Used for reporting.
+        /// </summary>
+        public static DateTime GetEndDateForYear(this int year)
+        {
+            var daysInMonth = DateTime.DaysInMonth(year, DateTime.Today.Month);
+            return year == DateTime.Today.Year
+                ? new DateTime(year, DateTime.Today.Month, daysInMonth)
+                : new DateTime(year, 12, 31);
         }
     }
 }
