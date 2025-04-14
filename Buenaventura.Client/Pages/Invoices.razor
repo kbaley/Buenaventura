@@ -6,7 +6,16 @@
 @inject IJSRuntime JS
 @inject IDialogService DialogService
 
-<MudText Typo="Typo.h4" GutterBottom="true">Invoices</MudText>
+<MudGrid>
+    <MudItem xs="6">
+        <MudText Typo="Typo.h4" GutterBottom="true">Invoices</MudText>
+    </MudItem>
+    <MudItem xs="6" Class="d-flex justify-end">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateNewInvoice">
+            New Invoice
+        </MudButton>
+    </MudItem>
+</MudGrid>
 
 @if (invoices == null)
 {
@@ -146,5 +155,10 @@ else
     private async Task OpenInvoice(InvoiceDto invoice)
     {
         await JS.InvokeVoidAsync("open", $"/invoice/{invoice.InvoiceId}", "_blank");
+    }
+
+    private void CreateNewInvoice()
+    {
+        NavigationManager.NavigateTo("/invoice/new");
     }
 }
