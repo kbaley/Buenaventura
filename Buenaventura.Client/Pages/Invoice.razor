@@ -67,7 +67,10 @@
                 @((context.UnitPrice * context.Quantity).ToString("C2"))
             </MudTd>
             <MudTd DataLabel="Actions" Style="width: 7%">
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => RemoveLineItem(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                             Color="Color.Error" 
+                             OnClick="() => RemoveLineItem(context)" 
+                             Disabled="@(lineItems.Count == 1)" />
             </MudTd>
         </RowTemplate>
     </MudTable>
@@ -130,7 +133,10 @@
 
     private void RemoveLineItem(InvoiceLineItemModel lineItem)
     {
-        lineItems.Remove(lineItem);
+        if (lineItems.Count > 1)
+        {
+            lineItems.Remove(lineItem);
+        }
     }
 
     private void Cancel()
