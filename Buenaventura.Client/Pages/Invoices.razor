@@ -72,6 +72,7 @@ else
             <MudTh>Customer</MudTh>
             <MudTh>Sent</MudTh>
             <MudTh>Amount</MudTh>
+            <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Invoice #">@context.InvoiceNumber</MudTd>
@@ -79,6 +80,10 @@ else
             <MudTd DataLabel="Customer">@context.CustomerName [@context.CustomerEmail]</MudTd>
             <MudTd DataLabel="Sent">@(context.LastSentToCustomer?.ToShortDateString() ?? "Not sent")</MudTd>
             <MudTd DataLabel="Amount">@context.Total.ToString("C2")</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Info" OnClick="() => DownloadInvoice(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Color="Color.Secondary" OnClick="() => OpenInvoice(context)" />
+            </MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager/>
