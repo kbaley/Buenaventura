@@ -4,8 +4,9 @@ namespace Buenaventura.Client.Services;
 
 public interface IInvoiceService : IAppService
 {
-    public Task<IEnumerable<InvoiceModel>> GetInvoices();
-    public Task DeleteInvoice(Guid invoiceId);
+    Task<IEnumerable<InvoiceModel>> GetInvoices();
+    Task DeleteInvoice(Guid invoiceId);
     
-    public Task<int> GetNextInvoiceNumber();
+    Task<int> GetNextInvoiceNumber();
+    Task CreateInvoice(InvoiceModel invoice);
 }

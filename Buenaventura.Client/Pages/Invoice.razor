@@ -146,16 +146,27 @@
 
     private async Task SaveInvoice()
     {
-        // TODO: Implement save functionality
         invoiceNumber++;
+        if (selectedCustomer == null)
+        {
+            return;
+        }
+        var invoice = new InvoiceModel
+        {
+            InvoiceNumber = invoiceNumber.ToString(),
+            Date = invoiceDate ?? DateTime.Today,
+            CustomerId = selectedCustomer.CustomerId,
+            LineItems = lineItems
+        };
+        await invoiceService.CreateInvoice(invoice);
     }
 
-    private async Task<IEnumerable<CategoryModel>> SearchCategories(string value, CancellationToken cancellationToken)
+    private Task<IEnumerable<CategoryModel>> SearchCategories(string value, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(value))
-            return categories;
+            return Task.FromResult(categories);
             
-        return categories.Where(c => 
-            c.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(categories.Where(c => 
+            c.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
 } 

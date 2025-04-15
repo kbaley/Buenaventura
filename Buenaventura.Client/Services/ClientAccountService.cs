@@ -3,27 +3,22 @@ using Buenaventura.Shared;
 
 namespace Buenaventura.Client.Services;
 
-public class ClientAccountService(HttpClient httpClient) : IAccountService
+public class ClientAccountService(HttpClient httpClient) : ClientService<AccountWithBalance>("accounts", httpClient), IAccountService
 {
     public async Task<IEnumerable<AccountWithBalance>> GetAccounts()
     {
-        var url = "api/accounts";
-        var result = await httpClient.GetFromJsonAsync<IEnumerable<AccountWithBalance>>(url);
-        return result ?? [];
+        return await GetAll();
     }
 
     public async Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50)
     {
-        var url = $"api/accounts/{accountId}/transactions?search={search}&page={page}&pageSize={pageSize}";
-        var result = await httpClient.GetFromJsonAsync<TransactionListModel>(url);
-        return result ?? new TransactionListModel();
+        var url = $"{accountId}/transactions?search={search}&page={page}&pageSize={pageSize}";
+        return await GetItem<TransactionListModel>(url);
     }
 
     public async Task<AccountWithBalance> GetAccount(Guid id)
     {
-        var url = $"api/accounts/{id}";
-        var result = await httpClient.GetFromJsonAsync<AccountWithBalance>(url);
-        return result ?? new AccountWithBalance();
+        return await Get(id);
     }
 
     public async Task UpdateTransaction(TransactionForDisplay transaction)
@@ -39,13 +34,8 @@ public class ClientAccountService(HttpClient httpClient) : IAccountService
 
     public async Task AddTransaction(Guid accountId, TransactionForDisplay transaction)
     {
-        var url = $"api/accounts/{accountId}/transactions";
-        var result = await httpClient.PostAsJsonAsync(url, transaction);
-        if (result.IsSuccessStatusCode)
-        {
-            return;
-        }
-        throw new Exception(result.ReasonPhrase);
+        var url = $"{accountId}/transactions";
+        await PostItem(url, transaction);
     }
 
     public async Task DeleteTransaction(Guid transactionId)

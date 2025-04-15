@@ -18,7 +18,7 @@ public class InvoicesController(
     CoronadoDbContext context, IMapper mapper) : ControllerBase
 {
     [HttpGet]
-    public async Task<IEnumerable<InvoiceModel>> GetInvoices([FromQuery] string type)
+    public async Task<IEnumerable<InvoiceModel>> GetInvoices()
     {
         return await invoiceService.GetInvoices();
     }

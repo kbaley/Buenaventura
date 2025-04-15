@@ -23,7 +23,6 @@ public class ServerInvoiceService(
             CustomerName = i.Customer.Name,
             CustomerEmail = i.Customer.Email,
             Balance = i.Balance,
-            IsPaidInFull = i.IsPaidInFull,
             CustomerId = i.CustomerId,
             Date = i.Date,
             LastSentToCustomer = i.LastSentToCustomer,
@@ -49,5 +48,10 @@ public class ServerInvoiceService(
 
         return highestInvoiceNumber + 1;
 
+    }
+
+    public Task CreateInvoice(InvoiceModel invoice)
+    {
+        throw new NotImplementedException();
     }
 }

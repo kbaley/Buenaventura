@@ -3,19 +3,19 @@ using Buenaventura.Shared;
 
 namespace Buenaventura.Client.Services;
 
-public class ClientInvestmentService(HttpClient httpClient) : IInvestmentService
+public class ClientInvestmentService(HttpClient httpClient) : ClientService<InvestmentForListDto>("investments", httpClient), IInvestmentService
 {
     public async Task<InvestmentListModel> GetInvestments()
     {
-        var url = "api/investments";
-        var result = await httpClient.GetFromJsonAsync<InvestmentListModel>(url);
+        var url = $"api/{Endpoint}";
+        var result = await Client.GetFromJsonAsync<InvestmentListModel>(url);
         return result ?? new InvestmentListModel();
     }
 
     public async Task<InvestmentListModel> UpdateCurrentPrices()
     {
-        var url = $"api/investments/updatecurrentprices";
-        var result = await httpClient.PostAsync(url, null);
+        var url = $"api/{Endpoint}/updatecurrentprices";
+        var result = await Client.PostAsync(url, null);
         if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
         var investments = await result.Content.ReadFromJsonAsync<InvestmentListModel>();
         return investments ?? new InvestmentListModel();
@@ -23,8 +23,8 @@ public class ClientInvestmentService(HttpClient httpClient) : IInvestmentService
 
     public async Task MakeCorrectingEntry()
     {
-        var url = $"api/investments/makecorrectingentry";
-        var result = await httpClient.PostAsync(url, null);
+        var url = $"api/{Endpoint}/makecorrectingentry";
+        var result = await Client.PostAsync(url, null);
         if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
     }
 }

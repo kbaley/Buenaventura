@@ -3,24 +3,28 @@ using Buenaventura.Shared;
 
 namespace Buenaventura.Client.Services;
 
-public class ClientInvoiceService(HttpClient httpClient) : IInvoiceService
+public class ClientInvoiceService(HttpClient httpClient) : ClientService<InvoiceModel>("invoices", httpClient), IInvoiceService
 {
+    
     public async Task<IEnumerable<InvoiceModel>> GetInvoices()
     {
-        var url = "api/invoices/?type=transactioncategory";
-        var result = await httpClient.GetFromJsonAsync<IEnumerable<InvoiceModel>>(url);
-        return result ?? Array.Empty<InvoiceModel>();
+        return await GetAll();
     }
 
     public async Task DeleteInvoice(Guid invoiceId)
     {
-        await httpClient.DeleteAsync($"api/invoices/{invoiceId}");
+        await Delete(invoiceId);
     }
 
     public async Task<int> GetNextInvoiceNumber()
     {
         var url = "api/invoices/nextinvoicenumber";
-        var result = await httpClient.GetFromJsonAsync<int>(url);
+        var result = await Client.GetFromJsonAsync<int>(url);
         return result;
+    }
+
+    public async Task CreateInvoice(InvoiceModel invoice)
+    {
+        await Create(invoice);
     }
 }

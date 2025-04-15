@@ -9,7 +9,7 @@ public class InvoiceModel
     public string CustomerEmail { get; set; } = "";
     public Guid CustomerId { get; set; }
     public decimal Balance { get; set; }
-    public bool IsPaidInFull { get; set; }
     public decimal Total { get; set; }
     public DateTime? LastSentToCustomer { get; set; }
+    public IEnumerable<InvoiceLineItemModel> LineItems { get; set; } = new List<InvoiceLineItemModel>();
 }
