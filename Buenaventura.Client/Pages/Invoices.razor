@@ -155,7 +155,7 @@ else
 
     private async Task OpenInvoice(InvoiceModel invoice)
     {
-        await JS.InvokeVoidAsync("open", $"/invoice/{invoice.InvoiceId}", "_blank");
+        await JS.InvokeVoidAsync("open", $"api/invoices/{invoice.InvoiceId}/view", "_blank");
     }
 
     private void CreateNewInvoice()

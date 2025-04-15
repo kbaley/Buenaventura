@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Text;
+using AutoMapper;
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
@@ -155,8 +156,8 @@ public class InvoicesController(
                 .Replace("\n", "<br/>"))
             .Replace("{{InvoiceDate}}", invoice.Date.ToString("MMM dd, yyyy"))
             .Replace("{{DueDate}}", invoice.Date.AddDays(30).ToString("MMM dd, yyyy"));
-        var lineItemTemplate = value.Substring(value.IndexOf("{{StartInvoiceLineItem}}"));
-        lineItemTemplate = lineItemTemplate.Substring(0, lineItemTemplate.IndexOf("{{EndInvoiceLineItem}}"))
+        var lineItemTemplate = value.Substring(value.IndexOf("{{StartInvoiceLineItem}}", StringComparison.Ordinal));
+        lineItemTemplate = lineItemTemplate.Substring(0, lineItemTemplate.IndexOf("{{EndInvoiceLineItem}}", StringComparison.Ordinal))
             .Replace("{{StartInvoiceLineItem}}", "");
         var lineItemNumber = 0;
         var lineItemSection = "";
@@ -172,10 +173,21 @@ public class InvoicesController(
             lineItemSection += section;
         }
 
-        var pos1 = value.IndexOf("{{StartInvoiceLineItem}}");
-        var pos2 = value.IndexOf("{{EndInvoiceLineItem}}") + "{{EndInvoiceLineItem}}".Length;
+        var pos1 = value.IndexOf("{{StartInvoiceLineItem}}", StringComparison.Ordinal);
+        var pos2 = value.IndexOf("{{EndInvoiceLineItem}}", StringComparison.Ordinal) + "{{EndInvoiceLineItem}}".Length;
         value = value.Remove(pos1, pos2 - pos1).Insert(pos1, lineItemSection);
 
         return value;
     }
+    
+    [HttpGet]
+    [Route("{invoiceId}/view")]
+    public async Task<IActionResult> ViewInvoice([FromRoute] Guid invoiceId)
+    {
+        var invoice = await context.FindInvoiceEager(invoiceId).ConfigureAwait(false);
+        var html = GetInvoiceHtml(invoice);
+        var ms = new MemoryStream(Encoding.UTF8.GetBytes(html));
+        return new FileStreamResult(ms, "text/html");
+    }
+
 }
