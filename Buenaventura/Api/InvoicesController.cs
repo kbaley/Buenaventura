@@ -127,6 +127,7 @@ public class InvoicesController(
         var parms = new Dictionary<string, string>();
         parms.Add("apikey", apiKey);
         parms.Add("value", GetInvoiceHtml(invoice));
+        parms.Add("encoding", "UTF-8");
         var content = new FormUrlEncodedContent(parms);
         var result = await client.PostAsync("https://api.html2pdfrocket.com/pdf", content);
         if (result.IsSuccessStatusCode)
@@ -149,7 +150,7 @@ public class InvoicesController(
         if (invoice == null) return template.Value;
         var value = template.Value
             .Replace("{{InvoiceNumber}}", invoice.InvoiceNumber)
-            .Replace("{{Balance}}", invoice.Balance.ToString("C"))
+            .Replace("{{Balance}}", invoice.Balance.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))
             .Replace("{{CustomerName}}", invoice.Customer.Name)
             .Replace("{{CustomerAddress}}", StringExtensions
                 .GetAddress(invoice.Customer.StreetAddress, invoice.Customer.City, invoice.Customer.Region)

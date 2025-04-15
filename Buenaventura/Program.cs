@@ -30,7 +30,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(typeof(ServerAccountService));
-var connectionString = builder.Configuration["ConnectionStrings:Buenaventura"];
+var connectionString = builder.Configuration.GetConnectionString("Buenaventura");
 builder.Services.AddDbContextFactory<CoronadoDbContext>(options =>
     options
         .UseSnakeCaseNamingConvention()
