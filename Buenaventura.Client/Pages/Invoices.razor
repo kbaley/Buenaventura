@@ -135,7 +135,8 @@ else
         };
 
         var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Invoice", parameters);
-        if (!dialog.)
+        var result = await dialog.Result;
+        if (!result!.Canceled)
         {
             await invoiceService.DeleteInvoice(invoice.InvoiceId);
             await LoadInvoices();

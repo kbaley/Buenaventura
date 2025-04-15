@@ -146,7 +146,6 @@
 
     private async Task SaveInvoice()
     {
-        invoiceNumber++;
         if (selectedCustomer == null)
         {
             return;
@@ -159,6 +158,7 @@
             LineItems = lineItems
         };
         await invoiceService.CreateInvoice(invoice);
+        invoiceNumber++;
         NavigationManager.NavigateTo("/invoices");
     }
 
