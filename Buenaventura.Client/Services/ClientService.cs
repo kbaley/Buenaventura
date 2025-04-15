@@ -76,7 +76,7 @@ public abstract class ClientService<T>(string endpoint, HttpClient httpClient)
         throw new Exception(result.ReasonPhrase);
     }
     
-    protected async Task PostItem<U>(string subendpoint, U item)
+    protected async Task PostItem<U>(string subendpoint, U? item)
     {
         var url = $"api/{Endpoint}/{subendpoint}";
         var result = await Client.PostAsJsonAsync(url, item);
@@ -85,5 +85,14 @@ public abstract class ClientService<T>(string endpoint, HttpClient httpClient)
             return;
         }
         throw new Exception(result.ReasonPhrase);
+    }
+    
+    protected async Task<U> PostItemWithReturn<U>(string subendpoint, U? item) where U : new()
+    {
+        var url = $"api/{Endpoint}/{subendpoint}";
+        var result = await Client.PostAsync(url, null);
+        if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
+        var returnItem = await result.Content.ReadFromJsonAsync<U>();
+        return returnItem ?? new U();
     }
 }

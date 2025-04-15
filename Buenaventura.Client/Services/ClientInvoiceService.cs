@@ -18,9 +18,7 @@ public class ClientInvoiceService(HttpClient httpClient) : ClientService<Invoice
 
     public async Task<int> GetNextInvoiceNumber()
     {
-        var url = "api/invoices/nextinvoicenumber";
-        var result = await Client.GetFromJsonAsync<int>(url);
-        return result;
+        return await GetItem<int>("nextinvoicenumber");
     }
 
     public async Task CreateInvoice(InvoiceModel invoice)

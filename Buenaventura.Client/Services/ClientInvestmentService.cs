@@ -7,24 +7,16 @@ public class ClientInvestmentService(HttpClient httpClient) : ClientService<Inve
 {
     public async Task<InvestmentListModel> GetInvestments()
     {
-        var url = $"api/{Endpoint}";
-        var result = await Client.GetFromJsonAsync<InvestmentListModel>(url);
-        return result ?? new InvestmentListModel();
+        return await GetItem<InvestmentListModel>("");
     }
 
     public async Task<InvestmentListModel> UpdateCurrentPrices()
     {
-        var url = $"api/{Endpoint}/updatecurrentprices";
-        var result = await Client.PostAsync(url, null);
-        if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
-        var investments = await result.Content.ReadFromJsonAsync<InvestmentListModel>();
-        return investments ?? new InvestmentListModel();
+        return await PostItemWithReturn<InvestmentListModel>("updatecurrentprices", null);
     }
 
     public async Task MakeCorrectingEntry()
     {
-        var url = $"api/{Endpoint}/makecorrectingentry";
-        var result = await Client.PostAsync(url, null);
-        if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
+        await PostItem<InvestmentListModel>("makecorrectingentry", null);
     }
 }
