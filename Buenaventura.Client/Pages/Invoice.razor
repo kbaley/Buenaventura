@@ -28,43 +28,45 @@
     
     <MudTable Dense="true" Hover="true" Bordered="true" T="InvoiceLineItemModel" Items="@lineItems">
         <HeaderContent>
-            <MudTh>Description</MudTh>
-            <MudTh>Category</MudTh>
-            <MudTh>Unit Price</MudTh>
-            <MudTh>Quantity</MudTh>
-            <MudTh>Total</MudTh>
-            <MudTh>Actions</MudTh>
+            <MudTh Style="width: 40%">Description</MudTh>
+            <MudTh Style="width: 25%">Category</MudTh>
+            <MudTh Style="width: 8%">Unit Price</MudTh>
+            <MudTh Style="width: 8%">Quantity</MudTh>
+            <MudTh Style="width: 12%">Total</MudTh>
+            <MudTh Style="width: 7%">Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Description">
-                <MudTextField @bind-Value="context.Description" />
+            <MudTd DataLabel="Description" Style="width: 40%">
+                <MudTextField @bind-Value="context.Description" 
+                            Class="w-100" />
             </MudTd>
-            <MudTd DataLabel="Category">
+            <MudTd DataLabel="Category" Style="width: 25%">
                 <MudAutocomplete T="CategoryModel" 
                                @bind-Value="context.Category"
                                SearchFunc="@SearchCategories"
                                ToStringFunc="@(c => c?.Name ?? string.Empty)"
                                Strict="true"
-                               Clearable="true" />
+                               Clearable="true"
+                               Class="w-100" />
             </MudTd>
-            <MudTd DataLabel="Unit Price">
+            <MudTd DataLabel="Unit Price" Style="width: 8%">
                 <MudTextField @bind-Value="context.UnitPrice" 
                             InputType="InputType.Number"
                             Adornment="Adornment.None"
                             Required="true"
-                            Class="hide-spinners" />
+                            Class="hide-spinners w-100" />
             </MudTd>
-            <MudTd DataLabel="Quantity">
+            <MudTd DataLabel="Quantity" Style="width: 8%">
                 <MudTextField @bind-Value="context.Quantity" 
                             InputType="InputType.Number"
                             Adornment="Adornment.None"
                             Required="true"
-                            Class="hide-spinners" />
+                            Class="hide-spinners w-100" />
             </MudTd>
-            <MudTd DataLabel="Total">
+            <MudTd DataLabel="Total" Style="width: 12%">
                 @((context.UnitPrice * context.Quantity).ToString("C2"))
             </MudTd>
-            <MudTd DataLabel="Actions">
+            <MudTd DataLabel="Actions" Style="width: 7%">
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => RemoveLineItem(context)" />
             </MudTd>
         </RowTemplate>
