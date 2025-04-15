@@ -16,4 +16,11 @@ public class ClientInvoiceService(HttpClient httpClient) : IInvoiceService
     {
         await httpClient.DeleteAsync($"api/invoices/{invoiceId}");
     }
+
+    public async Task<int> GetNextInvoiceNumber()
+    {
+        var url = "api/invoices/nextinvoicenumber";
+        var result = await httpClient.GetFromJsonAsync<int>(url);
+        return result;
+    }
 }

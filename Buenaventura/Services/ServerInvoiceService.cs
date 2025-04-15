@@ -35,4 +35,19 @@ public class ServerInvoiceService(
     {
         throw new NotImplementedException();
     }
+
+    public async Task<int> GetNextInvoiceNumber()
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var highestInvoiceNumber = (await context.Invoices
+                .Select(i => i.InvoiceNumber)
+                .ToListAsync())
+            .Where(n => int.TryParse(n, out _))
+            .Select(n => int.Parse(n))
+            .DefaultIfEmpty(100)
+            .Max();
+
+        return highestInvoiceNumber + 1;
+
+    }
 }

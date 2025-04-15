@@ -74,7 +74,7 @@
         Add Line Item
     </MudButton>
 
-    <MudPaper Elevation="0" Class="mt-4 pa-4" Style="background-color: var(--mud-palette-surface);">
+    <MudPaper Elevation="0" Class="mt-4 pa-4">
         <MudGrid>
             <MudItem xs="12" sm="6">
                 <MudText Typo="Typo.h6">Invoice Total</MudText>
@@ -105,7 +105,7 @@
 </style>
 
 @code {
-    private string invoiceNumber = "";
+    private int invoiceNumber;
     private DateTime? invoiceDate = DateTime.Today;
     private CustomerModel? selectedCustomer;
     private List<CustomerModel> customers = new();
@@ -117,6 +117,7 @@
     protected override async Task OnInitializedAsync()
     {
         customers = (await customerService.GetCustomers()).ToList();
+        invoiceNumber = await invoiceService.GetNextInvoiceNumber();
     }
 
     private void AddLineItem()
@@ -138,6 +139,7 @@
     private async Task SaveInvoice()
     {
         // TODO: Implement save functionality
+        invoiceNumber++;
     }
 
     private async Task<IEnumerable<CategoryModel>> SearchCategories(string value, CancellationToken cancellationToken)

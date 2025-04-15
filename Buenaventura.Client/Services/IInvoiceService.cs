@@ -6,4 +6,6 @@ public interface IInvoiceService : IAppService
 {
     public Task<IEnumerable<InvoiceModel>> GetInvoices();
     public Task DeleteInvoice(Guid invoiceId);
+    
+    public Task<int> GetNextInvoiceNumber();
 }

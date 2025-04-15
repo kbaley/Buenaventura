@@ -22,6 +22,12 @@ public class InvoicesController(
     {
         return await invoiceService.GetInvoices();
     }
+    
+    [HttpGet("nextinvoicenumber")]
+    public async Task<int> GetNextInvoiceNumber()
+    {
+        return await invoiceService.GetNextInvoiceNumber();
+    }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] InvoiceForPosting invoice)
