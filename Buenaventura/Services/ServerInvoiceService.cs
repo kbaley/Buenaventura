@@ -1,5 +1,6 @@
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
+using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,8 +51,30 @@ public class ServerInvoiceService(
 
     }
 
-    public Task CreateInvoice(InvoiceModel invoice)
+    public async Task CreateInvoice(InvoiceModel invoiceModel)
     {
-        throw new NotImplementedException();
+        var context = await dbContextFactory.CreateDbContextAsync();
+        if (invoiceModel.InvoiceId == Guid.Empty) invoiceModel.InvoiceId = Guid.NewGuid();
+        invoiceModel.Balance = invoiceModel.LineItems.Sum(i => i.UnitPrice * i.Quantity);
+        var invoice = new Invoice
+        {
+            InvoiceId = invoiceModel.InvoiceId,
+            InvoiceNumber = invoiceModel.InvoiceNumber,
+            Date = invoiceModel.Date,
+            CustomerId = invoiceModel.CustomerId,
+            Balance = invoiceModel.Balance,
+            LineItems = invoiceModel.LineItems.Select(i => new InvoiceLineItem
+            {
+                InvoiceId = invoiceModel.InvoiceId,
+                Description = i.Description,
+                UnitAmount = i.UnitPrice,
+                Quantity = i.Quantity,
+                CategoryId = i.Category?.CategoryId,
+                InvoiceLineItemId = Guid.NewGuid(),
+                
+            }).ToList()
+        };
+        context.Invoices.Add(invoice);
+        await context.SaveChangesAsync();
     }
 }

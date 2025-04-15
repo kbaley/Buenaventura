@@ -61,18 +61,9 @@ public class InvoicesController(
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] InvoiceForPosting invoice)
+    public async Task Post([FromBody] InvoiceModel invoiceModel)
     {
-        if (invoice.InvoiceId == Guid.Empty) invoice.InvoiceId = Guid.NewGuid();
-        invoice.Balance = invoice.GetLineItemTotal();
-        var invoiceMapped = mapper.Map<Invoice>(invoice);
-        context.Invoices.Add(invoiceMapped);
-        await context.SaveChangesAsync();
-        var customer = await context.Customers.FindAsync(invoice.CustomerId);
-        invoice.CustomerName = customer!.Name;
-        invoice.CustomerEmail = customer.Email;
-
-        return CreatedAtAction("Post", new { id = invoice.InvoiceId }, invoice);
+        await invoiceService.CreateInvoice(invoiceModel);
     }
 
     [HttpDelete("{id}")]

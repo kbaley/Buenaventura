@@ -159,6 +159,7 @@
             LineItems = lineItems
         };
         await invoiceService.CreateInvoice(invoice);
+        NavigationManager.NavigateTo("/invoices");
     }
 
     private Task<IEnumerable<CategoryModel>> SearchCategories(string value, CancellationToken cancellationToken)

@@ -134,8 +134,8 @@ else
             ["Color"] = Color.Error
         };
 
-        var dialog = await DialogService.Show<ConfirmationDialog>("Delete Invoice", parameters).Result;
-        if (!dialog.Canceled)
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Invoice", parameters);
+        if (!dialog.)
         {
             await invoiceService.DeleteInvoice(invoice.InvoiceId);
             await LoadInvoices();
