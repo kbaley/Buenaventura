@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 namespace Buenaventura.Shared
 {
 
@@ -26,14 +24,14 @@ namespace Buenaventura.Shared
         public IEnumerable<TransactionForDisplay> Transactions { get; set; }
     }
 
-    public class AccountQifViewModel
-    {
-        public IFormFile File { get; set; }
-        public Guid AccountId { get; set; }
-        public DateTime? FromDate { get; set; }
-        public string Transactions{ get; set; }
-    }
-
+    // public class AccountQifViewModel
+    // {
+    //     public IFormFile File { get; set; }
+    //     public Guid AccountId { get; set; }
+    //     public DateTime? FromDate { get; set; }
+    //     public string Transactions{ get; set; }
+    // }
+    //
     public class QifTransaction
     {
         public DateTime? Date { get; set; }
