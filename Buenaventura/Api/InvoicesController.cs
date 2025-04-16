@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using AutoMapper;
+using Buenaventura.Client.Pages;
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
@@ -8,6 +9,7 @@ using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Invoice = Buenaventura.Domain.Invoice;
 
 namespace Buenaventura.Api;
 
@@ -189,6 +191,27 @@ public class InvoicesController(
         var html = GetInvoiceHtml(invoice);
         var ms = new MemoryStream(Encoding.UTF8.GetBytes(html));
         return new FileStreamResult(ms, "text/html");
+    }
+    
+    [HttpGet]
+    [Route("invoicetemplate")]
+    public async Task<IActionResult> GetInvoiceTemplate()
+    {
+        var html = await invoiceService.GetInvoiceTemplate();
+        var ms = new MemoryStream(Encoding.UTF8.GetBytes(html));
+        return new FileStreamResult(ms, "text/html");
+    }
+    
+    [HttpPost]
+    [Route("invoicetemplate")]
+    public async Task SaveInvoiceTemplate([FromBody] InvoiceTemplateModel template)
+    {
+        await invoiceService.SaveInvoiceTemplate(template.Template);
+    }
+
+    public class InvoiceTemplateModel
+    {
+        public string Template { get; set; } = "";
     }
 
 }

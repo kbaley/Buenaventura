@@ -26,13 +26,18 @@ public class ClientInvoiceService(HttpClient httpClient) : ClientService<Invoice
         await Create(invoice);
     }
 
-    public Task<string> GetInvoiceTemplate()
+    public async Task<string> GetInvoiceTemplate()
     {
-        return Task.FromResult("InvoiceTemplate");
+        var url = $"api/{Endpoint}/invoicetemplate";
+        var result = await Client.GetStringAsync(url);
+        return result;
     }
 
-    public Task SaveInvoiceTemplate(string template)
+    public async Task SaveInvoiceTemplate(string template)
     {
-        throw new NotImplementedException();
+        var url = $"api/{Endpoint}/invoicetemplate";
+        var content = JsonContent.Create(new { Template = template });
+        var response = await Client.PostAsync(url, content);
+        response.EnsureSuccessStatusCode();
     }
 }

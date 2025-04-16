@@ -78,13 +78,34 @@ public class ServerInvoiceService(
         await context.SaveChangesAsync();
     }
 
-    public Task<string> GetInvoiceTemplate()
+    public async Task<string> GetInvoiceTemplate()
     {
-        return Task.FromResult("");
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var template = (await context.Configurations
+            .SingleOrDefaultAsync(c => c.Name == "InvoiceTemplate"))?.Value;
+        return template ?? "<html><body>No template found</body></html>";
     }
 
-    public Task SaveInvoiceTemplate(string template)
+    public async Task SaveInvoiceTemplate(string template)
     {
-        throw new NotImplementedException();
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var config = await context.Configurations
+            .SingleOrDefaultAsync(c => c.Name == "InvoiceTemplate");
+        if (config == null)
+        {
+            config = new Configuration
+            {
+                ConfigurationId = Guid.NewGuid(),
+                Name = "InvoiceTemplate",
+                Value = template
+            };
+            context.Configurations.Add(config);
+        }
+        else
+        {
+            config.Value = template;
+        }
+        await context.SaveChangesAsync();
+        
     }
 }
