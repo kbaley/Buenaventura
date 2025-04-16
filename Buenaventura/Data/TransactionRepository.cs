@@ -143,6 +143,8 @@ namespace Buenaventura.Data
             {
                 vendor.LastTransactionCategoryId = categoryId.Value;
             }
+
+            await context.SaveChangesAsync();
         }
 
         private async Task LoadCadExchangeRate()
