@@ -1,0 +1,65 @@
+@page "/invoicetemplate"
+@using Buenaventura.Client.Services
+@inject IInvoiceService InvoiceService
+@inject ISnackbar Snackbar
+
+<PageTitle>Invoice Template</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Invoice Template Editor</MudText>
+    <MudPaper Class="pa-4">
+        <MudText Class="mb-4">Edit the HTML template used for generating invoices. The following placeholders are available:</MudText>
+        <MudText Class="mb-2">• {{InvoiceNumber}}</MudText>
+        <MudText Class="mb-2">• {{Balance}}</MudText>
+        <MudText Class="mb-2">• {{CustomerName}}</MudText>
+        <MudText Class="mb-2">• {{CustomerAddress}}</MudText>
+        <MudText Class="mb-2">• {{InvoiceDate}}</MudText>
+        <MudText Class="mb-2">• {{DueDate}}</MudText>
+        <MudText Class="mb-4">• {{StartInvoiceLineItem}}/{{EndInvoiceLineItem}} (for line items)</MudText>
+        
+        <MudTextField @bind-Value="Template" 
+                     Label="Template" 
+                     Lines="20" 
+                     Variant="Variant.Outlined"
+                     Class="mb-4"
+                     Style="font-family: monospace;"
+                     Text="true"/>
+
+        <MudButton Variant="Variant.Filled" 
+                  Color="Color.Primary" 
+                  OnClick="SaveTemplate"
+                  Disabled="IsSaving"
+                  Class="mt-4">
+            <MudIcon Icon="@Icons.Material.Filled.Save" Class="me-2"/>
+            Save Template
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string Template = string.Empty;
+    private bool IsSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Template = await InvoiceService.GetInvoiceTemplate();
+    }
+
+    private async Task SaveTemplate()
+    {
+        try
+        {
+            IsSaving = true;
+            await InvoiceService.SaveInvoiceTemplate(Template);
+            Snackbar.Add("Template saved successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error saving template: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+} 

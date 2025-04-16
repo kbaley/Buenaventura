@@ -77,4 +77,14 @@ public class ServerInvoiceService(
         context.Invoices.Add(invoice);
         await context.SaveChangesAsync();
     }
+
+    public Task<string> GetInvoiceTemplate()
+    {
+        return Task.FromResult("");
+    }
+
+    public Task SaveInvoiceTemplate(string template)
+    {
+        throw new NotImplementedException();
+    }
 }

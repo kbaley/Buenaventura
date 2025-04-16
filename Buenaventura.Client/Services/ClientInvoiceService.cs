@@ -25,4 +25,14 @@ public class ClientInvoiceService(HttpClient httpClient) : ClientService<Invoice
     {
         await Create(invoice);
     }
+
+    public Task<string> GetInvoiceTemplate()
+    {
+        return Task.FromResult("InvoiceTemplate");
+    }
+
+    public Task SaveInvoiceTemplate(string template)
+    {
+        throw new NotImplementedException();
+    }
 }

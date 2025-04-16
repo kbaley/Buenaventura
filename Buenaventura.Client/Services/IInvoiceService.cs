@@ -9,4 +9,6 @@ public interface IInvoiceService : IAppService
     
     Task<int> GetNextInvoiceNumber();
     Task CreateInvoice(InvoiceModel invoice);
+    Task<string> GetInvoiceTemplate();
+    Task SaveInvoiceTemplate(string template);
 }
