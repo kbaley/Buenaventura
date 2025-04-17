@@ -66,8 +66,7 @@ else
 
     private void EditCustomer(CustomerModel customer)
     {
-        // TODO: Implement edit functionality
-        Snackbar.Add("Edit functionality coming soon", Severity.Info);
+        NavigationManager.NavigateTo($"/customer/{customer.CustomerId}");
     }
 
     private async Task DeleteCustomer(CustomerModel customer)
@@ -90,7 +89,6 @@ else
 
     private void CreateNewCustomer()
     {
-        // TODO: Implement create functionality
-        Snackbar.Add("Create functionality coming soon", Severity.Info);
+        NavigationManager.NavigateTo("/customer/new");
     }
 } 

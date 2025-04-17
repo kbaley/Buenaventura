@@ -1,5 +1,6 @@
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
+using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,6 +26,28 @@ public class ServerCustomerService(
         });
     }
 
+    public async Task<CustomerModel> GetCustomer(Guid customerId)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var customer = await context.Customers
+            .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+        if (customer == null)
+        {
+            throw new Exception("Customer not found");
+        }
+        return new CustomerModel
+        {
+            CustomerId = customer.CustomerId,
+            Name = customer.Name,
+            Address = customer.Address,
+            Email = customer.Email,
+            ContactName = customer.ContactName,
+            City = customer.City,
+            StreetAddress = customer.StreetAddress,
+            Region = customer.Region
+        };
+    }
+
     public async Task DeleteCustomer(Guid customerId)
     {
         var context = await dbContextFactory.CreateDbContextAsync();
@@ -34,6 +57,40 @@ public class ServerCustomerService(
             throw new Exception("Customer not found");
         }
         context.Customers.Remove(customer);
+        await context.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    public async Task UpdateCustomer(CustomerModel customerModel)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var customer = await context.Customers.FindAsync(customerModel.CustomerId);
+        if (customer == null)
+        {
+            throw new Exception("Customer not found");
+        }
+        customer.Email = customerModel.Email;
+        customer.Name = customerModel.Name;
+        customer.ContactName = customerModel.ContactName;
+        customer.City = customerModel.City;
+        customer.StreetAddress = customerModel.StreetAddress;
+        customer.Region = customerModel.Region;
+        await context.SaveChangesAsync();
+    }
+
+    public async Task AddCustomer(CustomerModel customerModel)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var customer = new Customer
+        {
+            CustomerId = Guid.NewGuid(),
+            Name = customerModel.Name,
+            Email = customerModel.Email,
+            ContactName = customerModel.ContactName,
+            City = customerModel.City,
+            StreetAddress = customerModel.StreetAddress,
+            Region = customerModel.Region,
+        };
+        context.Customers.Add(customer);
         await context.SaveChangesAsync().ConfigureAwait(false);
     }
 }

@@ -23,7 +23,7 @@ public class ClientInvoiceService(HttpClient httpClient) : ClientService<Invoice
 
     public async Task CreateInvoice(InvoiceModel invoice)
     {
-        await Create(invoice);
+        await Post(invoice);
     }
 
     public async Task<string> GetInvoiceTemplate()

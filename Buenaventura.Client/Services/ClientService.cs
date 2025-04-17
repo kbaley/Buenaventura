@@ -43,7 +43,7 @@ public abstract class ClientService<T>(string endpoint, HttpClient httpClient)
         throw new Exception(result.ReasonPhrase);
     }
 
-    protected async Task Create(T item)
+    protected async Task Post(T item)
     {
         var url = $"api/{Endpoint}";
         var result = await Client.PostAsJsonAsync(url, item);
@@ -54,9 +54,9 @@ public abstract class ClientService<T>(string endpoint, HttpClient httpClient)
         throw new Exception(result.ReasonPhrase);
     }
 
-    protected async Task Update(T item)
+    protected async Task Put(Guid id, T item)
     {
-        var url = $"api/{Endpoint}";
+        var url = $"api/{Endpoint}/{id}";
         var result = await Client.PutAsJsonAsync(url, item);
         if (result.IsSuccessStatusCode)
         {
@@ -65,7 +65,7 @@ public abstract class ClientService<T>(string endpoint, HttpClient httpClient)
         throw new Exception(result.ReasonPhrase);
     }
     
-    protected async Task UpdateItem<U>(string subendpoint, U item)
+    protected async Task PutItem<U>(string subendpoint, U item)
     {
         var url = $"api/{Endpoint}/{subendpoint}";
         var result = await Client.PutAsJsonAsync(url, item);

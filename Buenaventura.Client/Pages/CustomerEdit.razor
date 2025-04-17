@@ -1,0 +1,108 @@
+@page "/customer/{CustomerId:guid}"
+@page "/customer/new"
+@using Buenaventura.Shared
+@inject ICustomerService customerService
+@inject NavigationManager navigationManager
+@inject ISnackbar snackbar
+
+<PageTitle>@(IsNew ? "New Customer" : "Edit Customer")</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">@(IsNew ? "New Customer" : "Edit Customer")</MudText>
+    
+    <MudPaper Class="pa-4">
+        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+            <MudTextField @bind-Value="Customer.Name" 
+                         Label="Name" 
+                         Required="true"
+                         RequiredError="Name is required"
+                         Class="mb-4"/>
+            
+            <MudTextField @bind-Value="Customer.ContactName" 
+                         Label="Contact Name" 
+                         Class="mb-4"/>
+            
+            <MudTextField @bind-Value="Customer.Email" 
+                         Label="Email" 
+                         Class="mb-4"/>
+            
+            <MudTextField @bind-Value="Customer.StreetAddress" 
+                         Label="Street Address" 
+                         Class="mb-4"/>
+            
+            <MudTextField @bind-Value="Customer.City" 
+                         Label="City" 
+                         Class="mb-4"/>
+            
+            <MudTextField @bind-Value="Customer.Region" 
+                         Label="Region" 
+                         Class="mb-4"/>
+            
+            <div class="d-flex gap-2">
+                <MudButton Variant="Variant.Filled" 
+                          Color="Color.Primary" 
+                          OnClick="SaveCustomer"
+                          Disabled="!success"
+                          Class="mt-4">
+                    <MudIcon Icon="@Icons.Material.Filled.Save" Class="me-2"/>
+                    Save
+                </MudButton>
+                
+                <MudButton Variant="Variant.Text" 
+                          Color="Color.Default" 
+                          OnClick="Cancel"
+                          Class="mt-4">
+                    Cancel
+                </MudButton>
+            </div>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public Guid CustomerId { get; set; }
+    
+    private bool IsNew => CustomerId == Guid.Empty;
+    private CustomerModel Customer { get; set; } = new();
+    private MudForm? form;
+    private bool success;
+    private string[] errors = [];
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (!IsNew)
+        {
+            Customer = await customerService.GetCustomer(CustomerId);
+        }
+    }
+    
+    private async Task SaveCustomer()
+    {
+        if (!success) return;
+        
+        try
+        {
+            if (IsNew)
+            {
+                await customerService.AddCustomer(Customer);
+                snackbar.Add("Customer created successfully", Severity.Success);
+            }
+            else
+            {
+                await customerService.UpdateCustomer(Customer);
+                snackbar.Add("Customer updated successfully", Severity.Success);
+            }
+            navigationManager.NavigateTo("/customers");
+        }
+        catch (Exception ex)
+        {
+            snackbar.Add($"Error saving customer: {ex.Message}", Severity.Error);
+        }
+    }
+    
+    private void Cancel()
+    {
+        navigationManager.NavigateTo("/customers");
+    }
+} 

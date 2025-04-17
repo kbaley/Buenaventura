@@ -6,9 +6,3 @@ public interface ICategoryService : IAppService
 {
     Task<IEnumerable<CategoryModel>> GetCategories(); 
 }
-
-public interface ICustomerService : IAppService
-{
-    Task<IEnumerable<CustomerModel>> GetCustomers(); 
-    Task DeleteCustomer(Guid customerId);
-}

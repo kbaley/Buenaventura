@@ -19,23 +19,25 @@ public class CustomersController(BuenaventuraDbContext context, ICustomerService
         return await customerService.GetCustomers();
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutCustomer([FromRoute] Guid id, [FromBody] Customer customer)
+    [HttpGet("{id}")]
+    public async Task<CustomerModel> GetCustomer([FromRoute] Guid id)
     {
-        context.Entry(customer).State = EntityState.Modified;
-        await context.SaveChangesAsync();
+        return await customerService.GetCustomer(id);
+    }
+    
+    [HttpPut("{id}")]
+    public async Task<IActionResult> PutCustomer([FromRoute] Guid id, [FromBody] CustomerModel customer)
+    {
+        await customerService.UpdateCustomer(customer);
 
         return Ok(customer);
     }
 
     [HttpPost]
-    public async Task<IActionResult> PostCustomer([FromBody] Customer customer)
+    public async Task<IActionResult> PostCustomer([FromBody] CustomerModel customer)
     {
-        if (customer.CustomerId == Guid.Empty) customer.CustomerId = Guid.NewGuid();
-        context.Customers.Add(customer);
-        await context.SaveChangesAsync().ConfigureAwait(false);
-
-        return CreatedAtAction("PostCustomer", new { id = customer.CustomerId }, customer);
+        await customerService.AddCustomer(customer);
+        return CreatedAtAction("PostCustomer", null);
     }
 
     [HttpDelete("{id}")]
