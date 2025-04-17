@@ -40,7 +40,7 @@ public class ServerInvestmentService(
         investments.ForEach(i =>
         {
             i.CurrentValue = i.Shares * i.LastPrice;
-            i.AveragePrice = i.Shares == 0 ? 0 : i.AveragePrice / i.TotalSharesBought;
+            i.AveragePrice = (i.Shares == 0 || i.TotalSharesBought == 0) ? 0 : i.AveragePrice / i.TotalSharesBought;
             i.BookValue = i.Shares * i.AveragePrice;
         });
         var totalIrr = await context.Investments.GetAnnualizedIrr();

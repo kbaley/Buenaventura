@@ -11,4 +11,5 @@ public class CategoryModel
 
     public Guid? InvoiceId { get; set; }
     public Guid? TransferAccountId { get; set; }
+    public int TimesUsed { get; set; }
 }

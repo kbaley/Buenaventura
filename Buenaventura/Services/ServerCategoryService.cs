@@ -12,12 +12,19 @@ public class ServerCategoryService(
     public async Task<IEnumerable<CategoryModel>> GetCategories()
     {
         var context = await dbContextFactory.CreateDbContextAsync();
-        var categories = await context.Categories.OrderBy(c => c.Name).ToListAsync();
-        return categories.Select(c => new CategoryModel
-        {
-            CategoryId = c.CategoryId,
-            Name = c.Name,
-            Type = CategoryType.REGULAR
-        });
+        var categories = await context.Categories
+            .GroupJoin(context.Transactions,
+                category => category.CategoryId,
+                transaction => transaction.CategoryId,
+                (category, transaction) => new CategoryModel
+                {
+                    CategoryId = category.CategoryId,
+                    Name = category.Name,
+                    Type = CategoryType.REGULAR,
+                    TimesUsed = transaction.Count()
+                })
+            .OrderByDescending(c => c.TimesUsed)
+            .ToListAsync();
+        return categories;
     }
 }

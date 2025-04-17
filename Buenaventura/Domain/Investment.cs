@@ -58,6 +58,7 @@ public class Investment
 
     public decimal GetNumberOfShares()
     {
+        if (Transactions == null) return 0;
         return Transactions.Sum(t => t.Shares);
     }
 
