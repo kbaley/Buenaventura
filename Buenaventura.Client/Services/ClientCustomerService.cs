@@ -9,4 +9,9 @@ public class ClientCustomerService(HttpClient httpClient) : ClientService<Custom
     {
         return await GetAll();
     }
+
+    public async Task DeleteCustomer(Guid customerId)
+    {
+        await Delete(customerId);
+    }
 }

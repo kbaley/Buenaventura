@@ -14,7 +14,7 @@ namespace Buenaventura.Api;
 public class CustomersController(BuenaventuraDbContext context, ICustomerService customerService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IEnumerable<CustomerModel>> GetCustomer()
+    public async Task<IEnumerable<CustomerModel>> GetCustomers()
     {
         return await customerService.GetCustomers();
     }
@@ -41,12 +41,7 @@ public class CustomersController(BuenaventuraDbContext context, ICustomerService
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCustomer([FromRoute] Guid id)
     {
-        var customer = await context.Customers.FindAsync(id).ConfigureAwait(false);
-        if (customer == null) {
-            return NotFound();
-        }
-        context.Customers.Remove(customer);
-        await context.SaveChangesAsync().ConfigureAwait(false);
-        return Ok(customer);
+        await customerService.DeleteCustomer(id);
+        return Ok();
     }
 }

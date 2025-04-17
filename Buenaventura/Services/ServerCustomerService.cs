@@ -21,6 +21,19 @@ public class ServerCustomerService(
             Name = c.Name,
             Address = c.Address,
             Email = c.Email,
+            ContactName = c.ContactName
         });
+    }
+
+    public async Task DeleteCustomer(Guid customerId)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var customer = await context.Customers.FindAsync(customerId).ConfigureAwait(false);
+        if (customer == null)
+        {
+            throw new Exception("Customer not found");
+        }
+        context.Customers.Remove(customer);
+        await context.SaveChangesAsync().ConfigureAwait(false);
     }
 }

@@ -1,0 +1,96 @@
+@page "/customers"
+@using Buenaventura.Shared
+@using Buenaventura.Client.Services
+@using MudBlazor
+@using MudBlazor.Services
+@using Buenaventura.Client.Components
+@inject ICustomerService customerService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudGrid>
+    <MudItem xs="6">
+        <MudText Typo="Typo.h4" GutterBottom="true">Customers</MudText>
+    </MudItem>
+    <MudItem xs="6" Class="d-flex justify-end">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="CreateNewCustomer">
+            New Customer
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
+@if (customers == null)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+}
+else
+{
+    <MudPaper Elevation="0" Class="pa-4 mt-4">
+        <MudTable Items="@customers" Dense="true" Hover="true" Bordered="true" Striped="true">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Contact Name</MudTh>
+                <MudTh>Email</MudTh>
+                <MudTh>Address</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Contact Name">@context.ContactName</MudTd>
+                <MudTd DataLabel="Email">@context.Email</MudTd>
+                <MudTd DataLabel="Address">@context.Address</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => EditCustomer(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteCustomer(context))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+
+@code {
+    private IEnumerable<CustomerModel>? customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCustomers();
+    }
+
+    private async Task LoadCustomers()
+    {
+        customers = await customerService.GetCustomers();
+        StateHasChanged();
+    }
+
+    private void EditCustomer(CustomerModel customer)
+    {
+        // TODO: Implement edit functionality
+        Snackbar.Add("Edit functionality coming soon", Severity.Info);
+    }
+
+    private async Task DeleteCustomer(CustomerModel customer)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to delete customer {customer.Name}?",
+            ["ButtonText"] = "Delete",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Customer", parameters);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            await customerService.DeleteCustomer(customer.CustomerId);
+            await LoadCustomers();
+        }
+    }
+
+    private void CreateNewCustomer()
+    {
+        // TODO: Implement create functionality
+        Snackbar.Add("Create functionality coming soon", Severity.Info);
+    }
+} 

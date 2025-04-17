@@ -10,4 +10,5 @@ public interface ICategoryService : IAppService
 public interface ICustomerService : IAppService
 {
     Task<IEnumerable<CustomerModel>> GetCustomers(); 
+    Task DeleteCustomer(Guid customerId);
 }
