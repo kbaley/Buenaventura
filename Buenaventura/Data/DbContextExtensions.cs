@@ -119,14 +119,12 @@ public static class DbContextExtensions
             .Sum(t => t.Amount);
     }
 
-    public async static Task<Invoice> FindInvoiceEager(this BuenaventuraDbContext context, Guid invoiceId)
+    public static async Task<Invoice> FindInvoiceEager(this BuenaventuraDbContext context, Guid invoiceId)
     {
-        var invoice = await context.Invoices.FindAsync(invoiceId).ConfigureAwait(false);
-        if (invoice != null)
-        {
-            await context.Entry(invoice).Collection(i => i.LineItems).LoadAsync().ConfigureAwait(false);
-            await context.Entry(invoice).Reference(i => i.Customer).LoadAsync().ConfigureAwait(false);
-        }
+        var invoice = await context.Invoices
+            .Include(i => i.LineItems)
+            .Include(i => i.Customer)
+            .SingleAsync(i => i.InvoiceId == invoiceId);
 
         return invoice;
     }

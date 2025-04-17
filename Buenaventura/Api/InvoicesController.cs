@@ -1,10 +1,10 @@
 ﻿using System.Text;
 using AutoMapper;
-using Buenaventura.Client.Pages;
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Dtos;
+using Buenaventura.Services;
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +19,7 @@ namespace Buenaventura.Api;
 public class InvoicesController(
     IConfiguration configuration,
     IInvoiceService invoiceService,
+    IInvoiceGenerator invoiceGenerator,
     BuenaventuraDbContext context,
     IMapper mapper) : ControllerBase
 {
@@ -122,23 +123,10 @@ public class InvoicesController(
     [Route("{invoiceId}/download")]
     public async Task<IActionResult> PdfInvoice([FromRoute] Guid invoiceId)
     {
-        var apiKey = configuration.GetValue<string>("Html2PdfRocketKey") ?? string.Empty;
-
-        using var client = new HttpClient();
         var invoice = await context.FindInvoiceEager(invoiceId).ConfigureAwait(false);
-        var parms = new Dictionary<string, string>();
-        parms.Add("apikey", apiKey);
-        parms.Add("value", GetInvoiceHtml(invoice));
-        parms.Add("encoding", "UTF-8");
-        var content = new FormUrlEncodedContent(parms);
-        var result = await client.PostAsync("https://api.html2pdfrocket.com/pdf", content);
-        if (result.IsSuccessStatusCode)
-        {
-            var stream = new MemoryStream(await result.Content.ReadAsByteArrayAsync());
-            return File(stream, "application/pdf", $"Invoice-{invoice.InvoiceNumber}.pdf");
-        }
-
-        throw new Exception("Error generating PDF");
+        var invoiceBytes = await invoiceGenerator.GeneratePdf(invoiceId);
+        var stream = new MemoryStream(invoiceBytes);
+        return File(stream, "application/pdf", $"Invoice-{invoice.InvoiceNumber}.pdf");
     }
 
     private string GetInvoiceHtml(Invoice invoice)
@@ -187,8 +175,7 @@ public class InvoicesController(
     [Route("{invoiceId}/view")]
     public async Task<IActionResult> ViewInvoice([FromRoute] Guid invoiceId)
     {
-        var invoice = await context.FindInvoiceEager(invoiceId).ConfigureAwait(false);
-        var html = GetInvoiceHtml(invoice);
+        var html = await invoiceGenerator.GenerateHtml(invoiceId);
         var ms = new MemoryStream(Encoding.UTF8.GetBytes(html));
         return new FileStreamResult(ms, "text/html");
     }
@@ -207,6 +194,14 @@ public class InvoicesController(
     public async Task SaveInvoiceTemplate([FromBody] InvoiceTemplateModel template)
     {
         await invoiceService.SaveInvoiceTemplate(template.Template);
+    }
+
+    [HttpPost]
+    [Route("{invoiceId}/email")]
+    public async Task<IActionResult> EmailInvoice([FromRoute] Guid invoiceId)
+    {
+        await invoiceService.EmailInvoice(invoiceId);
+        return Ok(new { Status = "Email sent successfully" });
     }
 
     public class InvoiceTemplateModel

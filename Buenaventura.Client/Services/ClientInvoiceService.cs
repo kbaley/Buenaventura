@@ -40,4 +40,11 @@ public class ClientInvoiceService(HttpClient httpClient) : ClientService<Invoice
         var response = await Client.PostAsync(url, content);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task EmailInvoice(Guid invoiceId)
+    {
+        var url = $"api/{Endpoint}/{invoiceId}/email";
+        var response = await Client.PostAsync(url, null);
+        response.EnsureSuccessStatusCode();
+    }
 }

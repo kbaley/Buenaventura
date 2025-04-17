@@ -5,13 +5,15 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <MudGrid>
     <MudItem xs="6">
         <MudText Typo="Typo.h4" GutterBottom="true">Invoices</MudText>
     </MudItem>
     <MudItem xs="6" Class="d-flex justify-end">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateNewInvoice">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="CreateNewInvoice">
             New Invoice
         </MudButton>
     </MudItem>
@@ -19,7 +21,7 @@
 
 @if (invoices == null)
 {
-    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
 }
 else
 {
@@ -35,25 +37,33 @@ else
                             <MudText Typo="Typo.body2">@invoice.Date.ToShortDateString()</MudText>
                         </CardHeaderContent>
                         <CardHeaderActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="() => EditInvoice(invoice)" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteInvoice(invoice)" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Info" OnClick="() => DownloadInvoice(invoice)" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Email" Color="Color.Success" OnClick="() => EmailInvoice(invoice)" />
-                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Color="Color.Secondary" OnClick="() => OpenInvoice(invoice)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary"
+                                           OnClick="() => EditInvoice(invoice)"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                           OnClick="() => DeleteInvoice(invoice)"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Info"
+                                           OnClick="() => DownloadInvoice(invoice)"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.Email" Color="Color.Success"
+                                           OnClick="() => EmailInvoice(invoice)"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Color="Color.Secondary"
+                                           OnClick="() => OpenInvoice(invoice)"/>
                         </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardContent Style="flex: 1; display: flex; flex-direction: column;">
                         <div style="flex: 1;">
                             <MudText Typo="Typo.body1">Customer: @invoice.CustomerName</MudText>
                             <MudText Typo="Typo.body2">Email: @invoice.CustomerEmail</MudText>
-                            <MudText Typo="Typo.body2">Sent: @(invoice.LastSentToCustomer?.ToShortDateString() ?? "Not sent")</MudText>
+                            <MudText Typo="Typo.body2">
+                                Sent: @(invoice.LastSentToCustomer?.ToShortDateString() ?? "Not sent")</MudText>
                         </div>
                         <div style="display: flex; justify-content: flex-end; align-items: flex-end; margin-top: auto;">
                             <div style="text-align: right;">
-                                <MudText Typo="Typo.h5" Color="Color.Primary" Class="font-weight-bold">@invoice.Total.ToString("C2")</MudText>
+                                <MudText Typo="Typo.h5" Color="Color.Primary"
+                                         Class="font-weight-bold">@invoice.Total.ToString("C2")</MudText>
                                 @if (invoice.Balance != invoice.Total)
                                 {
-                                    <MudText Typo="Typo.body1" Color="Color.Warning">Balance: @invoice.Balance.ToString("C2")</MudText>
+                                    <MudText Typo="Typo.body1" Color="Color.Warning">
+                                        Balance: @invoice.Balance.ToString("C2")</MudText>
                                 }
                             </div>
                         </div>
@@ -81,8 +91,10 @@ else
             <MudTd DataLabel="Sent">@(context.LastSentToCustomer?.ToShortDateString() ?? "Not sent")</MudTd>
             <MudTd DataLabel="Amount">@context.Total.ToString("C2")</MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Info" OnClick="() => DownloadInvoice(context)" />
-                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Color="Color.Secondary" OnClick="() => OpenInvoice(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Info"
+                               OnClick="() => DownloadInvoice(context)"/>
+                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Color="Color.Secondary"
+                               OnClick="() => OpenInvoice(context)"/>
             </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -155,7 +167,21 @@ else
 
     private async Task EmailInvoice(InvoiceModel invoice)
     {
-        await JS.InvokeVoidAsync("open", $"mailto:{invoice.CustomerEmail}?subject=Invoice {invoice.InvoiceNumber}&body=Please find attached invoice {invoice.InvoiceNumber}");
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to email invoice {invoice.InvoiceNumber} to {invoice.CustomerEmail}?",
+            ["ButtonText"] = "Email invoice",
+            ["Color"] = Color.Success
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Email Invoice", parameters);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            await invoiceService.EmailInvoice(invoice.InvoiceId);
+            Snackbar.Add($"Email sent to {invoice.CustomerEmail} for invoice {invoice.InvoiceNumber}", Severity.Success);
+            await LoadInvoices();
+        }
     }
 
     private async Task OpenInvoice(InvoiceModel invoice)
@@ -167,4 +193,5 @@ else
     {
         NavigationManager.NavigateTo("/invoice/new");
     }
+
 }

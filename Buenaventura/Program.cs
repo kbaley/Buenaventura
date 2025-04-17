@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Buenaventura;
 using Buenaventura.Client.Services;
 using MudBlazor.Services;
 using Buenaventura.Components;
@@ -10,6 +11,7 @@ using Buenaventura.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Resend;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
@@ -37,42 +39,15 @@ builder.Services.AddDbContextFactory<BuenaventuraDbContext>(options =>
         .UseNpgsql(connectionString));
 
 // Register server-side implementations of services
-builder.Services.Scan(scan => scan
-    .FromAssemblyOf<ServerAccountService>()
-    .AddClasses(classes => classes.AssignableTo<IServerAppService>())
-    .AsImplementedInterfaces()
-    .WithScopedLifetime());
-builder.Services.Scan(scan => scan
-    .FromAssemblyOf<ServerAccountService>()
-    .AddClasses(classes => classes.AssignableTo<IAppService>())
-    .AsImplementedInterfaces()
-    .WithScopedLifetime());
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
-    .AddIdentityCookies();
-builder.Services.AddIdentityCore<User>(options =>
-    {
-        options.SignIn.RequireConfirmedAccount = false;
-        options.SignIn.RequireConfirmedEmail = false;
-        options.SignIn.RequireConfirmedPhoneNumber = false;
-        options.Lockout.MaxFailedAccessAttempts = 5;
-        options.Lockout.AllowedForNewUsers = false;
-    })
-    .AddUserStore<BuenaventuraUserStore>()
-    // .AddRoleStore<BuenaventuraRoleStore>()
-    .AddSignInManager()
-    .AddDefaultTokenProviders();
-builder.Services.AddBlazoredLocalStorage();
-
-builder.Services.AddScoped<IUserStore<User>, BuenaventuraUserStore>();
-builder.Services.AddScoped<IUserPasswordStore<User>, BuenaventuraUserStore>();
+builder.Services
+    .AddBlazoredLocalStorage()
+    .AddBuenaventuraServices()
+    .AddOptions()
+    .AddResend(builder.Configuration)
+    .AddBuenaventuraAuthentication()
+    .AddScoped<IUserStore<User>, BuenaventuraUserStore>();
 
 builder.Services.AddAuthorization();
-
-builder.Services.AddSingleton<AccountSyncService>();
 
 var app = builder.Build();
 

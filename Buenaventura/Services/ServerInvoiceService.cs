@@ -3,11 +3,15 @@ using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
+using Resend;
 
 namespace Buenaventura.Services;
 
 public class ServerInvoiceService(
-    IDbContextFactory<BuenaventuraDbContext> dbContextFactory
+    IDbContextFactory<BuenaventuraDbContext> dbContextFactory,
+    IConfiguration configuration,
+    IInvoiceGenerator invoiceGenerator,
+    IResend resend
 ) : IInvoiceService
 {
     public async Task<IEnumerable<InvoiceModel>> GetInvoices()
@@ -107,5 +111,51 @@ public class ServerInvoiceService(
         }
         await context.SaveChangesAsync();
         
+    }
+
+    public async Task EmailInvoice(Guid invoiceId)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var invoice = await context.FindInvoiceEager(invoiceId);
+        if (invoice == null)
+        {
+            throw new Exception("Invoice not found");
+        }
+
+        var from = new EmailAddress { Email = "kyle@baley.org", DisplayName = "Kyle Baley" };
+        var to = new EmailAddress{ Email = invoice.Customer.Email, DisplayName = invoice.Customer.Name};
+        var cc = new EmailAddress{ Email = "kyle@baley.org", DisplayName = "Kyle Baley"};
+        var subject = $"Invoice {invoice.InvoiceNumber} from Kyle Baley Consulting Ltd.";
+        
+        var pdfContent = await invoiceGenerator.GeneratePdf(invoiceId);
+        
+        var msg = new EmailMessage
+        {
+            From = from,
+            Subject = subject,
+            TextBody = $"Dear {invoice.Customer.Name},\n\nPlease find attached your invoice #{invoice.InvoiceNumber}.\n\nTotal Amount: {invoice.Balance:C}\n\nThank you for your business.\n\nBest regards,\nKyle Baley",
+            HtmlBody = $"Dear {invoice.Customer.Name},<br/><br/>Please find attached your invoice #{invoice.InvoiceNumber} in the amount of {invoice.Balance:C}<br/><br/>Thank you for your business.<br/><br/>Best regards,<br/>Kyle Baley"
+        };
+        
+        msg.To.Add(to);
+        msg.Cc = [cc];
+        var attachment = new EmailAttachment
+        {
+            Content = pdfContent,
+            ContentType = "application/pdf",
+            Filename = $"Invoice-{invoice.InvoiceNumber}.pdf"
+        };
+        msg.Attachments = [attachment];
+
+        var response = await resend.EmailSendAsync(msg);
+        if (!response.Success)
+        {
+            throw new Exception($"Failed to send email", response.Exception);
+        }
+
+        // Update the LastSentToCustomer field
+        invoice.LastSentToCustomer = DateTime.UtcNow;
+        context.Invoices.Update(invoice);
+        await context.SaveChangesAsync();
     }
 }

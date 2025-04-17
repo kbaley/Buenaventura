@@ -9,6 +9,11 @@ public class Customer
     [Key] public Guid CustomerId { get; set; }
 
     [Required] public string Name { get; set; } = "";
+    
+    /// <summary>
+    /// Used for the invoice email in the greeting
+    /// </summary>
+    // public string ContactName { get; set; } = "";
     public string StreetAddress { get; set; } = "";
     public string City { get; set; } = "";
     public string Region { get; set; } = "";

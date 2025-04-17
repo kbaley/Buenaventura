@@ -11,4 +11,5 @@ public interface IInvoiceService : IAppService
     Task CreateInvoice(InvoiceModel invoice);
     Task<string> GetInvoiceTemplate();
     Task SaveInvoiceTemplate(string template);
+    Task EmailInvoice(Guid invoiceId);
 }

@@ -1,12 +1,16 @@
 using Blazored.LocalStorage;
 using Buenaventura.Client.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor;
 using MudBlazor.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.Services.AddAuthorizationCore();
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+});
 builder.Services.AddBlazoredLocalStorage();
 // Register client-side implementations of services
 builder.Services.AddSingleton(_ => new HttpClient
