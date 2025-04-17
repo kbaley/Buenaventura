@@ -36,7 +36,11 @@ var connectionString = builder.Configuration.GetConnectionString("Buenaventura")
 builder.Services.AddDbContextFactory<BuenaventuraDbContext>(options =>
     options
         .UseSnakeCaseNamingConvention()
-        .UseNpgsql(connectionString));
+        .UseNpgsql(connectionString, npgOptions =>
+        {
+            npgOptions.MigrationsHistoryTable("__ef_migrations_history", "public");
+        })
+    );
 
 // Register server-side implementations of services
 builder.Services

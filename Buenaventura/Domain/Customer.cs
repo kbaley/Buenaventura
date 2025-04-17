@@ -8,15 +8,21 @@ public class Customer
 {
     [Key] public Guid CustomerId { get; set; }
 
+    [Column(TypeName="varchar(100)")]
     [Required] public string Name { get; set; } = "";
     
     /// <summary>
     /// Used for the invoice email in the greeting
     /// </summary>
-    // public string ContactName { get; set; } = "";
+    [Column(TypeName="varchar(100)")]
+    public string ContactName { get; set; } = "";
+    [Column(TypeName="varchar(100)")]
     public string StreetAddress { get; set; } = "";
+    [Column(TypeName="varchar(50)")]
     public string City { get; set; } = "";
+    [Column(TypeName="varchar(50)")]
     public string Region { get; set; } = "";
+    [Column(TypeName="varchar(50)")]
     public string Email { get; set; } = "";
 
     public string Address

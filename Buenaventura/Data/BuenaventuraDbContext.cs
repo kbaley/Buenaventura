@@ -28,6 +28,5 @@ namespace Buenaventura.Data;
             builder.Entity<Transaction>()
                 .HasOne(a => a.RightTransfer)
                 .WithOne(t => t.RightTransaction);
-            
         }
     }
