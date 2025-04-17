@@ -19,4 +19,9 @@ public class ClientInvestmentService(HttpClient httpClient) : ClientService<Inve
     {
         await PostItem<InvestmentListModel>("makecorrectingentry", null);
     }
+
+    public async Task DeleteInvestment(Guid investmentId)
+    {
+        await Delete(investmentId);
+    }
 }

@@ -114,4 +114,36 @@ public class ServerInvestmentService(
             await transactionRepo.Insert(transaction);
         }
     }
+
+    public async Task DeleteInvestment(Guid investmentId)
+    {
+        var context = await contextFactory.CreateDbContextAsync();
+        await using var tx = await context.Database.BeginTransactionAsync();
+        var investment = await context.Investments
+            .Include(i => i.Transactions)
+            .ThenInclude(t => t.Transaction)
+            .ThenInclude(t => t.LeftTransfer)
+            .ThenInclude(t => t!.RightTransaction)
+            .ThenInclude(t => t!.LeftTransfer)
+            .SingleAsync(i => i.InvestmentId == investmentId);
+        foreach (var transaction in investment.Transactions)
+        {
+            context.Transactions.Remove(transaction.Transaction.LeftTransfer!.RightTransaction!);
+            context.Transactions.Remove(transaction.Transaction);
+            context.Transfers.Remove(transaction.Transaction.LeftTransfer);
+            context.Transfers.Remove(transaction.Transaction.LeftTransfer.RightTransaction!.LeftTransfer!);
+        }
+
+        var dividendTransactions = context.Transactions
+            .Where(t => t.DividendInvestmentId == investmentId);
+        foreach (var dividendTransaction in dividendTransactions)
+        {
+            context.Transactions.Remove(dividendTransaction);
+        }
+        await context.SaveChangesAsync();
+
+        context.Investments.Remove(investment);
+        await context.SaveChangesAsync();
+        await tx.CommitAsync();
+    }
 }

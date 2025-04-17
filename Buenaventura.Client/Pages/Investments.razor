@@ -1,14 +1,16 @@
 @page "/Investments"
+@using Buenaventura.Client.Components
 @using Buenaventura.Shared
 @inject IInvestmentService investmentService
-@inject NavigationManager NavigationManager
+@inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
+@inject IDialogService dialogService
 
 <MudText Typo="Typo.h4" GutterBottom="true">Investments</MudText>
 
 @if (investments == null)
 {
-    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
 }
 else
 {
@@ -16,7 +18,8 @@ else
         <MudGrid>
             <MudItem xs="12" sm="4">
                 <MudText Typo="Typo.h6" GutterBottom="true">Portfolio Value</MudText>
-                <MudText Typo="Typo.h4" Color="Color.Primary">@investments.Sum(i => i.CurrentValue).ToString("C2")</MudText>
+                <MudText Typo="Typo.h4"
+                         Color="Color.Primary">@investments.Sum(i => i.CurrentValue).ToString("C2")</MudText>
             </MudItem>
             <MudItem xs="12" sm="4">
                 <MudText Typo="Typo.h6" GutterBottom="true">Portfolio IRR</MudText>
@@ -25,13 +28,16 @@ else
             <MudItem xs="12" sm="4">
                 <MudStack Spacing="2" Row="true" Justify="Justify.FlexEnd">
                     <MudTooltip Text="Compare portfolio with desired ratios">
-                        <MudIconButton Icon="@Icons.Material.Filled.Compare" Color="Color.Info" OnClick="ComparePortfolioRatios" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Compare" Color="Color.Info"
+                                       OnClick="ComparePortfolioRatios"/>
                     </MudTooltip>
                     <MudTooltip Text="Sync portfolio value with Investments account">
-                        <MudIconButton Icon="@Icons.Material.Filled.Sync" Color="Color.Secondary" OnClick="SyncPortfolioValue" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Sync" Color="Color.Secondary"
+                                       OnClick="SyncPortfolioValue"/>
                     </MudTooltip>
                     <MudTooltip Text="Update current prices">
-                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Primary" OnClick="UpdatePrices" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Primary"
+                                       OnClick="UpdatePrices"/>
                     </MudTooltip>
                 </MudStack>
             </MudItem>
@@ -48,8 +54,10 @@ else
                             <MudText Typo="Typo.h6">@investment.Name (@investment.Symbol)</MudText>
                         </CardHeaderContent>
                         <CardHeaderActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="() => EditInvestment(investment)" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Primary" OnClick="() => DeleteInvestment(investment)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary"
+                                           OnClick="() => EditInvestment(investment)"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Primary"
+                                           OnClick="() => DeleteInvestment(investment)"/>
                         </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardContent Style="flex: 1; padding: 16px;">
@@ -58,10 +66,10 @@ else
                                 <MudStack Spacing="2">
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">Current Price</MudText>
                                     <MudText Typo="Typo.body1">@investment.LastPrice.ToString("C2")</MudText>
-                                    
+
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">Shares</MudText>
                                     <MudText Typo="Typo.body1">@investment.Shares.ToString("N4")</MudText>
-                                    
+
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">Average Price</MudText>
                                     <MudText Typo="Typo.body1">@investment.AveragePrice.ToString("C2")</MudText>
                                 </MudStack>
@@ -69,20 +77,30 @@ else
                             <MudItem xs="6">
                                 <MudStack Spacing="2">
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">IRR</MudText>
-                                    <MudText Typo="Typo.h6" Color="Color.Primary">@investment.AnnualizedIrr.ToString("P2")</MudText>
-                                    
+                                    <MudText Typo="Typo.h6"
+                                             Color="Color.Primary">@investment.AnnualizedIrr.ToString("P2")</MudText>
+
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">Current Value</MudText>
-                                    <MudText Typo="Typo.h6" Color="Color.Primary">@investment.CurrentValue.ToString("C2")</MudText>
+                                    <MudText Typo="Typo.h6"
+                                             Color="Color.Primary">@investment.CurrentValue.ToString("C2")</MudText>
                                 </MudStack>
                             </MudItem>
                         </MudGrid>
                     </MudCardContent>
                     <MudCardActions Style="justify-content: space-between; padding: 8px;">
-                        <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add" OnClick="() => BuySellInvestment(investment, true)">Buy</MudButton>
-                        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Remove" OnClick="() => BuySellInvestment(investment, false)">Sell</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="() => BuySellInvestment(investment, true)">Buy
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Remove"
+                                   OnClick="() => BuySellInvestment(investment, false)">Sell
+                        </MudButton>
                         @if (investment.PaysDividends)
                         {
-                            <MudButton Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.AttachMoney" OnClick="() => RecordDividend(investment)">Record Dividend</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Info"
+                                       StartIcon="@Icons.Material.Filled.AttachMoney"
+                                       OnClick="() => RecordDividend(investment)">Record Dividend
+                            </MudButton>
                         }
                     </MudCardActions>
                 </MudCard>
@@ -97,6 +115,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadInvestments();
+    }
+
+    private async Task LoadInvestments()
+    {
         var investmentList = await investmentService.GetInvestments();
         investments = investmentList.Investments;
         portfolioIrr = investmentList.PortfolioIrr;
@@ -104,22 +127,35 @@ else
 
     private void EditInvestment(InvestmentForListDto investment)
     {
-        NavigationManager.NavigateTo($"/Investments/Edit/{investment.InvestmentId}");
+        navigationManager.NavigateTo($"/Investments/Edit/{investment.InvestmentId}");
     }
 
     private async Task DeleteInvestment(InvestmentForListDto investment)
     {
-        // TODO: Implement delete functionality
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to delete investment {investment.Symbol}?",
+            ["ButtonText"] = "Delete",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await dialogService.ShowAsync<ConfirmationDialog>("Delete Investment", parameters);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            await investmentService.DeleteInvestment(investment.InvestmentId);
+            await LoadInvestments();
+        }
     }
 
     private void BuySellInvestment(InvestmentForListDto investment, bool isBuy)
     {
-        NavigationManager.NavigateTo($"/Investments/BuySell/{investment.InvestmentId}?isBuy={isBuy}");
+        navigationManager.NavigateTo($"/Investments/BuySell/{investment.InvestmentId}?isBuy={isBuy}");
     }
 
     private void RecordDividend(InvestmentForListDto investment)
     {
-        NavigationManager.NavigateTo($"/Investments/Dividend/{investment.InvestmentId}");
+        navigationManager.NavigateTo($"/Investments/Dividend/{investment.InvestmentId}");
     }
 
     private async Task UpdatePrices()
@@ -138,6 +174,7 @@ else
 
     private void ComparePortfolioRatios()
     {
-        NavigationManager.NavigateTo("/Investments/Ratios");
+        navigationManager.NavigateTo("/Investments/Ratios");
     }
+
 }

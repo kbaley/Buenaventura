@@ -302,26 +302,9 @@ namespace Buenaventura.Api
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete([FromRoute] Guid id)
+        public async Task Delete([FromRoute] Guid id)
         {
-            var investment = context.Investments
-                .Include(i => i.Transactions)
-                .ThenInclude(t => t.Transaction)
-                .ThenInclude(t => t.LeftTransfer)
-                .ThenInclude(t => t.RightTransaction)
-                .ThenInclude(t => t!.LeftTransfer)
-                .Single(i => i.InvestmentId == id);
-            foreach (var transaction in investment.Transactions)
-            {
-                context.Transactions.Remove(transaction.Transaction.LeftTransfer.RightTransaction!);
-                context.Transactions.Remove(transaction.Transaction);
-                context.Transfers.Remove(transaction.Transaction.LeftTransfer);
-                context.Transfers.Remove(transaction.Transaction.LeftTransfer.RightTransaction!.LeftTransfer);
-            }
-
-            context.Investments.Remove(investment);
-            context.SaveChanges();
-            return Ok(investment);
+            await investmentService.DeleteInvestment(id);
         }
     }
 }
