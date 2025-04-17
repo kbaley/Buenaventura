@@ -102,4 +102,19 @@ public class ServerAccountService(
         }
         await transactionRepo.Delete(transactionId);
     }
+
+    public async Task SaveAccountOrder(List<OrderedAccount> accountOrders)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var accounts = await context.Accounts.ToListAsync();
+        foreach (var orderedAccount in accountOrders)
+        {
+            var account = accounts.FirstOrDefault(a => a.AccountId == orderedAccount.AccountId);
+            if (account != null)
+            {
+                account.DisplayOrder = orderedAccount.DisplayOrder;
+            }
+        }
+        await context.SaveChangesAsync();
+    }
 }

@@ -48,4 +48,10 @@ public class ClientAccountService(HttpClient httpClient) : ClientService<Account
         }
         throw new Exception(result.ReasonPhrase);
     }
+
+    public Task SaveAccountOrder(List<OrderedAccount> accountOrders)
+    {
+        var url = "api/accounts/order";
+        return httpClient.PostAsJsonAsync(url, accountOrders);
+    }
 }

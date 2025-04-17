@@ -1,0 +1,109 @@
+@page "/accountorder"
+@using Buenaventura.Shared
+@inject IAccountService accountService
+@inject AccountSyncService accountSyncService
+@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.h4" GutterBottom="true">Account Display Order</MudText>
+
+<MudPaper Elevation="0" Class="pa-4 mb-4" Style="background-color: var(--mud-palette-surface);">
+    <MudTable Dense="true" Hover="true" Bordered="true" T="AccountWithBalance" Items="@accounts">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Type">@context.AccountType</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudStack Spacing="2" Row="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" 
+                                 Color="Color.Primary" 
+                                 OnClick="() => MoveAccountUp(context)"
+                                 Disabled="@(context.DisplayOrder == 0)"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" 
+                                 Color="Color.Primary" 
+                                 OnClick="() => MoveAccountDown(context)"
+                                 Disabled="@(context.DisplayOrder == accounts.Count() - 1)"/>
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+<MudStack Spacing="2" Row="true" Justify="Justify.FlexEnd">
+    <MudButton Variant="Variant.Filled" 
+              Color="Color.Primary" 
+              OnClick="SaveOrder"
+              StartIcon="@Icons.Material.Filled.Save">
+        Save Order
+    </MudButton>
+</MudStack>
+
+@code {
+    private IEnumerable<AccountWithBalance> accounts = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        accounts = (await accountService.GetAccounts())
+            .Where(a => !a.IsHidden)
+            .OrderBy(a => a.DisplayOrder)
+            .ToList();
+    }
+
+    private void MoveAccountUp(AccountWithBalance account)
+    {
+        var currentIndex = accounts.ToList().IndexOf(account);
+        if (currentIndex > 0)
+        {
+            var accountsList = accounts.ToList();
+            var temp = accountsList[currentIndex - 1];
+            accountsList[currentIndex - 1] = account;
+            accountsList[currentIndex] = temp;
+            
+            // Update display orders
+            for (var i = 0; i < accountsList.Count; i++)
+            {
+                accountsList[i].DisplayOrder = i;
+            }
+            
+            accounts = accountsList;
+            StateHasChanged();
+        }
+    }
+
+    private void MoveAccountDown(AccountWithBalance account)
+    {
+        var currentIndex = accounts.ToList().IndexOf(account);
+        if (currentIndex < accounts.Count() - 1)
+        {
+            var accountsList = accounts.ToList();
+            var temp = accountsList[currentIndex + 1];
+            accountsList[currentIndex + 1] = account;
+            accountsList[currentIndex] = temp;
+            
+            // Update display orders
+            for (var i = 0; i < accountsList.Count; i++)
+            {
+                accountsList[i].DisplayOrder = i;
+            }
+            
+            accounts = accountsList;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveOrder()
+    {
+        var accountOrders = accounts.Select(a => new OrderedAccount
+        {
+            AccountId = a.AccountId, 
+            DisplayOrder = a.DisplayOrder
+        }).ToList();
+        await accountService.SaveAccountOrder(accountOrders);
+        await accountSyncService.RefreshAccounts();
+        NavigationManager.NavigateTo("/");
+    }
+
+} 

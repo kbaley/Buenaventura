@@ -156,4 +156,11 @@ public class AccountsController(
         await context.SaveChangesAsync().ConfigureAwait(false);
         return Ok(account);
     }
+    
+    [HttpPost("order")]
+    public async Task<IActionResult> SaveAccountOrder([FromBody] List<OrderedAccount> accountOrders)
+    {
+        await accountService.SaveAccountOrder(accountOrders);
+        return Ok();
+    }
 }
