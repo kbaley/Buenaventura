@@ -6,5 +6,5 @@ namespace Buenaventura.Api;
 
 public interface IInvestmentPriceParser : IServerAppService
 {
-    Task UpdatePricesFor(CoronadoDbContext context);
+    Task UpdatePricesFor(BuenaventuraDbContext context);
 }

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerInvoiceService(
-    IDbContextFactory<CoronadoDbContext> dbContextFactory
+    IDbContextFactory<BuenaventuraDbContext> dbContextFactory
 ) : IInvoiceService
 {
     public async Task<IEnumerable<InvoiceModel>> GetInvoices()

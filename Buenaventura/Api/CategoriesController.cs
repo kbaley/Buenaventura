@@ -11,7 +11,7 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class CategoriesController(CoronadoDbContext context, ICategoryService categoryService) : ControllerBase
+public class CategoriesController(BuenaventuraDbContext context, ICategoryService categoryService) : ControllerBase
 {
     [HttpGet]
     public async Task<IEnumerable<CategoryModel>> GetCategory()

@@ -22,7 +22,7 @@ public static class DbContextExtensions
         return currency.PriceInUsd;
     }
 
-    public static async Task<IEnumerable<AccountIdAndBalance>> GetAccountBalances(this CoronadoDbContext context)
+    public static async Task<IEnumerable<AccountIdAndBalance>> GetAccountBalances(this BuenaventuraDbContext context)
     {
         var exchangeRate = await context.Currencies.GetCadExchangeRate();
         return await context.Accounts
@@ -71,7 +71,7 @@ public static class DbContextExtensions
         return Irr.CalculateIrr(payments.ToArray(), days.ToArray());
     }
 
-    public static async Task<Category> GetOrCreateCategory(this CoronadoDbContext context, string name)
+    public static async Task<Category> GetOrCreateCategory(this BuenaventuraDbContext context, string name)
     {
         var category = await context.Categories.SingleOrDefaultAsync(c => c.Name == name);
         if (category != null)
@@ -90,7 +90,7 @@ public static class DbContextExtensions
         return category;
     }
 
-    public static async Task<Category?> GetOrCreateCategory(this CoronadoDbContext context, CategoryModel categoryModel)
+    public static async Task<Category?> GetOrCreateCategory(this BuenaventuraDbContext context, CategoryModel categoryModel)
     {
         var categories = await context.Categories.ToListAsync().ConfigureAwait(false);
         if (categoryModel is { Type: CategoryType.REGULAR, CategoryId: not null })
@@ -119,7 +119,7 @@ public static class DbContextExtensions
             .Sum(t => t.Amount);
     }
 
-    public async static Task<Invoice> FindInvoiceEager(this CoronadoDbContext context, Guid invoiceId)
+    public async static Task<Invoice> FindInvoiceEager(this BuenaventuraDbContext context, Guid invoiceId)
     {
         var invoice = await context.Invoices.FindAsync(invoiceId).ConfigureAwait(false);
         if (invoice != null)

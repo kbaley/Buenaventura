@@ -13,7 +13,7 @@ namespace Buenaventura.Api;
 [Route("api/[controller]/[action]")]
 [ApiController]
 public class ReportsController(
-    CoronadoDbContext context, 
+    BuenaventuraDbContext context, 
     IDashboardService dashboardService,
     IReportRepository reportRepo) : ControllerBase
 {

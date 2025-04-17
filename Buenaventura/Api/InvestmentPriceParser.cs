@@ -7,7 +7,7 @@ namespace Buenaventura.Api;
 
 public class InvestmentPriceParser(IInvestmentRetriever investmentRetriever) : IInvestmentPriceParser
 {
-    async Task IInvestmentPriceParser.UpdatePricesFor(CoronadoDbContext context)
+    async Task IInvestmentPriceParser.UpdatePricesFor(BuenaventuraDbContext context)
     {
         var investments = context.Investments.ToList();
         // Get symbols only for investments we have shares in

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerInvestmentService(
-    IDbContextFactory<CoronadoDbContext> contextFactory,
+    IDbContextFactory<BuenaventuraDbContext> contextFactory,
     IInvestmentPriceParser priceParser,
     ITransactionRepository transactionRepo
 ) : IInvestmentService

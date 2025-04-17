@@ -4,7 +4,7 @@ using Buenaventura.Shared;
 
 namespace Buenaventura.Api;
 
-public class TransactionParser(CoronadoDbContext context)
+public class TransactionParser(BuenaventuraDbContext context)
 {
     public IEnumerable<TransactionForDisplay> Parse(IFormFile file, Guid accountId, DateTime? fromDate)
     {

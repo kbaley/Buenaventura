@@ -8,10 +8,10 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class MortgagesController(CoronadoDbContext context, ITransactionRepository transactionRepo)
+public class MortgagesController(BuenaventuraDbContext context, ITransactionRepository transactionRepo)
     : ControllerBase
 {
-    private readonly CoronadoDbContext _context = context;
+    private readonly BuenaventuraDbContext _context = context;
     private readonly ITransactionRepository _transactionRepo = transactionRepo;
 
     [HttpPost]

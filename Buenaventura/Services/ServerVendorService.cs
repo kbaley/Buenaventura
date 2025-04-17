@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerVendorService(
-    IDbContextFactory<CoronadoDbContext> dbContextFactory
+    IDbContextFactory<BuenaventuraDbContext> dbContextFactory
 ) : IVendorService
 {
     public async Task<IEnumerable<VendorModel>> GetVendors()

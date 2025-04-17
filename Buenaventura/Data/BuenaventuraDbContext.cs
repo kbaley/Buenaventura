@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Buenaventura.Domain;
 
 namespace Buenaventura.Data;
-    public class CoronadoDbContext(DbContextOptions<CoronadoDbContext> options) : DbContext(options)
+    public class BuenaventuraDbContext(DbContextOptions<BuenaventuraDbContext> options) : DbContext(options)
     {
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Transaction> Transactions { get; set; }

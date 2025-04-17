@@ -11,7 +11,7 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class CustomersController(CoronadoDbContext context, ICustomerService customerService) : ControllerBase
+public class CustomersController(BuenaventuraDbContext context, ICustomerService customerService) : ControllerBase
 {
     [HttpGet]
     public async Task<IEnumerable<CustomerModel>> GetCustomer()

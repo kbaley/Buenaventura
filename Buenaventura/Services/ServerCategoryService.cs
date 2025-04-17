@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerCategoryService(
-    IDbContextFactory<CoronadoDbContext> dbContextFactory
+    IDbContextFactory<BuenaventuraDbContext> dbContextFactory
 ) : ICategoryService
 {
     public async Task<IEnumerable<CategoryModel>> GetCategories()

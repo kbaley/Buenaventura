@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerAccountService(
-    IDbContextFactory<CoronadoDbContext> dbContextFactory,
+    IDbContextFactory<BuenaventuraDbContext> dbContextFactory,
     ITransactionRepository transactionRepo
 ) : IAccountService
 {

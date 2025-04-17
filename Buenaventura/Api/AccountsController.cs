@@ -14,7 +14,7 @@ namespace Buenaventura.Api;
 [Route("api/[controller]")]
 [ApiController]
 public class AccountsController(
-    CoronadoDbContext context,
+    BuenaventuraDbContext context,
     ITransactionRepository transactionRepo,
     IAccountService accountService,
     IMapper mapper)

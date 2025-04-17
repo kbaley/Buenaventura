@@ -14,7 +14,7 @@ namespace Buenaventura.Api
     [Route("api/[controller]")]
     [ApiController]
     public class InvestmentsController(
-        CoronadoDbContext context,
+        BuenaventuraDbContext context,
         ITransactionRepository transactionRepo,
         IInvestmentPriceParser priceParser,
         IInvestmentService investmentService,

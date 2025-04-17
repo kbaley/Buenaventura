@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Data
 {
-    public class ReportRepository(IConfiguration config, CoronadoDbContext context)
+    public class ReportRepository(IConfiguration config, BuenaventuraDbContext context)
         : BaseRepository(config), IReportRepository
     {
         public async Task<decimal> GetNetWorthFor(DateTime date)

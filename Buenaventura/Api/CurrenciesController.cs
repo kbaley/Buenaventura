@@ -9,7 +9,7 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class CurrenciesController(CoronadoDbContext context) : ControllerBase
+public class CurrenciesController(BuenaventuraDbContext context) : ControllerBase
 {
     [HttpGet]
     public async Task<decimal> GetExchangeRateFor(string symbol)

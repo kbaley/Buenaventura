@@ -19,7 +19,7 @@ namespace Buenaventura.Api;
 public class InvoicesController(
     IConfiguration configuration,
     IInvoiceService invoiceService,
-    CoronadoDbContext context,
+    BuenaventuraDbContext context,
     IMapper mapper) : ControllerBase
 {
     [HttpGet]

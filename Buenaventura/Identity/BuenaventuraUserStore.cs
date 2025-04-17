@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Identity;
 
 public class BuenaventuraUserStore(
-    CoronadoDbContext context
+    BuenaventuraDbContext context
 ) : IUserPasswordStore<User>
 {
     public void Dispose()

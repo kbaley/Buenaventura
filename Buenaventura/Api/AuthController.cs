@@ -10,7 +10,7 @@ namespace Buenaventura.Api;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(CoronadoDbContext context)
+public class AuthController(BuenaventuraDbContext context)
     : ControllerBase
 {
     [HttpGet]

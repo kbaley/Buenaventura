@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Data
 {
     public class TransactionRepository( 
-        IDbContextFactory<CoronadoDbContext> dbContextFactory) : ITransactionRepository
+        IDbContextFactory<BuenaventuraDbContext> dbContextFactory) : ITransactionRepository
     {
         private decimal _cadExchangeRate = decimal.MinValue;
 
@@ -190,7 +190,7 @@ namespace Buenaventura.Data
         }
 
         private async Task CreateTransferFrom(TransactionForDisplay transactionDto, Guid relatedTransactionId,
-            CoronadoDbContext context)
+            BuenaventuraDbContext context)
         {
             if (transactionDto.Category.TransferAccountId == null)
             {

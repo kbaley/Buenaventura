@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerCustomerService(
-    IDbContextFactory<CoronadoDbContext> dbContextFactory
+    IDbContextFactory<BuenaventuraDbContext> dbContextFactory
 ) : ICustomerService
 {
     public async Task<IEnumerable<CustomerModel>> GetCustomers()

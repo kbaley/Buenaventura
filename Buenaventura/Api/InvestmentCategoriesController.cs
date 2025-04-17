@@ -10,7 +10,7 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class InvestmentCategoriesController(CoronadoDbContext context, IMapper mapper) : ControllerBase
+public class InvestmentCategoriesController(BuenaventuraDbContext context, IMapper mapper) : ControllerBase
 {
     [HttpGet]
     public IEnumerable<InvestmentCategory> GetCategories()
