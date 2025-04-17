@@ -54,7 +54,7 @@ else
                             <MudText Typo="Typo.body1">Customer: @invoice.CustomerName</MudText>
                             <MudText Typo="Typo.body2">Email: @invoice.CustomerEmail</MudText>
                             <MudText Typo="Typo.body2">
-                                Sent: @(invoice.LastSentToCustomer?.ToShortDateString() ?? "Not sent")</MudText>
+                                Sent: @(invoice.LastSentToCustomer?.Date.ToShortDateString() ?? "Not sent")</MudText>
                         </div>
                         <div style="display: flex; justify-content: flex-end; align-items: flex-end; margin-top: auto;">
                             <div style="text-align: right;">
@@ -88,7 +88,7 @@ else
             <MudTd DataLabel="Invoice #">@context.InvoiceNumber</MudTd>
             <MudTd DataLabel="Date">@context.Date.ToShortDateString()</MudTd>
             <MudTd DataLabel="Customer">@context.CustomerName [@context.CustomerEmail]</MudTd>
-            <MudTd DataLabel="Sent">@(context.LastSentToCustomer?.ToShortDateString() ?? "Not sent")</MudTd>
+            <MudTd DataLabel="Sent">@(context.LastSentToCustomer?.Date.ToShortDateString() ?? "Not sent")</MudTd>
             <MudTd DataLabel="Amount">@context.Total.ToString("C2")</MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Info"

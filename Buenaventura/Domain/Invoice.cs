@@ -20,5 +20,5 @@ public class Invoice
 
     public bool IsPaidInFull { get; set; }
 
-    public DateTime? LastSentToCustomer { get; set; }
+    public DateTimeOffset? LastSentToCustomer { get; set; }
 }
