@@ -1,4 +1,4 @@
-using Buenaventura.Dtos;
+using Buenaventura.Shared;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,4 +1,4 @@
-namespace Buenaventura.Dtos
+namespace Buenaventura.Shared
 {
     public class CategoryTotal
     {
@@ -21,15 +21,9 @@ namespace Buenaventura.Dtos
         }
     }
 
-    public class DateAndAmount
+    public class DateAndAmount(int year, int month, decimal amount)
     {
-        public DateTime Date { get; set; }
-        public decimal Amount { get; set; }
-
-        public DateAndAmount(int year, int month, decimal amount)
-        {
-            Date = new DateTime(year, month, 1);
-            Amount = amount;
-        }
+        public DateTime Date { get; set; } = new(year, month, 1);
+        public decimal Amount { get; set; } = amount;
     }
 }

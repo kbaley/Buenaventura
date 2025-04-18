@@ -1,5 +1,4 @@
-using Buenaventura.Client.Services;
-using Buenaventura.Dtos;
+using Buenaventura.Shared;
 using Buenaventura.Services;
 
 namespace Buenaventura.Data
