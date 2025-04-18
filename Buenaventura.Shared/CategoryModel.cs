@@ -8,6 +8,7 @@ public class CategoryModel
 
     public CategoryType Type { get; set; } = CategoryType.REGULAR;
     public bool IsFreeForm { get; set; } = false;
+    public string CategoryClass { get; set; } = "";
 
     public Guid? InvoiceId { get; set; }
     public Guid? TransferAccountId { get; set; }

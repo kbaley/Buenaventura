@@ -20,8 +20,14 @@ public class CategoriesController(BuenaventuraDbContext context, ICategoryServic
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutCategory([FromRoute] Guid id, [FromBody] Category category)
+    public async Task<IActionResult> PutCategory([FromRoute] Guid id, [FromBody] CategoryModel categoryModel)
     {
+        var category = new Category
+        {
+            CategoryId = categoryModel.CategoryId!.Value,
+            Name = categoryModel.Name,
+            Type = categoryModel.CategoryClass
+        };
         context.Entry(category).State = EntityState.Modified;
         await context.SaveChangesAsync();
 
@@ -29,9 +35,14 @@ public class CategoriesController(BuenaventuraDbContext context, ICategoryServic
     }
 
     [HttpPost]
-    public async Task<IActionResult> PostCategory([FromBody] Category category)
+    public async Task<IActionResult> PostCategory([FromBody] CategoryModel categoryModel)
     {
-        if (category.CategoryId == Guid.Empty) category.CategoryId = Guid.NewGuid();
+        var category = new Category
+        {
+            CategoryId = categoryModel.CategoryId ?? Guid.NewGuid(),
+            Name = categoryModel.Name,
+            Type = categoryModel.CategoryClass
+        };
         context.Categories.Add(category);
         await context.SaveChangesAsync().ConfigureAwait(false);
 
