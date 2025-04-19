@@ -15,8 +15,6 @@ namespace Buenaventura.Api
     [ApiController]
     public class InvestmentsController(
         BuenaventuraDbContext context,
-        ITransactionRepository transactionRepo,
-        IInvestmentPriceParser priceParser,
         IInvestmentService investmentService,
         IMapper mapper)
         : ControllerBase
@@ -46,14 +44,14 @@ namespace Buenaventura.Api
             return mappedInvestment;
         }
 
-        private IEnumerable<InvestmentDividendDto> GetDividendDtosFrom(Investment investment)
+        private IEnumerable<RecordDividendModel> GetDividendDtosFrom(Investment investment)
         {
             var dividendTransactions = investment.Dividends
                 .OrderBy(d => d.TransactionDate)
                 .ThenBy(d => d.EnteredDate)
                 .ThenBy(d => d.Amount)
                 .ToList();
-            var dividends = new List<InvestmentDividendDto>();
+            var dividends = new List<RecordDividendModel>();
             var i = 0;
 
             // Some dividends have income tax; the sort order means we'll get all dividends
@@ -61,7 +59,7 @@ namespace Buenaventura.Api
             // being the tax (the amount is < 0) and the second being the actual dividend
             while (i < dividendTransactions.Count)
             {
-                var dividend = new InvestmentDividendDto
+                var dividend = new RecordDividendModel
                 {
                     Date = dividendTransactions[i].TransactionDate,
                 };
@@ -106,59 +104,17 @@ namespace Buenaventura.Api
         }
 
         [HttpPost]
-        [Route("[action]")]
+        [Route("updatecurrentprices")]
         public async Task<InvestmentListModel> UpdateCurrentPrices()
         {
             return await investmentService.UpdateCurrentPrices();
         }
 
         [HttpPost]
-        [Route("[action]")]
-        public async Task<IActionResult> RecordDividend(InvestmentDividendDto investmentDto)
+        [Route("{investmentId}/dividends")]
+        public async Task RecordDividend(Guid investmentId, [FromBody] RecordDividendModel model)
         {
-            var investment = await context.Investments.FindAsync(investmentDto.InvestmentId);
-            var investmentIncomeCategory = await context.Categories
-                .SingleAsync(c => c.Name == "Investment Income");
-            var incomeTaxCategory = await context.Categories
-                .SingleAsync(c => c.Name == "Income Tax");
-            var now = DateTime.Now;
-            var exchangeRate = await context.Currencies.GetCadExchangeRate();
-            var accountCurrency = (await context.Accounts.FindAsync(investmentDto.AccountId))!.Currency;
-            var transaction = new Transaction
-            {
-                TransactionId = Guid.NewGuid(),
-                AccountId = investmentDto.AccountId,
-                Amount = Math.Round(investmentDto.Amount, 2),
-                TransactionDate = investmentDto.Date,
-                EnteredDate = now,
-                Description = investmentDto.Description + " (DIVIDEND)",
-                TransactionType = TransactionType.DIVIDEND,
-                DividendInvestmentId = investmentDto.InvestmentId,
-                CategoryId = investmentIncomeCategory.CategoryId,
-            };
-            transaction.SetAmountInBaseCurrency(accountCurrency, exchangeRate);
-            context.Transactions.Add(transaction);
-            if (investmentDto.IncomeTax != 0)
-            {
-                var taxTransaction = new Transaction
-                {
-                    TransactionId = Guid.NewGuid(),
-                    AccountId = investmentDto.AccountId,
-                    Amount = -Math.Round(investmentDto.IncomeTax, 2),
-                    TransactionDate = investmentDto.Date,
-                    EnteredDate = now,
-                    Description = investmentDto.Description + " (INCOME TAX)",
-                    TransactionType = TransactionType.DIVIDEND,
-                    DividendInvestmentId = investmentDto.InvestmentId,
-                    CategoryId = incomeTaxCategory.CategoryId,
-                };
-                taxTransaction.SetAmountInBaseCurrency(accountCurrency, exchangeRate);
-                context.Transactions.Add(taxTransaction);
-            }
-
-            await context.SaveChangesAsync();
-
-            return Ok(investment);
+            await investmentService.RecordDividend(investmentId, model);
         }
 
         [HttpPost]
@@ -212,69 +168,6 @@ namespace Buenaventura.Api
         public async Task PostInvestment([FromBody] AddInvestmentModel investmentDto)
         {
             await investmentService.AddInvestment(investmentDto);
-        }
-
-        private async Task<InvestmentTransaction> CreateInvestmentTransaction(InvestmentModel investmentDto,
-            Investment investment)
-        {
-            var buySell = investmentDto.Shares > 0
-                ? $"Buy {investmentDto.Shares} share"
-                : $"Sell {investmentDto.Shares} share";
-            if (investmentDto.Shares != 1) buySell += "s";
-            var description = $"Investment: {buySell} of {investmentDto.Symbol} at {investmentDto.LastPrice}";
-            var investmentAccount =
-                await context.Accounts.FirstAsync(a => a.AccountType == "Investment").ConfigureAwait(false);
-            var enteredDate = DateTime.Now;
-            var exchangeRate = await context.Currencies.GetCadExchangeRate();
-            var investmentAccountTransaction = new Transaction
-            {
-                TransactionId = Guid.NewGuid(),
-                AccountId = investmentAccount.AccountId,
-                Amount = Math.Round(investmentDto.Shares * investmentDto.LastPrice, 2),
-                TransactionDate = investmentDto.Date,
-                EnteredDate = enteredDate,
-                TransactionType = TransactionType.INVESTMENT,
-                Description = description
-            };
-            investmentAccountTransaction.SetAmountInBaseCurrency(investmentAccount.Currency, exchangeRate);
-            var otherAccount = await context.Accounts.FindAsync(investmentDto.AccountId);
-            var currency = otherAccount!.Currency;
-            var transaction = new Transaction
-            {
-                TransactionId = Guid.NewGuid(),
-                AccountId = investmentDto.AccountId,
-                Amount = 0 - Math.Round(investmentDto.Shares * investmentDto.LastPrice, 2),
-                TransactionDate = investmentDto.Date,
-                EnteredDate = enteredDate,
-                TransactionType = TransactionType.INVESTMENT,
-                Description = description
-            };
-            transaction.SetAmountInBaseCurrency(currency, exchangeRate);
-            var investmentTransaction = new InvestmentTransaction
-            {
-                InvestmentTransactionId = Guid.NewGuid(),
-                InvestmentId = investment.InvestmentId,
-                Shares = investmentDto.Shares,
-                Price = investmentDto.LastPrice,
-                Date = investmentDto.Date,
-                TransactionId = transaction.TransactionId
-            };
-            context.Transactions.Add(investmentAccountTransaction);
-            context.Transactions.Add(transaction);
-            context.InvestmentTransactions.Add(investmentTransaction);
-            context.Transfers.Add(new Transfer
-            {
-                TransferId = Guid.NewGuid(),
-                LeftTransactionId = transaction.TransactionId,
-                RightTransactionId = investmentAccountTransaction.TransactionId
-            });
-            context.Transfers.Add(new Transfer
-            {
-                TransferId = Guid.NewGuid(),
-                RightTransactionId = transaction.TransactionId,
-                LeftTransactionId = investmentAccountTransaction.TransactionId
-            });
-            return investmentTransaction;
         }
 
         [HttpDelete("{id}")]

@@ -1,4 +1,5 @@
 @page "/Investments"
+
 @inject IInvestmentService investmentService
 @inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
@@ -185,9 +186,23 @@ Do this only for test databases or if you are absolutely sure you want to delete
         }
     }
 
-    private void RecordDividend(InvestmentModel investment)
+    private async Task RecordDividend(InvestmentModel investment)
     {
-        navigationManager.NavigateTo($"/Investments/Dividend/{investment.InvestmentId}");
+        var parameters = new DialogParameters
+        {
+            ["Investment"] = investment,
+            ["Accounts"] = accounts
+        };
+
+        var dialog = await dialogService.ShowAsync<DividendDialog>("Record Dividend", parameters);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            var model = (RecordDividendModel)result.Data!;
+            await investmentService.RecordDividend(investment.InvestmentId, model);
+            await accountSyncService.RefreshAccounts();
+            await LoadInvestments();
+        }
     }
 
     private async Task UpdatePrices()

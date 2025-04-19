@@ -34,4 +34,9 @@ public class ClientInvestmentService(HttpClient httpClient) : ClientService<Inve
     {
         await PostItem("buysell", buySellModel);
     }
+
+    public async Task RecordDividend(Guid investmentId, RecordDividendModel model)
+    {
+        await PostItem($"{investmentId}/dividends", model);
+    }
 }

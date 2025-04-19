@@ -197,4 +197,51 @@ public class ServerInvestmentService(
         await transactionGenerator.CreateInvestmentTransaction(model, investment!, context);
         await context.SaveChangesAsync();
     }
+
+    public async Task RecordDividend(Guid investmentId, RecordDividendModel model)
+    {
+        var context = await contextFactory.CreateDbContextAsync();
+        await using var tx = await context.Database.BeginTransactionAsync();
+        var investmentIncomeCategory = await context.Categories
+            .SingleAsync(c => c.Name == "Investment Income");
+        var incomeTaxCategory = await context.Categories
+            .SingleAsync(c => c.Name == "Income Tax");
+        var now = DateTime.Now;
+        var exchangeRate = await context.Currencies.GetCadExchangeRate();
+        var accountCurrency = (await context.Accounts.FindAsync(model.AccountId))!.Currency;
+        var transaction = new Transaction
+        {
+            TransactionId = Guid.NewGuid(),
+            AccountId = model.AccountId,
+            Amount = Math.Round(model.Amount, 2),
+            TransactionDate = model.Date,
+            EnteredDate = now,
+            Description = model.Description + " (DIVIDEND)",
+            TransactionType = TransactionType.DIVIDEND,
+            DividendInvestmentId = investmentId,
+            CategoryId = investmentIncomeCategory.CategoryId,
+        };
+        transaction.SetAmountInBaseCurrency(accountCurrency, exchangeRate);
+        context.Transactions.Add(transaction);
+        if (model.IncomeTax != 0)
+        {
+            var taxTransaction = new Transaction
+            {
+                TransactionId = Guid.NewGuid(),
+                AccountId = model.AccountId,
+                Amount = -Math.Round(model.IncomeTax, 2),
+                TransactionDate = model.Date,
+                EnteredDate = now,
+                Description = model.Description + " (INCOME TAX)",
+                TransactionType = TransactionType.DIVIDEND,
+                DividendInvestmentId = investmentId,
+                CategoryId = incomeTaxCategory.CategoryId,
+            };
+            taxTransaction.SetAmountInBaseCurrency(accountCurrency, exchangeRate);
+            context.Transactions.Add(taxTransaction);
+        }
+
+        await context.SaveChangesAsync();
+        await tx.CommitAsync();
+    }
 }

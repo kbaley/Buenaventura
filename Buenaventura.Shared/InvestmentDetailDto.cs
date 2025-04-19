@@ -19,5 +19,5 @@ public class InvestmentDetailDto
     public Guid CategoryId { get; set; }
     public decimal CategoryPercentage { get; set; }
     public IEnumerable<InvestmentTransactionDto> Transactions { get; set; }
-    public IEnumerable<InvestmentDividendDto> Dividends { get; set; }
+    public IEnumerable<RecordDividendModel> Dividends { get; set; }
 }

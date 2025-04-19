@@ -1,0 +1,86 @@
+@using MudBlazor
+@using Buenaventura.Shared
+@using Buenaventura.Client.Services
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Record Dividend for @Investment.Symbol</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="@Date"
+                               Label="Dividend Date"
+                               Required="true"/>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="@Amount"
+                                 Label="Dividend Amount"
+                                 AutoFocus="true"
+                                 Required="true"
+                                 Format="N2"/>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="@IncomeTax"
+                                 Label="Income Tax"
+                                 Required="true"
+                                 Format="N2"/>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="Guid?" @bind-Value="@AccountId" Label="Account to Credit" Required="true">
+                    @if (Accounts != null)
+                    {
+                        @foreach (var account in Accounts)
+                        {
+                            <MudSelectItem Value="@((Guid?)account.AccountId)">@account.Name</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="@Description"
+                              Label="Description"
+                />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Record Dividend</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+    [Parameter] public InvestmentModel Investment { get; set; } = new();
+    [Parameter] public IEnumerable<AccountWithBalance> Accounts { get; set; } = [];
+
+    private DateTime? Date { get; set; } = DateTime.Now;
+    private decimal Amount { get; set; }
+    private decimal IncomeTax { get; set; }
+    private Guid? AccountId { get; set; }
+    private string? Description { get; set; }
+
+    private void Cancel()
+    {
+        MudDialog!.Cancel();
+    }
+
+    private void Submit()
+    {
+        if (Date == null || AccountId == null)
+        {
+            return;
+        }
+
+        var dividend = new RecordDividendModel
+        {
+            Date = Date.Value,
+            Amount = Amount,
+            IncomeTax = IncomeTax,
+            AccountId = AccountId.Value,
+            Description = Description
+        };
+        MudDialog!.Close(DialogResult.Ok(dividend));
+    }
+} 

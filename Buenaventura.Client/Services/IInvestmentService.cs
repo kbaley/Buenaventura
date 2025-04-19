@@ -12,4 +12,5 @@ public interface IInvestmentService : IAppService
     Task DeleteInvestment(Guid investmentId);
     Task AddInvestment(AddInvestmentModel investmentModel);
     Task BuySell(BuySellModel buySellModel);
+    Task RecordDividend(Guid investmentId, RecordDividendModel model);
 }
