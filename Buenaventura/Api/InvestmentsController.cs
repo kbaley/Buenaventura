@@ -162,18 +162,14 @@ namespace Buenaventura.Api
         }
 
         [HttpPost]
-        [Route("[action]")]
-        public async Task<IActionResult> BuySell(InvestmentModel investmentDto)
+        [Route("buysell")]
+        public async Task BuySell(BuySellModel model)
         {
-            var investment = await context.Investments.FindAsync(investmentDto.InvestmentId).ConfigureAwait(false);
-            await CreateInvestmentTransaction(investmentDto, investment!).ConfigureAwait(false);
-            await context.SaveChangesAsync().ConfigureAwait(false);
-
-            return Ok(investment);
+            await investmentService.BuySell(model);
         }
 
         [HttpPost]
-        [Route("[action]")]
+        [Route("makecorrectingentry")]
         public async Task<IActionResult> MakeCorrectingEntry()
         {
             await investmentService.MakeCorrectingEntry();

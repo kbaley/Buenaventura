@@ -6,38 +6,39 @@
         <MudGrid>
             <MudItem xs="12" sm="6">
                 <MudNumericField @bind-Value="@Shares"
-                               Label="Number of Shares"
-                               Required="true"
-                               Min="0"
-                               Format="N4"
-                               OnBlur="CalculateTotal" />
+                                 AutoFocus="true"
+                                 Label="Number of Shares"
+                                 Required="true"
+                                 Min="0"
+                                 Format="N4"
+                                 OnBlur="CalculateTotal"/>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudNumericField @bind-Value="@Price"
-                               Label="Price per Share"
-                               Required="true"
-                               Min="0"
-                               Format="N4"
-                               OnBlur="CalculateTotal" />
+                                 Label="Price per Share"
+                                 Required="true"
+                                 Min="0"
+                                 Format="N4"
+                                 OnBlur="CalculateTotal"/>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudNumericField @bind-Value="@Total"
-                               Label="Total Amount"
-                               Required="true"
-                               Min="0"
-                               Format="N2"
-                               OnBlur="CalculatePrice" />
+                                 Label="Total Amount"
+                                 Required="true"
+                                 Min="0"
+                                 Format="N2"
+                                 OnBlur="CalculatePrice"/>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudDatePicker @bind-Date="@Date"
-                             Label="Transaction Date"
-                             Required="true" />
+                               Label="Transaction Date"
+                               Required="true"/>
             </MudItem>
             <MudItem xs="12">
                 <MudSelect T="Guid?" @bind-Value="@AccountId" Label="Account to Debit" Required="true">
-                    @if (accounts != null)
+                    @if (Accounts != null)
                     {
-                        @foreach (var account in accounts)
+                        @foreach (var account in Accounts)
                         {
                             <MudSelectItem Value="@((Guid?)account.AccountId)">@account.Name</MudSelectItem>
                         }
@@ -48,7 +49,8 @@
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="@(IsBuy ? Color.Success : Color.Error)" OnClick="Submit">@(IsBuy ? "Buy" : "Sell")</MudButton>
+        <MudButton Variant="Variant.Filled" Color="@(IsBuy ? Color.Success : Color.Error)"
+                   OnClick="Submit">@(IsBuy ? "Buy" : "Sell")</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -56,13 +58,13 @@
     [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
     [Parameter] public InvestmentModel Investment { get; set; } = new();
     [Parameter] public bool IsBuy { get; set; }
+    [Parameter] public IEnumerable<AccountWithBalance> Accounts { get; set; } = [];
 
     private decimal Shares { get; set; }
     private decimal Price { get; set; }
     private decimal Total { get; set; }
     private DateTime? Date { get; set; } = DateTime.Now;
     private Guid? AccountId { get; set; }
-    [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
 
     private void CalculateTotal()
     {
@@ -88,10 +90,10 @@
         {
             return;
         }
-        var transaction = new InvestmentModel
+
+        var transaction = new BuySellModel()
         {
             InvestmentId = Investment.InvestmentId,
-            Symbol = Investment.Symbol,
             Shares = IsBuy ? Shares : -Shares,
             Price = Price,
             Date = Date.Value,
@@ -99,4 +101,5 @@
         };
         MudDialog!.Close(DialogResult.Ok(transaction));
     }
+
 } 

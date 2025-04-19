@@ -112,6 +112,7 @@ else
 }
 
 @code {
+    [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
     private IEnumerable<InvestmentModel>? investments;
     private double portfolioIrr;
 
@@ -169,17 +170,18 @@ Do this only for test databases or if you are absolutely sure you want to delete
         var parameters = new DialogParameters
         {
             ["Investment"] = investment,
-            ["IsBuy"] = isBuy
+            ["IsBuy"] = isBuy,
+            ["Accounts"] = accounts
         };
 
         var dialog = await dialogService.ShowAsync<BuySellDialog>(isBuy ? "Buy Investment" : "Sell Investment", parameters);
         var result = await dialog.Result;
         if (!result!.Canceled)
         {
-            // Save functionality will be implemented later
-            // var transaction = (InvestmentModel)result.Data;
-            // await investmentService.BuySellInvestment(transaction);
-            // await LoadInvestments();
+            var transaction = (BuySellModel)result.Data!;
+            await investmentService.BuySell(transaction);
+            await accountSyncService.RefreshAccounts();
+            await LoadInvestments();
         }
     }
 

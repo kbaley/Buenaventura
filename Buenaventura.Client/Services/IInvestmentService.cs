@@ -11,4 +11,5 @@ public interface IInvestmentService : IAppService
     Task MakeCorrectingEntry();
     Task DeleteInvestment(Guid investmentId);
     Task AddInvestment(AddInvestmentModel investmentModel);
+    Task BuySell(BuySellModel buySellModel);
 }

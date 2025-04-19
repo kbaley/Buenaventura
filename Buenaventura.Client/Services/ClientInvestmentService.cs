@@ -29,4 +29,9 @@ public class ClientInvestmentService(HttpClient httpClient) : ClientService<Inve
     {
         await PostItem("", investmentModel);
     }
+
+    public async Task BuySell(BuySellModel buySellModel)
+    {
+        await PostItem("buysell", buySellModel);
+    }
 }
