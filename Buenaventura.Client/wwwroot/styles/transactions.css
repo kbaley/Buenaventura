@@ -39,3 +39,6 @@
 .mud-table-row:hover .row-with-actions .hover-row-content {
     opacity: 0;
 }
+.mud-input-numeric-spin {
+    display: none !important;
+}

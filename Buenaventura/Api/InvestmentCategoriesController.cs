@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
+using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,12 +12,13 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class InvestmentCategoriesController(BuenaventuraDbContext context, IMapper mapper) : ControllerBase
+public class InvestmentCategoriesController(BuenaventuraDbContext context, IMapper mapper,
+    IInvestmentCategoryService investmentCategoryService) : ControllerBase
 {
     [HttpGet]
-    public IEnumerable<InvestmentCategory> GetCategories()
+    public async Task<IEnumerable<InvestmentCategoryModel>> GetCategories()
     {
-        return context.InvestmentCategories.OrderBy(c => c.Name);
+        return await investmentCategoryService.GetCategories();
     }
 
     [HttpPost]

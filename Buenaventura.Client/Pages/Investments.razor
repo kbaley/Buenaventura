@@ -27,6 +27,10 @@ else
             </MudItem>
             <MudItem xs="12" sm="4">
                 <MudStack Spacing="2" Row="true" Justify="Justify.FlexEnd">
+                    <MudTooltip Text="Add new investment">
+                        <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Success"
+                                       OnClick="AddInvestment"/>
+                    </MudTooltip>
                     <MudTooltip Text="Compare portfolio with desired ratios">
                         <MudIconButton Icon="@Icons.Material.Filled.Compare" Color="Color.Info"
                                        OnClick="ComparePortfolioRatios"/>
@@ -191,4 +195,8 @@ Do this only for test databases or if you are absolutely sure you want to delete
         navigationManager.NavigateTo("/Investments/Ratios");
     }
 
+    private void AddInvestment()
+    {
+        navigationManager.NavigateTo("/Investments/Add");
+    }
 }
