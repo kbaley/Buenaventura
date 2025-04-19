@@ -47,7 +47,6 @@
     protected override async Task OnInitializedAsync()
     {
         accounts = (await accountService.GetAccounts())
-            .Where(a => !a.IsHidden)
             .OrderBy(a => a.DisplayOrder)
             .ToList();
     }

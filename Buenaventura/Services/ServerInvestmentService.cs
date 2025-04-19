@@ -18,7 +18,7 @@ public class ServerInvestmentService(
         var investments = await context.Investments
             .Include(i => i.Transactions)
             .Include(i => i.Dividends)
-            .Select(i => new InvestmentForListDto
+            .Select(i => new InvestmentModel
             {
                 InvestmentId = i.InvestmentId,
                 Name = i.Name,
@@ -66,7 +66,7 @@ public class ServerInvestmentService(
             return await GetInvestments();
         return new InvestmentListModel
         {
-            Investments = new List<InvestmentForListDto>(),
+            Investments = new List<InvestmentModel>(),
             PortfolioIrr = await context.Investments.GetAnnualizedIrr()
         };
     }

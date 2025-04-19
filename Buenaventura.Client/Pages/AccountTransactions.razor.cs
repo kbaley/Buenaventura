@@ -72,7 +72,7 @@ public partial class AccountTransactions(
             categories = [];
             categories.AddRange(masterCategoryList);
             foreach (var account in accounts.Where(
-                         a => a.AccountId != AccountId && a.IsHidden == false))
+                         a => a.AccountId != AccountId))
             {
                 categories.Add(new CategoryModel
                 {

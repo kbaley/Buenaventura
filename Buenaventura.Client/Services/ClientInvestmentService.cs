@@ -3,7 +3,7 @@ using Buenaventura.Shared;
 
 namespace Buenaventura.Client.Services;
 
-public class ClientInvestmentService(HttpClient httpClient) : ClientService<InvestmentForListDto>("investments", httpClient), IInvestmentService
+public class ClientInvestmentService(HttpClient httpClient) : ClientService<InvestmentModel>("investments", httpClient), IInvestmentService
 {
     public async Task<InvestmentListModel> GetInvestments()
     {

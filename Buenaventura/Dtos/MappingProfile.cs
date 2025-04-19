@@ -9,7 +9,7 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<Investment, InvestmentForListDto>()
+        CreateMap<Investment, InvestmentModel>()
             .ForMember(i => i.AveragePrice, opt => opt.MapFrom(src => Math.Round(src.GetAveragePricePaid(), 2)))
             .ForMember(i => i.Shares, opt => opt.MapFrom(src => src.GetNumberOfShares()))
             .ForMember(i => i.CurrentValue, opt => opt.MapFrom(src => Math.Round(src.GetCurrentValue(), 2)))

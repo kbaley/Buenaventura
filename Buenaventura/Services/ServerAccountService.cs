@@ -16,6 +16,8 @@ public class ServerAccountService(
         var context = await dbContextFactory.CreateDbContextAsync();
         var exchangeRate = await context.Currencies.GetCadExchangeRate();
         var accounts = await context.Accounts
+            .Where(a => !a.IsHidden)
+            .OrderBy(a => a.DisplayOrder)
             .Select(a => new AccountWithBalance
             {
                 AccountId = a.AccountId,

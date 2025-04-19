@@ -6,43 +6,32 @@ namespace Buenaventura.Client.Pages;
 
 public partial class InvestmentEdit(
     IInvestmentCategoryService categoryService,
-    IAccountService accountService,
     NavigationManager navigationManager
     ) : ComponentBase
 {
     private IEnumerable<InvestmentCategoryModel> categories = [];
-    private IEnumerable<AccountWithBalance> accounts = [];
-    private decimal? shares;
-    private decimal? price;
+    [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
     private decimal? total;
-    private string name = "";
-    private string symbol = "";
-    private string currency = "USD";
-    private bool includePrices = true;
-    private bool paysDividends;
-    private Guid? categoryId;
-    private DateTime? purchaseDate = DateTime.Today;
-    private Guid? debitAccountId;
+    private readonly AddInvestmentModel investment = new AddInvestmentModel
+    {
+        Currency = "USD"
+    };
 
     protected override async Task OnInitializedAsync()
     {
         categories = await categoryService.GetCategories();
-        accounts = await accountService.GetAccounts();
     }
 
     private void CalculateTotal()
     {
-        if (shares.HasValue && price.HasValue)
-        {
-            total = shares.Value * price.Value;
-        }
+        total = investment.Shares * investment.Price;
     }
 
     private void CalculatePrice()
     {
-        if (shares.HasValue && shares.Value > 0 && total.HasValue)
+        if (total.HasValue)
         {
-            price = total.Value / shares.Value;
+            investment.Price = total.Value / investment.Shares;
         }
     }
 

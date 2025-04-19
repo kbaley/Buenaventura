@@ -162,7 +162,7 @@ namespace Buenaventura.Api
 
         [HttpPost]
         [Route("[action]")]
-        public async Task<IActionResult> BuySell(InvestmentForListDto investmentDto)
+        public async Task<IActionResult> BuySell(InvestmentModel investmentDto)
         {
             var investment = await context.Investments.FindAsync(investmentDto.InvestmentId).ConfigureAwait(false);
             await CreateInvestmentTransaction(investmentDto, investment!).ConfigureAwait(false);
@@ -206,13 +206,13 @@ namespace Buenaventura.Api
             await context.SaveChangesAsync();
             await context.Entry(investmentMapped).ReloadAsync().ConfigureAwait(false);
             await context.Entry(investmentMapped).Collection(i => i.Transactions).LoadAsync().ConfigureAwait(false);
-            var returnInvestment = mapper.Map<InvestmentForListDto>(investmentMapped);
+            var returnInvestment = mapper.Map<InvestmentModel>(investmentMapped);
 
             return Ok(returnInvestment);
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostInvestment([FromBody] InvestmentForListDto investmentDto)
+        public async Task<IActionResult> PostInvestment([FromBody] InvestmentModel investmentDto)
         {
             var investment = await context.Investments.SingleOrDefaultAsync(i => i.Symbol == investmentDto.Symbol)
                 .ConfigureAwait(false);
@@ -238,7 +238,7 @@ namespace Buenaventura.Api
             );
         }
 
-        private async Task<InvestmentTransaction> CreateInvestmentTransaction(InvestmentForListDto investmentDto,
+        private async Task<InvestmentTransaction> CreateInvestmentTransaction(InvestmentModel investmentDto,
             Investment investment)
         {
             var buySell = investmentDto.Shares > 0

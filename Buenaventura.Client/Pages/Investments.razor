@@ -114,7 +114,7 @@ else
 }
 
 @code {
-    private IEnumerable<InvestmentForListDto>? investments;
+    private IEnumerable<InvestmentModel>? investments;
     private double portfolioIrr;
 
     protected override async Task OnInitializedAsync()
@@ -129,12 +129,12 @@ else
         portfolioIrr = investmentList.PortfolioIrr;
     }
 
-    private void EditInvestment(InvestmentForListDto investment)
+    private void EditInvestment(InvestmentModel investment)
     {
         navigationManager.NavigateTo($"/Investments/Edit/{investment.InvestmentId}");
     }
 
-    private async Task DeleteInvestment(InvestmentForListDto investment)
+    private async Task DeleteInvestment(InvestmentModel investment)
     {
         var parameters = new DialogParameters
         {
@@ -166,12 +166,12 @@ Do this only for test databases or if you are absolutely sure you want to delete
         }
     }
 
-    private void BuySellInvestment(InvestmentForListDto investment, bool isBuy)
+    private void BuySellInvestment(InvestmentModel investment, bool isBuy)
     {
         navigationManager.NavigateTo($"/Investments/BuySell/{investment.InvestmentId}?isBuy={isBuy}");
     }
 
-    private void RecordDividend(InvestmentForListDto investment)
+    private void RecordDividend(InvestmentModel investment)
     {
         navigationManager.NavigateTo($"/Investments/Dividend/{investment.InvestmentId}");
     }
@@ -197,6 +197,6 @@ Do this only for test databases or if you are absolutely sure you want to delete
 
     private void AddInvestment()
     {
-        navigationManager.NavigateTo("/Investments/Add");
+        navigationManager.NavigateTo("/Investments/new");
     }
 }

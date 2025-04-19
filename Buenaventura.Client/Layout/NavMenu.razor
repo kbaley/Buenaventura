@@ -11,7 +11,7 @@
     </MudNavLink>
     <MudDivider Class="my-2" />
 
-    @foreach (var account in accounts.Where(a => !a.IsHidden).OrderBy(a => a.DisplayOrder))
+    @foreach (var account in accounts.OrderBy(a => a.DisplayOrder))
     {
         <MudNavLink Href="@($"account/{account.AccountId}")" Match="NavLinkMatch.Prefix"
                     Icon="@(GetIcon(account.AccountType))">
