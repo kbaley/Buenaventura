@@ -82,7 +82,8 @@ namespace Buenaventura.Api
         [HttpGet]
         public async Task<InvestmentListModel> GetInvestments()
         {
-            return await investmentService.GetInvestments();
+            var investments = await investmentService.GetInvestments();
+            return investments;
         }
 
         [HttpPost]
@@ -212,30 +213,9 @@ namespace Buenaventura.Api
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostInvestment([FromBody] InvestmentModel investmentDto)
+        public async Task PostInvestment([FromBody] AddInvestmentModel investmentDto)
         {
-            var investment = await context.Investments.SingleOrDefaultAsync(i => i.Symbol == investmentDto.Symbol)
-                .ConfigureAwait(false);
-            if (investment == null)
-            {
-                investmentDto.InvestmentId = Guid.NewGuid();
-                var mappedInvestment = mapper.Map<Investment>(investmentDto);
-                investment = context.Investments.Add(mappedInvestment).Entity;
-            }
-
-            var investmentTransaction =
-                await CreateInvestmentTransaction(investmentDto, investment).ConfigureAwait(false);
-            await context.SaveChangesAsync().ConfigureAwait(false);
-
-            var accountBalances = (await context.GetAccountBalances()).ToList();
-            return CreatedAtAction("PostInvestment", new { id = investment.InvestmentId },
-                new
-                {
-                    investment,
-                    investmentTransaction,
-                    accountBalances
-                }
-            );
+            await investmentService.AddInvestment(investmentDto);
         }
 
         private async Task<InvestmentTransaction> CreateInvestmentTransaction(InvestmentModel investmentDto,

@@ -1,6 +1,7 @@
 using Buenaventura.Api;
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
+using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -140,10 +141,118 @@ public class ServerInvestmentService(
         {
             context.Transactions.Remove(dividendTransaction);
         }
+
         await context.SaveChangesAsync();
 
         context.Investments.Remove(investment);
         await context.SaveChangesAsync();
         await tx.CommitAsync();
+    }
+
+    public async Task AddInvestment(AddInvestmentModel investmentModel)
+    {
+        var context = await contextFactory.CreateDbContextAsync();
+        await using var tx = await context.Database.BeginTransactionAsync();
+        // Check if we've bought this investment before
+        var investment = await context.Investments
+            .SingleOrDefaultAsync(i => i.Symbol == investmentModel.Symbol);
+        if (investment == null)
+        {
+            investment = new Investment
+            {
+                InvestmentId = Guid.NewGuid(),
+                Name = investmentModel.Name,
+                Symbol = investmentModel.Symbol,
+                Currency = investmentModel.Currency,
+                LastPrice = investmentModel.Price,
+                CategoryId = investmentModel.CategoryId,
+                PaysDividends = investmentModel.PaysDividends,
+                DontRetrievePrices = investmentModel.DontRetrievePrices,
+                LastPriceRetrievalDate = DateTime.UtcNow
+            };
+            await context.Investments.AddAsync(investment);
+        }
+        else
+        {
+            investment.LastPrice = investmentModel.Price;
+            investment.LastPriceRetrievalDate = DateTime.UtcNow;
+            investment.CategoryId = investmentModel.CategoryId;
+            investment.PaysDividends = investmentModel.PaysDividends;
+            investment.DontRetrievePrices = investmentModel.DontRetrievePrices;
+            investment.Name = investmentModel.Name;
+            investment.Currency = investmentModel.Currency;
+            context.Investments.Update(investment);
+        }
+
+        await CreateInvestmentTransaction(investmentModel, investment, context);
+        await context.SaveChangesAsync();
+        await tx.CommitAsync();
+    }
+
+    private async Task CreateInvestmentTransaction(AddInvestmentModel investmentDto,
+        Investment investment, BuenaventuraDbContext context)
+    {
+        if (investmentDto.AccountId == null || investmentDto.Date == null)
+        {
+            throw new Exception("Account ID and Date are required");
+        }
+
+        var buySell = investmentDto.Shares > 0
+            ? $"Buy {investmentDto.Shares} share"
+            : $"Sell {investmentDto.Shares} share";
+        if (investmentDto.Shares != 1) buySell += "s";
+        var description = $"Investment: {buySell} of {investmentDto.Symbol} at {investmentDto.Price:N2}";
+        var investmentAccount =
+            await context.Accounts.FirstAsync(a => a.AccountType == "Investment").ConfigureAwait(false);
+        var enteredDate = DateTime.Now;
+        var exchangeRate = await context.Currencies.GetCadExchangeRate();
+        var investmentAccountTransaction = new Transaction
+        {
+            TransactionId = Guid.NewGuid(),
+            AccountId = investmentAccount.AccountId,
+            Amount = Math.Round(investmentDto.Shares * investmentDto.Price, 2),
+            TransactionDate = investmentDto.Date.Value,
+            EnteredDate = enteredDate,
+            TransactionType = TransactionType.INVESTMENT,
+            Description = description
+        };
+        investmentAccountTransaction.SetAmountInBaseCurrency(investmentAccount.Currency, exchangeRate);
+        var otherAccount = await context.Accounts.FindAsync(investmentDto.AccountId);
+        var currency = otherAccount!.Currency;
+        var transaction = new Transaction
+        {
+            TransactionId = Guid.NewGuid(),
+            AccountId = investmentDto.AccountId.Value,
+            Amount = 0 - Math.Round(investmentDto.Shares * investmentDto.Price, 2),
+            TransactionDate = investmentDto.Date.Value,
+            EnteredDate = enteredDate,
+            TransactionType = TransactionType.INVESTMENT,
+            Description = description
+        };
+        transaction.SetAmountInBaseCurrency(currency, exchangeRate);
+        var investmentTransaction = new InvestmentTransaction
+        {
+            InvestmentTransactionId = Guid.NewGuid(),
+            InvestmentId = investment.InvestmentId,
+            Shares = investmentDto.Shares,
+            Price = investmentDto.Price,
+            Date = investmentDto.Date.Value,
+            TransactionId = transaction.TransactionId
+        };
+        context.Transactions.Add(investmentAccountTransaction);
+        context.Transactions.Add(transaction);
+        context.InvestmentTransactions.Add(investmentTransaction);
+        context.Transfers.Add(new Transfer
+        {
+            TransferId = Guid.NewGuid(),
+            LeftTransactionId = transaction.TransactionId,
+            RightTransactionId = investmentAccountTransaction.TransactionId
+        });
+        context.Transfers.Add(new Transfer
+        {
+            TransferId = Guid.NewGuid(),
+            RightTransactionId = transaction.TransactionId,
+            LeftTransactionId = investmentAccountTransaction.TransactionId
+        });
     }
 }

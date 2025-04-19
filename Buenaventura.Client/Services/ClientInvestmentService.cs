@@ -24,4 +24,9 @@ public class ClientInvestmentService(HttpClient httpClient) : ClientService<Inve
     {
         await Delete(investmentId);
     }
+
+    public async Task AddInvestment(AddInvestmentModel investmentModel)
+    {
+        await PostItem("", investmentModel);
+    }
 }

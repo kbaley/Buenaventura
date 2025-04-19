@@ -10,4 +10,5 @@ public interface IInvestmentService : IAppService
     // Makes required entry in the investments account to match the total of the portfolio
     Task MakeCorrectingEntry();
     Task DeleteInvestment(Guid investmentId);
+    Task AddInvestment(AddInvestmentModel investmentModel);
 }

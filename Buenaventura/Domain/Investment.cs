@@ -53,7 +53,7 @@ public class Investment
         payments.Add(Convert.ToDouble(GetCurrentValue()));
         days.Add((DateTime.Today - startDate).Days);
         var irr = Irr.CalculateIrr(payments.ToArray(), days.ToArray());
-        return irr;
+        return double.IsNaN(irr) ? 0 : irr;
     }
 
     public decimal GetNumberOfShares()
