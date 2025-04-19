@@ -1,21 +1,108 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
+@using MudBlazor
 @rendermode InteractiveAuto
 
 @attribute [Authorize]
 
 <MudText Typo="Typo.h4" GutterBottom="true">Dashboard</MudText>
 
-<MudText Typo="Typo.body2">
-    <ul>
-        <li>Expense breakdown by category</li>
-        <li>- Drilldown by month</li> 
-        <li>Investment value over time</li>
-        <li>Net worth over last 12 months</li>
-        <li>Cash Flow this month (income minus expenses, excluding investments)</li>
-        <li>Breakdown of asset classes</li>
-        <li>Line chart of top 5 expenses over last month</li>
-        <li>Credit card total</li>
-        <li>Bank account total</li>
-    </ul>
-</MudText>
+<MudGrid>
+    <!-- Expense Breakdown by Category -->
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Expense Breakdown by Category</MudText>
+            <MudChart ChartType="ChartType.Pie" InputData="@expenseData" InputLabels="@expenseLabels" />
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" md="6">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="1" Class="pa-4">
+                    <MudText Typo="Typo.h6">Cash Flow This Month</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Success">$2,500</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="1" Class="pa-4">
+                    <MudText Typo="Typo.h6">Credit Card Total</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Error">$1,200</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="1" Class="pa-4">
+                    <MudText Typo="Typo.h6">Bank Account Total</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Success">$15,000</MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudItem>
+
+    <!-- Investment Value Over Time -->
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Investment Value Over Time</MudText>
+            <MudChart ChartType="ChartType.Line" ChartSeries="@investmentData" />
+        </MudPaper>
+    </MudItem>
+
+    <!-- Net Worth Over Last 12 Months -->
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Net Worth Over Last 12 Months</MudText>
+            <MudChart ChartType="ChartType.Line" ChartSeries="@netWorthData" />
+        </MudPaper>
+    </MudItem>
+
+    <!-- Asset Class Breakdown -->
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Asset Class Breakdown</MudText>
+            <MudChart ChartType="ChartType.Pie" ChartSeries="@assetData" />
+        </MudPaper>
+    </MudItem>
+
+    <!-- Top 5 Expenses -->
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Top 5 Expenses</MudText>
+            <MudChart ChartType="ChartType.Bar" ChartSeries="@topExpensesData" />
+        </MudPaper>
+    </MudItem>
+
+    <!-- Financial Summary Cards -->
+</MudGrid>
+
+@code {
+    private ChartOptions options = new ChartOptions
+    {
+        ChartPalette = new string[] { "#3E2723", "#4E342E", "#5D4037", "#6D4C41", "#795548", "#8D6E63", "#A1887F", "#BCAAA4", "#D7CCC8", "#EFEBE9" }
+    };
+
+    private double[] expenseData = { 35, 25, 15, 10, 15 };
+    private string[] expenseLabels = { "Housing", "Food", "Transportation", "Entertainment", "Utilities" };
+
+    private List<ChartSeries> investmentData = new()
+    {
+        new ChartSeries { Name = "Investments", Data = new double[] { 50000, 52000, 51000, 53000, 55000, 57000, 56000, 58000, 60000, 62000, 63000, 65000 } }
+    };
+
+    private List<ChartSeries> netWorthData = new()
+    {
+        new ChartSeries { Name = "Net Worth", Data = new double[] { 100000, 102000, 105000, 108000, 110000, 112000, 115000, 118000, 120000, 122000, 125000, 128000 } }
+    };
+
+    private List<ChartSeries> assetData = new()
+    {
+        new ChartSeries { Name = "Stocks", Data = new double[] { 40 } },
+        new ChartSeries { Name = "Bonds", Data = new double[] { 30 } },
+        new ChartSeries { Name = "Real Estate", Data = new double[] { 20 } },
+        new ChartSeries { Name = "Cash", Data = new double[] { 10 } }
+    };
+
+    private List<ChartSeries> topExpensesData = new()
+    {
+        new ChartSeries { Name = "Expenses", Data = new double[] { 1200, 800, 600, 400, 300 } }
+    };
+}
