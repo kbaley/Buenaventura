@@ -14,9 +14,10 @@ public partial class InvestmentEdit(
     private IEnumerable<InvestmentCategoryModel> categories = [];
     [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
     private decimal? total;
-    private readonly AddInvestmentModel investment = new AddInvestmentModel
+    private readonly AddInvestmentModel investment = new()
     {
-        Currency = "USD"
+        Currency = "USD",
+        Date = DateTime.Now,
     };
 
     protected override async Task OnInitializedAsync()

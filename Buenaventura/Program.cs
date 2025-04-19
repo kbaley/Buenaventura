@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Blazored.LocalStorage;
 using Buenaventura;
 using Buenaventura.Client.Services;
@@ -11,7 +12,6 @@ using Buenaventura.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Resend;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +30,11 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+    });
 builder.Services.AddAutoMapper(typeof(ServerAccountService));
 var connectionString = builder.Configuration.GetConnectionString("Buenaventura");
 builder.Services.AddDbContextFactory<BuenaventuraDbContext>(options =>
