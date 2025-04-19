@@ -1,0 +1,102 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(IsBuy ? "Buy" : "Sell") @Investment.Symbol</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="@Shares"
+                               Label="Number of Shares"
+                               Required="true"
+                               Min="0"
+                               Format="N4"
+                               OnBlur="CalculateTotal" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="@Price"
+                               Label="Price per Share"
+                               Required="true"
+                               Min="0"
+                               Format="N4"
+                               OnBlur="CalculateTotal" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="@Total"
+                               Label="Total Amount"
+                               Required="true"
+                               Min="0"
+                               Format="N2"
+                               OnBlur="CalculatePrice" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="@Date"
+                             Label="Transaction Date"
+                             Required="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect T="Guid?" @bind-Value="@AccountId" Label="Account to Debit" Required="true">
+                    @if (accounts != null)
+                    {
+                        @foreach (var account in accounts)
+                        {
+                            <MudSelectItem Value="@((Guid?)account.AccountId)">@account.Name</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="@(IsBuy ? Color.Success : Color.Error)" OnClick="Submit">@(IsBuy ? "Buy" : "Sell")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+    [Parameter] public InvestmentModel Investment { get; set; } = new();
+    [Parameter] public bool IsBuy { get; set; }
+
+    private decimal Shares { get; set; }
+    private decimal Price { get; set; }
+    private decimal Total { get; set; }
+    private DateTime? Date { get; set; } = DateTime.Now;
+    private Guid? AccountId { get; set; }
+    [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
+
+    private void CalculateTotal()
+    {
+        Total = Shares * Price;
+    }
+
+    private void CalculatePrice()
+    {
+        if (Shares != 0)
+        {
+            Price = Total / Shares;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog!.Cancel();
+    }
+
+    private void Submit()
+    {
+        if (Date == null)
+        {
+            return;
+        }
+        var transaction = new InvestmentModel
+        {
+            InvestmentId = Investment.InvestmentId,
+            Symbol = Investment.Symbol,
+            Shares = IsBuy ? Shares : -Shares,
+            Price = Price,
+            Date = Date.Value,
+            AccountId = AccountId ?? Guid.Empty
+        };
+        MudDialog!.Close(DialogResult.Ok(transaction));
+    }
+} 

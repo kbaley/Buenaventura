@@ -1,7 +1,6 @@
 @page "/invoicetemplate"
 @inject IInvoiceService InvoiceService
 @inject ISnackbar Snackbar
-@inject IJSRuntime JS
 
 <PageTitle>Invoice Template</PageTitle>
 
@@ -61,8 +60,8 @@
 
 @code {
     private string Template = string.Empty;
-    private bool IsSaving = false;
-    private bool ShowPreview = false;
+    private bool IsSaving;
+    private bool ShowPreview;
     private string PreviewContent = string.Empty;
 
     protected override async Task OnInitializedAsync()

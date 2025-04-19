@@ -1,6 +1,4 @@
 @page "/Investments"
-@using Buenaventura.Client.Components
-@using Buenaventura.Shared
 @inject IInvestmentService investmentService
 @inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
@@ -166,9 +164,23 @@ Do this only for test databases or if you are absolutely sure you want to delete
         }
     }
 
-    private void BuySellInvestment(InvestmentModel investment, bool isBuy)
+    private async Task BuySellInvestment(InvestmentModel investment, bool isBuy)
     {
-        navigationManager.NavigateTo($"/Investments/BuySell/{investment.InvestmentId}?isBuy={isBuy}");
+        var parameters = new DialogParameters
+        {
+            ["Investment"] = investment,
+            ["IsBuy"] = isBuy
+        };
+
+        var dialog = await dialogService.ShowAsync<BuySellDialog>(isBuy ? "Buy Investment" : "Sell Investment", parameters);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            // Save functionality will be implemented later
+            // var transaction = (InvestmentModel)result.Data;
+            // await investmentService.BuySellInvestment(transaction);
+            // await LoadInvestments();
+        }
     }
 
     private void RecordDividend(InvestmentModel investment)
