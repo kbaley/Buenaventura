@@ -7,48 +7,78 @@
 
 <PageTitle>Scramble Database - Buenaventura</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
-    <MudPaper Elevation="3" Class="pa-4">
-        <MudText Typo="Typo.h5" Class="mb-4">Database Scrambler</MudText>
-        
-        <MudText Typo="Typo.body1" Class="mb-4">
-            This tool will scramble your database with random data. All transactions before the selected date will be deleted except for starting balances.
-            Use this with caution as this operation cannot be undone.
-        </MudText>
+@if (!IsLocalhost)
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+        <MudPaper Elevation="3" Class="pa-4">
+            <MudText Typo="Typo.h5" Class="mb-4">Access Denied</MudText>
+            <MudText Typo="Typo.body1">This page is only available on localhost.</MudText>
+        </MudPaper>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+        <MudPaper Elevation="3" Class="pa-4">
+            <MudText Typo="Typo.h5" Class="mb-4">Database Scrambler</MudText>
 
-        <MudDatePicker Label="Delete transactions before" @bind-Date="deleteBeforeDate" Class="mb-4"/>
+            <MudText Typo="Typo.body1" Class="mb-4">
+                This tool will scramble your database with random data. All transactions before the selected date will
+                be deleted except for starting balances.
+                Use this with caution as this operation cannot be undone.
+            </MudText>
 
-        <MudText Typo="Typo.h6" Class="mb-2">Category Names</MudText>
-        <MudText Typo="Typo.body2" Class="mb-4">Edit category names before scrambling:</MudText>
+            <MudDatePicker Label="Delete transactions before" @bind-Date="deleteBeforeDate" Class="mb-4"/>
 
-        @foreach (var category in categories)
-        {
-            <MudTextField @bind-Value="category.Name" 
-                         Label="@($"Category {category.CategoryId}")"
-                         Class="mb-2"/>
-        }
+            <MudText Typo="Typo.h6" Class="mb-2">Category Names</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4">Edit category names before scrambling:</MudText>
 
-        <MudButton Variant="Variant.Filled" 
-                  Color="Color.Error" 
-                  StartIcon="@Icons.Material.Filled.Shuffle"
-                  OnClick="ScrambleDatabase"
-                  Class="mt-4">
-            Scramble Database
-        </MudButton>
-    </MudPaper>
-</MudContainer>
+            @foreach (var category in categories)
+            {
+                <MudTextField @bind-Value="category.Name"
+                              Label="@($"Category {category.CategoryId}")"
+                              Class="mb-2"/>
+            }
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Shuffle"
+                       OnClick="ScrambleDatabase"
+                       Class="mt-4">
+                Scramble Database
+            </MudButton>
+        </MudPaper>
+    </MudContainer>
+}
 
 @code {
     private DateTime? deleteBeforeDate = DateTime.Today.AddYears(-2);
     private List<CategoryModel> categories = new();
 
+    private bool IsLocalhost => navigationManager.BaseUri.Contains("localhost") ||
+                                navigationManager.BaseUri.Contains("127.0.0.1") ||
+                                navigationManager.BaseUri.Contains("::1") ||
+                                navigationManager.BaseUri.Contains("0.0.0.0");
+
     protected override async Task OnInitializedAsync()
     {
+        if (!IsLocalhost)
+        {
+            navigationManager.NavigateTo("/");
+            return;
+        }
+
         categories = (await categoryService.GetCategories()).ToList();
     }
 
     private async Task ScrambleDatabase()
     {
+        if (!IsLocalhost)
+        {
+            navigationManager.NavigateTo("/");
+            return;
+        }
+
         if (deleteBeforeDate == null)
         {
             return;
@@ -63,4 +93,5 @@
         await accountSyncService.RefreshAccounts();
         navigationManager.NavigateTo("/");
     }
+
 } 

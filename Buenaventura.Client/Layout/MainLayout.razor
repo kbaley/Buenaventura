@@ -1,7 +1,7 @@
 ﻿@using Buenaventura.Shared
 @inherits LayoutComponentBase
 @inject IJSRuntime JS
-@inject NavigationManager NavigationManager
+@inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
 @inject IAccountService accountService
 @inject ICategoryService categoryService
@@ -52,8 +52,11 @@
                     <MudMenuItem Icon="@Icons.Material.Filled.Description" IconColor="Color.Primary" Label="Invoice Template" Href="invoicetemplate"/>
                     <MudMenuItem Icon="@Icons.Material.Filled.Sort" IconColor="Color.Primary" Label="Account Order" Href="accountorder"/>
                     <MudDivider />
-                    <MudMenuItem Icon="@Icons.Material.Filled.Shuffle" IconColor="Color.Primary" Label="Scramble Database" Href="scramble"/>
-                    <MudDivider />
+                    @if (IsLocalhost)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Filled.Shuffle" IconColor="Color.Primary" Label="Scramble Database" Href="scramble"/>
+                        <MudDivider />
+                    }
                     <MudMenuItem Icon="@Icons.Material.Filled.Logout"
                                  OnClick="Logout"
                                  IconColor="Color.Primary" Label="Logout"/>
@@ -98,6 +101,10 @@
     private MudThemeProvider? mudThemeProvider;
     private IEnumerable<AccountWithBalance> accounts = [];
     private IEnumerable<CategoryModel> categories = [];
+    private bool IsLocalhost => navigationManager.BaseUri.Contains("localhost") || 
+                              navigationManager.BaseUri.Contains("127.0.0.1") ||
+                              navigationManager.BaseUri.Contains("::1") ||
+                              navigationManager.BaseUri.Contains("0.0.0.0");
 
     private async Task OnAccountsUpdated()
     {
@@ -120,13 +127,13 @@
         categories = await categoryService.GetCategories();
         accountSyncService.OnAccountsUpdated += OnAccountsUpdated;
 
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        NavigationManager.LocationChanged += OnLocationChanged;
+        currentUrl = navigationManager.ToBaseRelativePath(navigationManager.Uri);
+        navigationManager.LocationChanged += OnLocationChanged;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        currentUrl = navigationManager.ToBaseRelativePath(e.Location);
         StateHasChanged();
     }
 
