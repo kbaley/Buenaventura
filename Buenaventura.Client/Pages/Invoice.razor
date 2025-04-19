@@ -2,6 +2,9 @@
 @inject NavigationManager NavigationManager
 @inject IInvoiceService invoiceService
 @inject ICustomerService customerService
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
 
 <MudText Typo="Typo.h4" GutterBottom="true">New Invoice</MudText>
 

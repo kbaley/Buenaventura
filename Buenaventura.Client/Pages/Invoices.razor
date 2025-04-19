@@ -4,6 +4,9 @@
 @inject IJSRuntime JS
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
 
 <MudGrid>
     <MudItem xs="6">

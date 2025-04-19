@@ -2,6 +2,9 @@
 @inject IAccountService accountService
 @inject AccountSyncService accountSyncService
 @inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
 
 <MudText Typo="Typo.h4" GutterBottom="true">Account Display Order</MudText>
 
