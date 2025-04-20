@@ -8,29 +8,35 @@
 <MudText Typo="Typo.h4" GutterBottom="true">Dashboard</MudText>
 
 <MudGrid>
+    <!-- Show income vs. expenses for the last 12 months -->
+    <!-- For each month, show a bar for income and one for expenses -->
+    <!-- Include a line for the difference between income and expenses -->
     <!-- Expense Breakdown by Category -->
-    <MudItem xs="12" md="6">
+    @using MudBlazor
+    @using System.Globalization
+
+    <MudItem xs="12" md="9">
         <MudPaper Elevation="1" Class="pa-4">
-            <MudText Typo="Typo.h6" GutterBottom="true">Expense Breakdown by Category</MudText>
-            <MudChart ChartType="ChartType.Pie" InputData="@expenseData" InputLabels="@expenseLabels" />
+            <MudText Typo="Typo.h6">Income vs. Expenses (Last 12 Months)</MudText>
+            <MudChart Width="100%"
+                ChartType="ChartType.Bar" Labels="@Months" TItem="ChartSeries" ChartSeries="incomeExpenseSeries"/>
         </MudPaper>
     </MudItem>
-    
-    <MudItem xs="12" md="6">
+    <MudItem xs="12" md="3">
         <MudGrid>
-            <MudItem xs="12" sm="6">
+            <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
                     <MudText Typo="Typo.h6">Cash Flow This Month</MudText>
                     <MudText Typo="Typo.h4" Color="Color.Success">$2,500</MudText>
                 </MudPaper>
             </MudItem>
-            <MudItem xs="12" sm="6">
+            <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
                     <MudText Typo="Typo.h6">Credit Card Total</MudText>
                     <MudText Typo="Typo.h4" Color="Color.Error">$1,200</MudText>
                 </MudPaper>
             </MudItem>
-            <MudItem xs="12" sm="6">
+            <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
                     <MudText Typo="Typo.h6">Bank Account Total</MudText>
                     <MudText Typo="Typo.h4" Color="Color.Success">$15,000</MudText>
@@ -39,11 +45,19 @@
         </MudGrid>
     </MudItem>
 
+
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Expense Breakdown by Category</MudText>
+            <MudChart ChartType="ChartType.Pie" InputData="@expenseData" InputLabels="@expenseLabels"/>
+        </MudPaper>
+    </MudItem>
+
     <!-- Investment Value Over Time -->
     <MudItem xs="12" md="6">
         <MudPaper Elevation="1" Class="pa-4">
             <MudText Typo="Typo.h6" GutterBottom="true">Investment Value Over Time</MudText>
-            <MudChart ChartType="ChartType.Line" ChartSeries="@investmentData" />
+            <MudChart ChartType="ChartType.Line" ChartSeries="@investmentData"/>
         </MudPaper>
     </MudItem>
 
@@ -51,7 +65,7 @@
     <MudItem xs="12" md="6">
         <MudPaper Elevation="1" Class="pa-4">
             <MudText Typo="Typo.h6" GutterBottom="true">Net Worth Over Last 12 Months</MudText>
-            <MudChart ChartType="ChartType.Line" ChartSeries="@netWorthData" />
+            <MudChart ChartType="ChartType.Line" ChartSeries="@netWorthData"/>
         </MudPaper>
     </MudItem>
 
@@ -59,7 +73,7 @@
     <MudItem xs="12" md="6">
         <MudPaper Elevation="1" Class="pa-4">
             <MudText Typo="Typo.h6" GutterBottom="true">Asset Class Breakdown</MudText>
-            <MudChart ChartType="ChartType.Pie" ChartSeries="@assetData" />
+            <MudChart ChartType="ChartType.Pie" ChartSeries="@assetData"/>
         </MudPaper>
     </MudItem>
 
@@ -67,7 +81,7 @@
     <MudItem xs="12" md="6">
         <MudPaper Elevation="1" Class="pa-4">
             <MudText Typo="Typo.h6" GutterBottom="true">Top 5 Expenses</MudText>
-            <MudChart ChartType="ChartType.Bar" ChartSeries="@topExpensesData" />
+            <MudChart ChartType="ChartType.Bar" ChartSeries="@topExpensesData"/>
         </MudPaper>
     </MudItem>
 
@@ -75,6 +89,7 @@
 </MudGrid>
 
 @code {
+
     private ChartOptions options = new ChartOptions
     {
         ChartPalette = new string[] { "#3E2723", "#4E342E", "#5D4037", "#6D4C41", "#795548", "#8D6E63", "#A1887F", "#BCAAA4", "#D7CCC8", "#EFEBE9" }
@@ -105,4 +120,16 @@
     {
         new ChartSeries { Name = "Expenses", Data = new double[] { 1200, 800, 600, 400, 300 } }
     };
+
+    private string[] Months => Enumerable.Range(0, 12)
+        .Select(i => DateTime.Now.AddMonths(-11 + i).ToString("MMM", CultureInfo.InvariantCulture))
+        .ToArray();
+
+    private readonly List<ChartSeries> incomeExpenseSeries =
+    [
+        new() { Name = "Income", Data = [4200, 3900, 5000, 4800, 5100, 4700, 4600, 4900, 5300, 5000, 5200, 5500] },
+        new() { Name = "Expenses", Data = [3100, 3300, 2900, 3200, 3400, 3100, 3600, 3700, 4000, 3900, 4100, 4200] }
+    ];
+
+    // private double[] NetValues => IncomeValues.Zip(ExpenseValues, (income, expense) => income - expense).ToArray();
 }
