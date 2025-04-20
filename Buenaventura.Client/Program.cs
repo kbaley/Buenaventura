@@ -1,3 +1,4 @@
+using ApexCharts;
 using Blazored.LocalStorage;
 using Buenaventura.Client.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -16,6 +17,29 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton(_ => new HttpClient
 {
     BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+});
+builder.Services.AddApexCharts(options =>
+{
+    options.GlobalOptions = new ApexChartBaseOptions
+    {
+        Chart = new Chart
+        {
+            Toolbar = new Toolbar
+            {
+                Show = true,
+                Tools = new Tools
+                {
+                    Download = false,
+                    Pan = false,
+                    Zoomin = true,
+                    Zoomout = true,
+                    Zoom = true,
+                    Reset = true,
+                    Selection = true
+                }
+            }
+        },
+    };
 });
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<ClientAccountService>()
