@@ -1,10 +1,12 @@
-﻿@using Buenaventura.Shared
+﻿@using ApexCharts
+@using Color = MudBlazor.Color
 @inherits LayoutComponentBase
 @inject IJSRuntime JS
 @inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
 @inject IAccountService accountService
 @inject ICategoryService categoryService
+@inject IApexChartService apexChartService
 
 <PageTitle>Buenaventura Personal Finance Manager</PageTitle>
 
@@ -141,7 +143,16 @@
 
     private void DarkModeToggle()
     {
-        isDarkMode = !isDarkMode;
+        setTheme(!isDarkMode);
+    }
+
+    private void setTheme(bool newDarkMode)
+    {
+        isDarkMode = newDarkMode;
+        var chartTheme = apexChartService.GlobalOptions.Theme;
+        chartTheme.Mode = isDarkMode ? Mode.Dark : Mode.Light;
+        apexChartService.GlobalOptions.Theme = chartTheme;
+        StateHasChanged();
     }
 
     private string DarkLightModeButtonIcon => isDarkMode switch
@@ -159,7 +170,8 @@
     {
         if (firstRender)
         {
-            isDarkMode = await mudThemeProvider!.GetSystemPreference();
+            // setTheme(true);
+            setTheme(await mudThemeProvider!.GetSystemPreference());
             StateHasChanged();
         }
     }

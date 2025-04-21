@@ -22,6 +22,10 @@ builder.Services.AddApexCharts(options =>
 {
     options.GlobalOptions = new ApexChartBaseOptions
     {
+        Theme = new Theme
+        {
+            Palette = PaletteType.Palette9
+        },
         Chart = new Chart
         {
             Toolbar = new Toolbar
@@ -41,6 +45,11 @@ builder.Services.AddApexCharts(options =>
         },
     };
 });
+
+foreach (var service in builder.Services)
+{
+    Console.WriteLine(service.ServiceKey);
+}
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<ClientAccountService>()
     .AddClasses(classes => classes.AssignableTo<IAppService>())
