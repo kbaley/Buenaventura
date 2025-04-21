@@ -26,6 +26,8 @@ public partial class AccountTransactions(
     private TransactionForDisplay? transactionBackup { get; set; }
     private readonly Variant textVariant = Variant.Text;
     private MudTextField<string>? transactionDateField;
+    private bool showDuplicates = false;
+    private TransactionListModel? originalTransactions;
 
     private List<CategoryModel> categories { get; set; } = [];
 
@@ -138,7 +140,7 @@ public partial class AccountTransactions(
         await ReloadTransactions();
     }
 
-    private async Task<TableData<TransactionForDisplay>> ServerReload(TableState state, CancellationToken token)
+    private async Task<TableData<TransactionForDisplay>> xServerReload(TableState state, CancellationToken token)
     {
         transactions = await accountService.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
         return new TableData<TransactionForDisplay>
@@ -305,5 +307,43 @@ public partial class AccountTransactions(
         }
 
         context.Category = category;
+    }
+    
+    private async Task<TableData<TransactionForDisplay>> ServerReload(TableState state, CancellationToken token)
+    {
+        if (AccountId != previousAccountId)
+        {
+            previousAccountId = AccountId;
+            Account = await accountService.GetAccount(AccountId);
+        }
+
+        if (showDuplicates)
+        {
+            transactions = await accountService.GetPotentialDuplicateTransactions(AccountId);
+        }
+        else
+        {
+            transactions = await accountService.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
+        }
+
+        var gridTransactions = showDuplicates ? transactions.Items : transactions.Items.Prepend(newTransaction);
+
+        loading = false;
+        return new TableData<TransactionForDisplay> { TotalItems = transactions.TotalCount, Items = gridTransactions };
+    }
+
+    private async Task ToggleDuplicateSearch()
+    {
+        showDuplicates = !showDuplicates;
+        if (showDuplicates)
+        {
+            originalTransactions = transactions;
+            await transactionTable!.ReloadServerData();
+        }
+        else
+        {
+            transactions = originalTransactions ?? new TransactionListModel();
+            await transactionTable!.ReloadServerData();
+        }
     }
 }

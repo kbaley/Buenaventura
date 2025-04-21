@@ -15,13 +15,10 @@ namespace Buenaventura.Api;
 [ApiController]
 public class AccountsController(
     BuenaventuraDbContext context,
-    ITransactionRepository transactionRepo,
     IAccountService accountService,
     IMapper mapper)
     : ControllerBase
 {
-    private readonly TransactionParser _transactionParser = new(context);
-
     [HttpGet]
     public async Task<IEnumerable<AccountWithBalance>> GetAccounts()
     {
@@ -32,6 +29,12 @@ public class AccountsController(
     public async Task<TransactionListModel> GetTransactions([FromRoute] Guid id, [FromQuery] UrlQuery query)
     {
         return await accountService.GetTransactions(id, query.Search ?? "", query.Page, query.PageSize);
+    }
+
+    [HttpGet("{id}/transactions/duplicates")]
+    public async Task<TransactionListModel> GetPotentialDuplicateTransactions([FromRoute] Guid id)
+    {
+        return await accountService.GetPotentialDuplicateTransactions(id);
     }
 
     [HttpGet("{id}/transactions/csv")]

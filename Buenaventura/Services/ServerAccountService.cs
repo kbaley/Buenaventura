@@ -102,6 +102,7 @@ public class ServerAccountService(
                 await context.Entry(invoice).Reference(i => i.Customer).LoadAsync();
             }
         }
+
         await transactionRepo.Delete(transactionId);
     }
 
@@ -117,6 +118,29 @@ public class ServerAccountService(
                 account.DisplayOrder = orderedAccount.DisplayOrder;
             }
         }
+
         await context.SaveChangesAsync();
+    }
+
+    public async Task<TransactionListModel> GetPotentialDuplicateTransactions(Guid accountId)
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var transactions = (await context.Transactions
+                .Include(t => t.Account)
+                .Include(t => t.Category)
+                .Where(t => t.AccountId == accountId && t.TransactionDate >= DateTime.UtcNow.AddDays(-60))
+                .ToListAsync())
+            .GroupBy(t => new { t.TransactionDate, t.Amount })
+            .Where(g => g.Count() > 1)
+            .SelectMany(g => g)
+            .OrderByDescending(t => t.TransactionDate)
+            .ThenBy(t => t.Amount)
+            .Select(t => t.ToDto())
+            .ToList();
+        return new TransactionListModel
+        {
+            Items = transactions,
+            TotalCount = transactions.Count,
+        };
     }
 }

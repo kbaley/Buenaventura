@@ -246,7 +246,7 @@ namespace Buenaventura.Data
                 .Include(t => t.Account)
                 .Where(t => t.AccountId == accountId
                     && (string.IsNullOrWhiteSpace(search) 
-                        || t.Description.ToLower().Contains(search.ToLower())
+                        || (t.Description ?? "").ToLower().Contains(search.ToLower())
                         || t.Vendor != null && t.Vendor.ToLower().Contains(search.ToLower())
                         || t.Category!.Name.ToLower().Contains(search.ToLower()))
                     // ReSharper disable once SpecifyACultureInStringConversionExplicitly
@@ -267,7 +267,7 @@ namespace Buenaventura.Data
             var totalTransactionCount = await context.Transactions
                 .CountAsync(t => t.AccountId == accountId
                             && (string.IsNullOrWhiteSpace(search)
-                        || t.Description.ToLower().Contains(search.ToLower())
+                        || (t.Description ?? "").ToLower().Contains(search.ToLower())
                         || t.Vendor != null && t.Vendor.ToLower().Contains(search.ToLower())
                         || t.Category!.Name.ToLower().Contains(search.ToLower()))
                     // ReSharper disable once SpecifyACultureInStringConversionExplicitly

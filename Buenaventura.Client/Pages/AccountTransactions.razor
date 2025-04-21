@@ -22,6 +22,11 @@
         <MudIconButton Icon="@Icons.Material.Filled.Download" 
                        Href="@($"api/accounts/{Account.AccountId}/transactions/csv")"
                        Target="_blank" Class="ml-2"/>
+        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+                       OnClick="ToggleDuplicateSearch"
+                       Color="@(showDuplicates ? Color.Primary : Color.Default)"
+                       Class="ml-2"
+                       Title="Show potential duplicate transactions"/>
     </ToolBarContent>
     <HeaderContent>
         <MudTh Style="width: 125px;">Date</MudTh>
@@ -92,7 +97,7 @@
             <MudTd DataLabel="Balance" Class="transaction-amount">
                 <div class="row-with-actions">
                     <div class="hover-row-content">
-                        @if (string.IsNullOrEmpty(searchString))
+                        @if (string.IsNullOrEmpty(searchString) && !showDuplicates)
                         {
                             @context.RunningTotal.ToString("N2")
                         }

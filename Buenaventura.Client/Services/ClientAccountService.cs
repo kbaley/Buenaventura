@@ -54,4 +54,10 @@ public class ClientAccountService(HttpClient httpClient) : ClientService<Account
         var url = "api/accounts/order";
         return httpClient.PostAsJsonAsync(url, accountOrders);
     }
+
+    public async Task<TransactionListModel> GetPotentialDuplicateTransactions(Guid accountId)
+    {
+        var url = $"{accountId}/transactions/duplicates";
+        return await GetItem<TransactionListModel>(url);
+    }
 }
