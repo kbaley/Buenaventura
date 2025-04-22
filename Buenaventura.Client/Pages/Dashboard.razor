@@ -45,8 +45,8 @@
         <MudGrid>
             <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
-                    <MudText Typo="Typo.h6">Cash Flow This Month</MudText>
-                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">$2,500</MudText>
+                    <MudText Typo="Typo.h6">Expenses This Month</MudText>
+                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">@(expensesThisMonth.ToString("C"))</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12">
@@ -58,7 +58,8 @@
             <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
                     <MudText Typo="Typo.h6">Bank Account Total</MudText>
-                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">@(liquidAssetBalance.ToString("C"))</MudText>
+                    <MudText Typo="Typo.h4"
+                             Color="MudBlazor.Color.Success">@(liquidAssetBalance.ToString("C"))</MudText>
                 </MudPaper>
             </MudItem>
         </MudGrid>
@@ -173,14 +174,22 @@
 </MudGrid>
 
 @code {
-    
+
     private decimal creditCardBalance;
     private decimal liquidAssetBalance;
+    private decimal expensesThisMonth;
+    private IEnumerable<IncomeExpenseDataPoint> incomeExpenseData = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        incomeExpenseData = await dashboardService.GetIncomeExpenseData();
+    }
 
     protected override async Task OnParametersSetAsync()
     {
         creditCardBalance = await dashboardService.GetCreditCardBalance();
         liquidAssetBalance = await dashboardService.GetLiquidAssetBalance();
+        expensesThisMonth = await dashboardService.GetThisMonthExpenses();
     }
 
     private readonly List<ExpenseDataPoint> expenseData =
@@ -224,22 +233,6 @@
         new() { Category = "Transportation", CurrentMonth = 600, Previous3MonthsAverage = 500, Previous12MonthsAverage = 400 },
         new() { Category = "Entertainment", CurrentMonth = 400, Previous3MonthsAverage = 350, Previous12MonthsAverage = 300 },
         new() { Category = "Utilities", CurrentMonth = 300, Previous3MonthsAverage = 250, Previous12MonthsAverage = 200 }
-    ];
-
-    private readonly List<IncomeExpenseDataPoint> incomeExpenseData =
-    [
-        new() { Date = new DateOnly(2024, 5, 1), Income = 4200, Expenses = 3100 },
-        new() { Date = new DateOnly(2024, 6, 1), Income = 3900, Expenses = 3300 },
-        new() { Date = new DateOnly(2024, 7, 1), Income = 5000, Expenses = 2900 },
-        new() { Date = new DateOnly(2024, 8, 1), Income = 4800, Expenses = 3200 },
-        new() { Date = new DateOnly(2024, 9, 1), Income = 5100, Expenses = 3400 },
-        new() { Date = new DateOnly(2024, 10, 1), Income = 4700, Expenses = 3100 },
-        new() { Date = new DateOnly(2024, 11, 1), Income = 4600, Expenses = 3600 },
-        new() { Date = new DateOnly(2024, 12, 1), Income = 4900, Expenses = 3700 },
-        new() { Date = new DateOnly(2025, 1, 1), Income = 5300, Expenses = 4000 },
-        new() { Date = new DateOnly(2025, 2, 1), Income = 5000, Expenses = 3900 },
-        new() { Date = new DateOnly(2025, 3, 1), Income = 5200, Expenses = 4100 },
-        new() { Date = new DateOnly(2025, 4, 1), Income = 5500, Expenses = 4200 }
     ];
 
     public class ExpenseDataPoint

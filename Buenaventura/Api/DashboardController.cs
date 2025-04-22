@@ -29,6 +29,18 @@ public class DashboardController(
     }
     
     [HttpGet]
+    public async Task<decimal> ExpensesThisMonth()
+    {
+        return await dashboardService.GetThisMonthExpenses();        
+    }
+    
+    [HttpGet]
+    public async Task<IEnumerable<IncomeExpenseDataPoint>> IncomeExpenses()
+    {
+        return await dashboardService.GetIncomeExpenseData();        
+    }
+    
+    [HttpGet]
     public async Task<IActionResult> GetDashboardStats()
     {
         var numMonths = 3;

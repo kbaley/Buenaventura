@@ -7,4 +7,6 @@ public interface IDashboardService : IAppService
     Task<IEnumerable<ReportDataPoint>> GetNetWorthData(int? year = null);
     Task<decimal> GetCreditCardBalance();
     Task<decimal> GetLiquidAssetBalance();
+    Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData();
+    Task<decimal> GetThisMonthExpenses();
 }

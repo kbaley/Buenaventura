@@ -6,5 +6,5 @@ public class IncomeExpenseDataPoint
     public decimal Income { get; set; }
     public decimal Expenses { get; set; }
     public decimal CashFlow => Income - Expenses;
-    public string Month => Date.ToString("MMMM");
+    public string Month => Date.ToString("MMM yyyy");
 }

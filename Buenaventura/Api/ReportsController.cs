@@ -175,7 +175,7 @@ public static class Extensions {
     }
 
     public static DateTime FirstDayOfMonth(this DateTime date) {
-        return new DateTime(date.Year, date.Month, 1);
+        return new DateTime(date.Year, date.Month, 1, 0, 0, 0);
     }
 }
 
