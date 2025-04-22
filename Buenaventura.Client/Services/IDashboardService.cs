@@ -4,7 +4,7 @@ namespace Buenaventura.Client.Services;
 
 public interface IDashboardService : IAppService
 {
-    Task<IEnumerable<ReportDataPoint>> GetNetWorthData(int? year = null);
+    Task<IEnumerable<ReportDataPoint>> GetNetWorthData();
     Task<decimal> GetCreditCardBalance();
     Task<decimal> GetLiquidAssetBalance();
     Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData();

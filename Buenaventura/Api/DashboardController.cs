@@ -33,6 +33,12 @@ public class DashboardController(
     {
         return await dashboardService.GetThisMonthExpenses();        
     }
+
+    [HttpGet]
+    public async Task<IEnumerable<ReportDataPoint>> NetWorth()
+    {
+        return await dashboardService.GetNetWorthData();
+    }
     
     [HttpGet]
     public async Task<IEnumerable<IncomeExpenseDataPoint>> IncomeExpenses()

@@ -5,10 +5,9 @@ namespace Buenaventura.Client.Services;
 
 public class ClientDashboardService(HttpClient httpClient) : IDashboardService
 {
-    public async Task<IEnumerable<ReportDataPoint>> GetNetWorthData(int? year = null)
+    public async Task<IEnumerable<ReportDataPoint>> GetNetWorthData()
     {
-        year ??= DateTime.Today.Year;
-        var url = $"api/reports/networth?year={year}";
+        var url = $"api/dashboard/networth";
         var result = await httpClient.GetFromJsonAsync<IEnumerable<ReportDataPoint>>(url);
         return result ?? [];
     }

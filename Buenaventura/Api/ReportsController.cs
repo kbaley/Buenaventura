@@ -35,13 +35,6 @@ public class ReportsController(
     }
 
     [HttpGet]
-    public async Task<IEnumerable<ReportDataPoint>> NetWorth([FromQuery] int? year = null)
-    {
-        var report = await dashboardService.GetNetWorthData(year);
-        return report;
-    }
-    
-    [HttpGet]
     public IActionResult Income([FromQuery] ReportQuery query) 
     {
         var year = query.Year ?? DateTime.Today.Year;

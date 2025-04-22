@@ -28,19 +28,14 @@ builder.Services.AddApexCharts(options =>
         },
         Chart = new Chart
         {
+            Background = "transparent",
+            Zoom = new Zoom
+            {
+                Enabled = false,
+            },
             Toolbar = new Toolbar
             {
-                Show = true,
-                Tools = new Tools
-                {
-                    Download = false,
-                    Pan = false,
-                    Zoomin = true,
-                    Zoomout = true,
-                    Zoom = true,
-                    Reset = true,
-                    Selection = true
-                }
+                Show = false
             }
         },
     };

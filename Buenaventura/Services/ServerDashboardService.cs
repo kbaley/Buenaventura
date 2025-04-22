@@ -10,26 +10,19 @@ public class ServerDashboardService(
     IDbContextFactory<BuenaventuraDbContext> dbContextFactory,
     IReportRepository reportRepo) : IDashboardService
 {
-    public async Task<IEnumerable<ReportDataPoint>> GetNetWorthData(int? year = null)
+    public async Task<IEnumerable<ReportDataPoint>> GetNetWorthData()
     {
-        year ??= DateTime.Today.Year;
+        var period = ReportPeriod.GetLast12Months();
+        var currentDate = period.Start;
         var netWorth = new List<ReportDataPoint>();
-
-        var date = year.Value.GetEndDateForYear();
-        var numItems = DateTime.Today.Month + 1;
-        if (year != DateTime.Today.Year)
-        {
-            numItems = 13;
-        }
-
-        for (var i = 0; i < numItems; i++)
+        while (currentDate < period.End)
         {
             netWorth.Add(new ReportDataPoint
             {
-                Label = date.ToString("MMM yy"),
-                Value = await reportRepo.GetNetWorthFor(date)
+                Label = currentDate.ToString("MMM yy"),
+                Value = await reportRepo.GetNetWorthFor(currentDate.LastDayOfMonth())
             });
-            date = date.FirstDayOfMonth().AddMinutes(-1);
+            currentDate = currentDate.AddMonths(1);
         }
 
         return netWorth;
@@ -70,16 +63,14 @@ public class ServerDashboardService(
     public async Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData()
     {
         // Skip the current month; it'll throw the numbers out of whack because the income is usually at the end
-        var today = DateTime.Today.AddMonths(-1);
-        var endDate = today.AddDays(1);
-        var startDate = today.AddMonths(-11).FirstDayOfMonth(); // Go back 11 months to get 12 months total
+        var period = ReportPeriod.GetLast12MonthsFromLastMonth();
 
         var context = await dbContextFactory.CreateDbContextAsync();
 
         var incomeExpenseData = new List<IncomeExpenseDataPoint>();
-        var currentDate = startDate;
+        var currentDate = period.Start;
 
-        while (currentDate <= endDate)
+        while (currentDate < period.End)
         {
             // Technically first day of the next month but we want to include the last day of the current month
             var monthEnd = currentDate.AddMonths(1);
@@ -118,5 +109,44 @@ public class ServerDashboardService(
         }
 
         return incomeExpenseData;
+    }
+}
+
+/// <summary>
+/// Dates for a reporting period
+///
+/// The end date is meant to be exclusive, so the period is [start, end)
+/// </summary>
+public class ReportPeriod
+{
+    public DateTime Start { get; set; }
+    public DateTime End { get; set; }
+    
+    public static ReportPeriod GetLast12Months()
+    {
+        var today = DateTime.Today;
+        var end = today.FirstDayOfMonth().AddMonths(1);
+        var start = today.AddMonths(-11).FirstDayOfMonth();
+        return new ReportPeriod
+        {
+            Start = start,
+            End = end
+        };
+    }
+    
+    /// <summary>
+    /// Get the 12-month period ending the first day of this month
+    /// </summary>
+    /// <returns></returns>
+    public static ReportPeriod GetLast12MonthsFromLastMonth()
+    {
+        var today = DateTime.Today;
+        var end = today.FirstDayOfMonth();
+        var start = today.AddMonths(-12).FirstDayOfMonth();
+        return new ReportPeriod
+        {
+            Start = start,
+            End = end
+        };
     }
 }

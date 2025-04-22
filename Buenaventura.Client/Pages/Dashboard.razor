@@ -1,6 +1,5 @@
 ﻿@page "/"
 @using ApexCharts;
-@inject IDashboardService dashboardService;
 @rendermode InteractiveWebAssembly
 
 @attribute [Authorize]
@@ -14,6 +13,7 @@
             <ApexChart TItem="IncomeExpenseDataPoint"
                        Title="Income vs. Expenses (Last 12 Months)"
                        Height="320"
+                       Options="incomeExpenseChartOptions"
                        @ref="incomeExpenseChart"
             >
                 <ApexPointSeries
@@ -71,6 +71,7 @@
     <MudItem xs="12" md="6">
         <MudPaper Elevation="1" Class="pa-4">
             <ApexChart TItem="LineChartDataPoint"
+                       Options="investmentsChartOptions"
                        Title="Investment Value Over Time"
             >
                 <ApexPointSeries
@@ -88,15 +89,17 @@
     <!-- Net Worth Over Last 12 Months -->
     <MudItem xs="12" md="6">
         <MudPaper Elevation="1" Class="pa-4">
-            <ApexChart TItem="LineChartDataPoint"
+            <ApexChart TItem="ReportDataPoint"
                        Title="Net Worth Over Time"
+                       Options="netWorthChartOptions"
+                       @ref="netWorthChart"
             >
                 <ApexPointSeries
-                    TItem="LineChartDataPoint"
-                    Items="investmentData"
-                    Name="Investment Value"
-                    XValue="@(e => e.Month)"
-                    YValue="@(e => e.Amount)"
+                    TItem="ReportDataPoint"
+                    Items="netWorthData"
+                    Name="Net Worth"
+                    XValue="@(e => e.Label)"
+                    YValue="@(e => e.Value)"
                     SeriesType="SeriesType.Line"
                 />
             </ApexChart>
@@ -173,91 +176,3 @@
     </MudItem>
 
 </MudGrid>
-
-@code {
-
-    private decimal creditCardBalance;
-    private decimal liquidAssetBalance;
-    private decimal expensesThisMonth;
-    private IEnumerable<IncomeExpenseDataPoint> incomeExpenseData = [];
-    private ApexChart<IncomeExpenseDataPoint> incomeExpenseChart;
-
-    protected override async Task OnParametersSetAsync()
-    {
-        expensesThisMonth = await dashboardService.GetThisMonthExpenses();
-        creditCardBalance = await dashboardService.GetCreditCardBalance();
-        liquidAssetBalance = await dashboardService.GetLiquidAssetBalance();
-        incomeExpenseData = await dashboardService.GetIncomeExpenseData();
-        if (incomeExpenseChart != null)
-        {
-            StateHasChanged();
-            await incomeExpenseChart.UpdateSeriesAsync(false);
-        }
-
-        await base.OnParametersSetAsync();
-    }
-
-    private readonly List<ExpenseDataPoint> expenseData =
-    [
-        new() { Category = "Housing", Amount = 35 },
-        new() { Category = "Food", Amount = 25 },
-        new() { Category = "Transportation", Amount = 15 },
-        new() { Category = "Entertainment", Amount = 10 },
-        new() { Category = "Utilities", Amount = 15 },
-        new() { Category = "Other", Amount = 18 }
-    ];
-
-    private readonly List<LineChartDataPoint> investmentData =
-    [
-        new() { Month = "May 2024", Amount = 10000 },
-        new() { Month = "Jun 2024", Amount = 12000 },
-        new() { Month = "Jul 2024", Amount = 15000 },
-        new() { Month = "Aug 2024", Amount = 13000 },
-        new() { Month = "Sep 2024", Amount = 14000 },
-        new() { Month = "Oct 2024", Amount = 16000 },
-        new() { Month = "Nov 2024", Amount = 17000 },
-        new() { Month = "Dec 2024", Amount = 18000 },
-        new() { Month = "Jan 2025", Amount = 19000 },
-        new() { Month = "Feb 2025", Amount = 20000 },
-        new() { Month = "Mar 2025", Amount = 21000 },
-        new() { Month = "Apr 2025", Amount = 22000 }
-    ];
-
-    private readonly List<ExpenseDataPoint> assetData =
-    [
-        new() { Category = "Bank Accounts", Amount = 35 },
-        new() { Category = "Investments", Amount = 25 },
-        new() { Category = "Assets", Amount = 15 },
-    ];
-
-
-    private List<Top5ExpenseDataPoint> topExpensesData =
-    [
-        new() { Category = "Housing", CurrentMonth = 1200, Previous3MonthsAverage = 1100, Previous12MonthsAverage = 1000 },
-        new() { Category = "Food", CurrentMonth = 800, Previous3MonthsAverage = 700, Previous12MonthsAverage = 600 },
-        new() { Category = "Transportation", CurrentMonth = 600, Previous3MonthsAverage = 500, Previous12MonthsAverage = 400 },
-        new() { Category = "Entertainment", CurrentMonth = 400, Previous3MonthsAverage = 350, Previous12MonthsAverage = 300 },
-        new() { Category = "Utilities", CurrentMonth = 300, Previous3MonthsAverage = 250, Previous12MonthsAverage = 200 }
-    ];
-
-    public class ExpenseDataPoint
-    {
-        public string Category { get; set; } = "";
-        public decimal Amount { get; set; }
-    }
-
-    public class LineChartDataPoint
-    {
-        public string Month { get; set; } = "";
-        public decimal Amount { get; set; }
-    }
-
-    private class Top5ExpenseDataPoint
-    {
-        public string Category { get; set; } = "";
-        public decimal CurrentMonth { get; set; }
-        public decimal Previous3MonthsAverage { get; set; }
-        public decimal Previous12MonthsAverage { get; set; }
-    }
-
-}
