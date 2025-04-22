@@ -13,6 +13,7 @@ public partial class Dashboard(IDashboardService dashboardService)
     private IEnumerable<ReportDataPoint> netWorthData = [];
     private ApexChart<IncomeExpenseDataPoint> incomeExpenseChart;
     private ApexChart<ReportDataPoint> netWorthChart;
+    private bool isLoading = true;
 
     private ApexChartOptions<ReportDataPoint> netWorthChartOptions = ChartOptions.GetDefaultOptions<ReportDataPoint>();
     private ApexChartOptions<LineChartDataPoint> investmentsChartOptions = ChartOptions.GetDefaultOptions<LineChartDataPoint>();
@@ -21,6 +22,7 @@ public partial class Dashboard(IDashboardService dashboardService)
 
     protected override async Task OnParametersSetAsync()
     {
+        isLoading = true;
         expensesThisMonth = await dashboardService.GetThisMonthExpenses();
         creditCardBalance = await dashboardService.GetCreditCardBalance();
         liquidAssetBalance = await dashboardService.GetLiquidAssetBalance();
@@ -36,6 +38,7 @@ public partial class Dashboard(IDashboardService dashboardService)
         {
             await netWorthChart.UpdateSeriesAsync(false);
         }
+        isLoading = false;
 
         await base.OnParametersSetAsync();
     }

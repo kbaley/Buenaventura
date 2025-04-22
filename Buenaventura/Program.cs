@@ -1,8 +1,6 @@
 using System.Text.Json.Serialization;
-using ApexCharts;
 using Blazored.LocalStorage;
 using Buenaventura;
-using Buenaventura.Client.Services;
 using MudBlazor.Services;
 using Buenaventura.Components;
 using Buenaventura.Components.Account;
@@ -55,34 +53,6 @@ builder.Services
     .AddResend(builder.Configuration)
     .AddBuenaventuraAuthentication()
     .AddScoped<IUserStore<User>, BuenaventuraUserStore>();
-
-builder.Services.AddApexCharts(options =>
-{
-    options.GlobalOptions = new ApexChartBaseOptions
-    {
-        Theme = new Theme
-        {
-            Palette = PaletteType.Palette9
-        },
-        Chart = new Chart
-        {
-            Toolbar = new Toolbar
-            {
-                Show = true,
-                Tools = new Tools
-                {
-                    Download = false,
-                    Pan = false,
-                    Zoomin = true,
-                    Zoomout = true,
-                    Zoom = true,
-                    Reset = true,
-                    Selection = true
-                }
-            }
-        },
-    };
-});
 
 builder.Services.AddAuthorization();
 

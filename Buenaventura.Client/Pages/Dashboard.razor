@@ -1,178 +1,172 @@
 ﻿@page "/"
 @using ApexCharts;
-@rendermode InteractiveWebAssembly
 
 @attribute [Authorize]
 
 <MudText Typo="Typo.h4" GutterBottom="true">Dashboard</MudText>
 
-<MudGrid>
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
+}
+else
+{
+    <MudGrid>
 
-    <MudItem xs="12" md="9">
-        <MudPaper Elevation="1" Class="pa-4">
-            <ApexChart TItem="IncomeExpenseDataPoint"
-                       Title="Income vs. Expenses (Last 12 Months)"
-                       Height="320"
-                       Options="incomeExpenseChartOptions"
-                       @ref="incomeExpenseChart"
-            >
-                <ApexPointSeries
-                    TItem="IncomeExpenseDataPoint"
-                    Items="incomeExpenseData"
-                    Name="Income"
-                    XValue="@(e => e.Month)"
-                    YValue="@(e => e.Income)"
-                    SeriesType="SeriesType.Bar"
-                />
-                <ApexPointSeries
-                    TItem="IncomeExpenseDataPoint"
-                    Items="incomeExpenseData"
-                    Name="Expenses"
-                    XValue="@(e => e.Month)"
-                    YValue="@(e => e.Expenses)"
-                    SeriesType="SeriesType.Bar"
-                />
-                <ApexPointSeries
-                    TItem="IncomeExpenseDataPoint"
-                    Items="incomeExpenseData"
-                    Name="Difference"
-                    XValue="@(e => e.Month)"
-                    YValue="@(e => e.CashFlow)"
-                    SeriesType="SeriesType.Line"
-                />
-            </ApexChart>
-        </MudPaper>
-    </MudItem>
-    <MudItem xs="12" md="3">
-        <MudGrid>
-            <MudItem xs="12">
-                <MudPaper Elevation="1" Class="pa-4">
-                    <MudText Typo="Typo.h6">Expenses This Month</MudText>
-                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">@(expensesThisMonth.ToString("C"))</MudText>
-                </MudPaper>
-            </MudItem>
-            <MudItem xs="12">
-                <MudPaper Elevation="1" Class="pa-4">
-                    <MudText Typo="Typo.h6">Credit Card Total</MudText>
-                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Error">@(creditCardBalance.ToString("C"))</MudText>
-                </MudPaper>
-            </MudItem>
-            <MudItem xs="12">
-                <MudPaper Elevation="1" Class="pa-4">
-                    <MudText Typo="Typo.h6">Bank Account Total</MudText>
-                    <MudText Typo="Typo.h4"
-                             Color="MudBlazor.Color.Success">@(liquidAssetBalance.ToString("C"))</MudText>
-                </MudPaper>
-            </MudItem>
-        </MudGrid>
-    </MudItem>
+        <MudItem xs="12" md="9">
+            <MudPaper Elevation="1" Class="pa-4">
+                <ApexChart TItem="IncomeExpenseDataPoint"
+                           Title="Income vs. Expenses (Last 12 Months)"
+                           Height="320"
+                           Options="incomeExpenseChartOptions"
+                           @ref="incomeExpenseChart">
+                    <ApexPointSeries
+                        TItem="IncomeExpenseDataPoint"
+                        Items="incomeExpenseData"
+                        Name="Income"
+                        XValue="@(e => e.Month)"
+                        YValue="@(e => e.Income)"
+                        SeriesType="SeriesType.Bar"/>
+                    <ApexPointSeries
+                        TItem="IncomeExpenseDataPoint"
+                        Items="incomeExpenseData"
+                        Name="Expenses"
+                        XValue="@(e => e.Month)"
+                        YValue="@(e => e.Expenses)"
+                        SeriesType="SeriesType.Bar"/>
+                    <ApexPointSeries
+                        TItem="IncomeExpenseDataPoint"
+                        Items="incomeExpenseData"
+                        Name="Difference"
+                        XValue="@(e => e.Month)"
+                        YValue="@(e => e.CashFlow)"
+                        SeriesType="SeriesType.Line"/>
+                </ApexChart>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudText Typo="Typo.h6">Expenses This Month</MudText>
+                        <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">@(expensesThisMonth.ToString("C"))</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudText Typo="Typo.h6">Credit Card Total</MudText>
+                        <MudText Typo="Typo.h4" Color="MudBlazor.Color.Error">@(creditCardBalance.ToString("C"))</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudText Typo="Typo.h6">Bank Account Total</MudText>
+                        <MudText Typo="Typo.h4"
+                                 Color="MudBlazor.Color.Success">@(liquidAssetBalance.ToString("C"))</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
 
-    <!-- Investment Value Over Time -->
-    <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4">
-            <ApexChart TItem="LineChartDataPoint"
-                       Options="investmentsChartOptions"
-                       Title="Investment Value Over Time"
-            >
-                <ApexPointSeries
-                    TItem="LineChartDataPoint"
-                    Items="investmentData"
-                    Name="Investment Value"
-                    XValue="@(e => e.Month)"
-                    YValue="@(e => e.Amount)"
-                    SeriesType="SeriesType.Line"
-                />
-            </ApexChart>
-        </MudPaper>
-    </MudItem>
+        <!-- Investment Value Over Time -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="1" Class="pa-4">
+                <ApexChart TItem="LineChartDataPoint"
+                           Options="investmentsChartOptions"
+                           Title="Investment Value Over Time">
+                    <ApexPointSeries
+                        TItem="LineChartDataPoint"
+                        Items="investmentData"
+                        Name="Investment Value"
+                        XValue="@(e => e.Month)"
+                        YValue="@(e => e.Amount)"
+                        SeriesType="SeriesType.Line"/>
+                </ApexChart>
+            </MudPaper>
+        </MudItem>
 
-    <!-- Net Worth Over Last 12 Months -->
-    <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4">
-            <ApexChart TItem="ReportDataPoint"
-                       Title="Net Worth Over Time"
-                       Options="netWorthChartOptions"
-                       @ref="netWorthChart"
-            >
-                <ApexPointSeries
-                    TItem="ReportDataPoint"
-                    Items="netWorthData"
-                    Name="Net Worth"
-                    XValue="@(e => e.Label)"
-                    YValue="@(e => e.Value)"
-                    SeriesType="SeriesType.Line"
-                />
-            </ApexChart>
-        </MudPaper>
-    </MudItem>
+        <!-- Net Worth Over Last 12 Months -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="1" Class="pa-4">
+                <ApexChart TItem="ReportDataPoint"
+                           Title="Net Worth Over Time"
+                           Options="netWorthChartOptions"
+                           @ref="netWorthChart">
+                    <ApexPointSeries
+                        TItem="ReportDataPoint"
+                        Items="netWorthData"
+                        Name="Net Worth"
+                        XValue="@(e => e.Label)"
+                        YValue="@(e => e.Value)"
+                        SeriesType="SeriesType.Line"/>
+                </ApexChart>
+            </MudPaper>
+        </MudItem>
 
-    <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4">
-            <ApexChart TItem="ExpenseDataPoint"
-                       Title="Expense Breakdown by Category"
-                       Height="300">
-                <ApexPointSeries
-                    TItem="ExpenseDataPoint"
-                    Items="expenseData"
-                    Name="Expenses"
-                    SeriesType="SeriesType.Pie"
-                    XValue="@(e => e.Category)"
-                    YValue="@(e => e.Amount)"/>
-            </ApexChart>
-        </MudPaper>
-    </MudItem>
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="1" Class="pa-4">
+                <ApexChart TItem="ExpenseDataPoint"
+                           Title="Expense Breakdown by Category"
+                           Height="300">
+                    <ApexPointSeries
+                        TItem="ExpenseDataPoint"
+                        Items="expenseData"
+                        Name="Expenses"
+                        SeriesType="SeriesType.Pie"
+                        XValue="@(e => e.Category)"
+                        YValue="@(e => e.Amount)"/>
+                </ApexChart>
+            </MudPaper>
+        </MudItem>
 
-    <!-- Asset Class Breakdown -->
-    <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4">
-            <ApexChart TItem="ExpenseDataPoint"
-                       Title="Asset Class Breakdown"
-                       Height="300">
-                <ApexPointSeries
-                    TItem="ExpenseDataPoint"
-                    Items="assetData"
-                    Name="Expenses"
-                    SeriesType="SeriesType.Donut"
-                    XValue="@(e => e.Category)"
-                    YValue="@(e => e.Amount)"/>
-            </ApexChart>
-        </MudPaper>
-    </MudItem>
+        <!-- Asset Class Breakdown -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="1" Class="pa-4">
+                <ApexChart TItem="ExpenseDataPoint"
+                           Title="Asset Class Breakdown"
+                           Height="300">
+                    <ApexPointSeries
+                        TItem="ExpenseDataPoint"
+                        Items="assetData"
+                        Name="Expenses"
+                        SeriesType="SeriesType.Donut"
+                        XValue="@(e => e.Category)"
+                        YValue="@(e => e.Amount)"/>
+                </ApexChart>
+            </MudPaper>
+        </MudItem>
 
-    <!-- Top 5 Expenses -->
-    <!-- Show bar chart with three bars per category: Current Month, Previous 3 months average, and Yearly average -->
-    <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4">
-            <ApexChart TItem="Top5ExpenseDataPoint"
-                       Title="Top 5 Expenses"
-                       Height="300"
-            >
-                <ApexPointSeries
-                    TItem="Top5ExpenseDataPoint"
-                    Items="topExpensesData"
-                    Name="Current Month"
-                    XValue="@(e => e.Category)"
-                    YValue="@(e => e.CurrentMonth)"
-                    SeriesType="SeriesType.Bar"
-                />
-                <ApexPointSeries
-                    TItem="Top5ExpenseDataPoint"
-                    Items="topExpensesData"
-                    Name="3 Month Avg"
-                    XValue="@(e => e.Category)"
-                    YValue="@(e => e.Previous3MonthsAverage)"
-                    SeriesType="SeriesType.Bar"
-                />
-                <ApexPointSeries
-                    TItem="Top5ExpenseDataPoint"
-                    Items="topExpensesData"
-                    Name="12 Month Avg"
-                    XValue="@(e => e.Category)"
-                    YValue="@(e => e.Previous12MonthsAverage)"
-                    SeriesType="SeriesType.Bar"
-                />
-            </ApexChart>
-        </MudPaper>
-    </MudItem>
+        <!-- Top 5 Expenses -->
+        <!-- Show bar chart with three bars per category: Current Month, Previous 3 months average, and Yearly average -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="1" Class="pa-4">
+                <ApexChart TItem="Top5ExpenseDataPoint"
+                           Title="Top 5 Expenses"
+                           Height="300">
+                    <ApexPointSeries
+                        TItem="Top5ExpenseDataPoint"
+                        Items="topExpensesData"
+                        Name="Current Month"
+                        XValue="@(e => e.Category)"
+                        YValue="@(e => e.CurrentMonth)"
+                        SeriesType="SeriesType.Bar"/>
+                    <ApexPointSeries
+                        TItem="Top5ExpenseDataPoint"
+                        Items="topExpensesData"
+                        Name="3 Month Avg"
+                        XValue="@(e => e.Category)"
+                        YValue="@(e => e.Previous3MonthsAverage)"
+                        SeriesType="SeriesType.Bar"/>
+                    <ApexPointSeries
+                        TItem="Top5ExpenseDataPoint"
+                        Items="topExpensesData"
+                        Name="12 Month Avg"
+                        XValue="@(e => e.Category)"
+                        YValue="@(e => e.Previous12MonthsAverage)"
+                        SeriesType="SeriesType.Bar"/>
+                </ApexChart>
+            </MudPaper>
+        </MudItem>
 
-</MudGrid>
+    </MudGrid>
+}
