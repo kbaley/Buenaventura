@@ -1,6 +1,6 @@
 ﻿@page "/"
 @using ApexCharts;
-@using System.Globalization
+@inject IDashboardService dashboardService;
 
 @attribute [Authorize]
 
@@ -35,7 +35,7 @@
                     Items="incomeExpenseData"
                     Name="Difference"
                     XValue="@(e => e.Month)"
-                    YValue="@(e => e.Difference)"
+                    YValue="@(e => e.CashFlow)"
                     SeriesType="SeriesType.Line"
                 />
             </ApexChart>
@@ -52,13 +52,13 @@
             <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
                     <MudText Typo="Typo.h6">Credit Card Total</MudText>
-                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Error">$1,200</MudText>
+                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Error">@(creditCardBalance.ToString("C"))</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
                     <MudText Typo="Typo.h6">Bank Account Total</MudText>
-                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">$15,000</MudText>
+                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">@(liquidAssetBalance.ToString("C"))</MudText>
                 </MudPaper>
             </MudItem>
         </MudGrid>
@@ -173,6 +173,15 @@
 </MudGrid>
 
 @code {
+    
+    private decimal creditCardBalance;
+    private decimal liquidAssetBalance;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        creditCardBalance = await dashboardService.GetCreditCardBalance();
+        liquidAssetBalance = await dashboardService.GetLiquidAssetBalance();
+    }
 
     private readonly List<ExpenseDataPoint> expenseData =
     [
@@ -219,28 +228,19 @@
 
     private readonly List<IncomeExpenseDataPoint> incomeExpenseData =
     [
-        new() { Month = "May 2024", Date = new DateOnly(2024, 5, 1), Income = 4200, Expenses = 3100 },
-        new() { Month = "Jun 2024", Date = new DateOnly(2024, 6, 1), Income = 3900, Expenses = 3300 },
-        new() { Month = "Jul 2024", Date = new DateOnly(2024, 7, 1), Income = 5000, Expenses = 2900 },
-        new() { Month = "Aug 2024", Date = new DateOnly(2024, 8, 1), Income = 4800, Expenses = 3200 },
-        new() { Month = "Sep 2024", Date = new DateOnly(2024, 9, 1), Income = 5100, Expenses = 3400 },
-        new() { Month = "Oct 2024", Date = new DateOnly(2024, 10, 1), Income = 4700, Expenses = 3100 },
-        new() { Month = "Nov 2024", Date = new DateOnly(2024, 11, 1), Income = 4600, Expenses = 3600 },
-        new() { Month = "Dec 2024", Date = new DateOnly(2024, 12, 1), Income = 4900, Expenses = 3700 },
-        new() { Month = "Jan 2025", Date = new DateOnly(2025, 1, 1), Income = 5300, Expenses = 4000 },
-        new() { Month = "Feb 2025", Date = new DateOnly(2025, 2, 1), Income = 5000, Expenses = 3900 },
-        new() { Month = "Mar 2025", Date = new DateOnly(2025, 3, 1), Income = 5200, Expenses = 4100 },
-        new() { Month = "Apr 2025", Date = new DateOnly(2025, 4, 1), Income = 5500, Expenses = 4200 }
+        new() { Date = new DateOnly(2024, 5, 1), Income = 4200, Expenses = 3100 },
+        new() { Date = new DateOnly(2024, 6, 1), Income = 3900, Expenses = 3300 },
+        new() { Date = new DateOnly(2024, 7, 1), Income = 5000, Expenses = 2900 },
+        new() { Date = new DateOnly(2024, 8, 1), Income = 4800, Expenses = 3200 },
+        new() { Date = new DateOnly(2024, 9, 1), Income = 5100, Expenses = 3400 },
+        new() { Date = new DateOnly(2024, 10, 1), Income = 4700, Expenses = 3100 },
+        new() { Date = new DateOnly(2024, 11, 1), Income = 4600, Expenses = 3600 },
+        new() { Date = new DateOnly(2024, 12, 1), Income = 4900, Expenses = 3700 },
+        new() { Date = new DateOnly(2025, 1, 1), Income = 5300, Expenses = 4000 },
+        new() { Date = new DateOnly(2025, 2, 1), Income = 5000, Expenses = 3900 },
+        new() { Date = new DateOnly(2025, 3, 1), Income = 5200, Expenses = 4100 },
+        new() { Date = new DateOnly(2025, 4, 1), Income = 5500, Expenses = 4200 }
     ];
-
-    private class IncomeExpenseDataPoint
-    {
-        public string Month { get; set; } = "";
-        public DateOnly Date { get; set; }
-        public decimal Income { get; set; }
-        public decimal Expenses { get; set; }
-        public decimal Difference => Income - Expenses;
-    }
 
     public class ExpenseDataPoint
     {

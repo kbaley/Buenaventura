@@ -2,10 +2,13 @@ using Buenaventura.Api;
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Shared;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public class ServerDashboardService(IReportRepository reportRepo) : IDashboardService
+public class ServerDashboardService(
+    IDbContextFactory<BuenaventuraDbContext> dbContextFactory,
+    IReportRepository reportRepo) : IDashboardService
 {
     public async Task<IEnumerable<ReportDataPoint>> GetNetWorthData(int? year = null)
     {
@@ -26,5 +29,32 @@ public class ServerDashboardService(IReportRepository reportRepo) : IDashboardSe
             date = date.FirstDayOfMonth().AddMinutes(-1);
         }
         return netWorth;
+    }
+
+    public async Task<decimal> GetCreditCardBalance()
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var creditCardBalance = context.Accounts
+            .Where(a => a.AccountType == "Credit Card")
+            .Sum(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
+        return -creditCardBalance;
+    }
+
+    public async Task<decimal> GetLiquidAssetBalance()
+    {
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var assetBalance = context.Accounts
+            .Where(a => a.AccountType == "Cash" || a.AccountType == "Bank Account")
+            .Sum(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
+        return assetBalance;
+    }
+    
+    public async Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData(int? year = null)
+    {
+        year ??= DateTime.Today.Year;
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var start = new DateTime(year.Value, 1, 1);
+        var end = new DateTime(year.Value, 12, 31);
+        
     }
 }

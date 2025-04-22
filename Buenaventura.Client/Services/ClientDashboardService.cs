@@ -12,4 +12,18 @@ public class ClientDashboardService(HttpClient httpClient) : IDashboardService
         var result = await httpClient.GetFromJsonAsync<IEnumerable<ReportDataPoint>>(url);
         return result ?? [];
     }
+
+    public async Task<decimal> GetCreditCardBalance()
+    {
+        var url = "api/dashboard/creditcardbalance";
+        var result = await httpClient.GetFromJsonAsync<decimal>(url);
+        return result;
+    }
+
+    public async Task<decimal> GetLiquidAssetBalance()
+    {
+        var url = "api/dashboard/liquidassetbalance";
+        var result = await httpClient.GetFromJsonAsync<decimal>(url);
+        return result;
+    }
 }
