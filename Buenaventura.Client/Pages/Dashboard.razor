@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using ApexCharts;
 @inject IDashboardService dashboardService;
+@rendermode InteractiveWebAssembly
 
 @attribute [Authorize]
 
@@ -13,6 +14,7 @@
             <ApexChart TItem="IncomeExpenseDataPoint"
                        Title="Income vs. Expenses (Last 12 Months)"
                        Height="320"
+                       @ref="incomeExpenseChart"
             >
                 <ApexPointSeries
                     TItem="IncomeExpenseDataPoint"
@@ -170,7 +172,6 @@
         </MudPaper>
     </MudItem>
 
-    <!-- Financial Summary Cards -->
 </MudGrid>
 
 @code {
@@ -179,17 +180,21 @@
     private decimal liquidAssetBalance;
     private decimal expensesThisMonth;
     private IEnumerable<IncomeExpenseDataPoint> incomeExpenseData = [];
-
-    protected override async Task OnInitializedAsync()
-    {
-        incomeExpenseData = await dashboardService.GetIncomeExpenseData();
-    }
+    private ApexChart<IncomeExpenseDataPoint> incomeExpenseChart;
 
     protected override async Task OnParametersSetAsync()
     {
+        expensesThisMonth = await dashboardService.GetThisMonthExpenses();
         creditCardBalance = await dashboardService.GetCreditCardBalance();
         liquidAssetBalance = await dashboardService.GetLiquidAssetBalance();
-        expensesThisMonth = await dashboardService.GetThisMonthExpenses();
+        incomeExpenseData = await dashboardService.GetIncomeExpenseData();
+        if (incomeExpenseChart != null)
+        {
+            StateHasChanged();
+            await incomeExpenseChart.UpdateSeriesAsync(false);
+        }
+
+        await base.OnParametersSetAsync();
     }
 
     private readonly List<ExpenseDataPoint> expenseData =
