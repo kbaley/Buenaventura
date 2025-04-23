@@ -20,22 +20,33 @@ public partial class Dashboard(IDashboardService dashboardService)
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
-        // var stats = await dashboardService.GetDashboardStats();
-        // expensesThisMonth = stats.ExpensesThisMonth;
-        // creditCardBalance = stats.CreditCardBalance;
-        // liquidAssetBalance = stats.LiquidAssetBalance;
-        // incomeExpenseData = stats.IncomeExpenses;
-        // netWorthData = stats.NetWorth;
-        // investmentData = stats.Investments;
-        // expenseData = stats.Expenses;
 
-        expensesThisMonth = await dashboardService.GetThisMonthExpenses();
-        creditCardBalance = await dashboardService.GetCreditCardBalance();
-        liquidAssetBalance = await dashboardService.GetLiquidAssetBalance();
-        incomeExpenseData = await dashboardService.GetIncomeExpenseData();
-        netWorthData = await dashboardService.GetNetWorthData();
-        investmentData = await dashboardService.GetInvestmentData();
-        expenseData = await dashboardService.GetExpenseData();
+        var expensesTask = dashboardService.GetThisMonthExpenses();
+        var creditCardTask = dashboardService.GetCreditCardBalance();
+        var liquidAssetTask = dashboardService.GetLiquidAssetBalance();
+        var incomeExpenseTask = dashboardService.GetIncomeExpenseData();
+        var netWorthTask = dashboardService.GetNetWorthData();
+        var investmentTask = dashboardService.GetInvestmentData();
+        var expenseTask = dashboardService.GetExpenseData();
+
+        await Task.WhenAll(
+            expensesTask,
+            creditCardTask,
+            liquidAssetTask,
+            incomeExpenseTask,
+            netWorthTask,
+            investmentTask,
+            expenseTask
+        );
+
+        expensesThisMonth = await expensesTask;
+        creditCardBalance = await creditCardTask;
+        liquidAssetBalance = await liquidAssetTask;
+        incomeExpenseData = await incomeExpenseTask;
+        netWorthData = await netWorthTask;
+        investmentData = await investmentTask;
+        expenseData = await expenseTask;
+
         StateHasChanged();
         if (expenseChart != null)
         {
