@@ -8,15 +8,13 @@ using Resend;
 namespace Buenaventura.Services;
 
 public class ServerInvoiceService(
-    IDbContextFactory<BuenaventuraDbContext> dbContextFactory,
-    IConfiguration configuration,
+    BuenaventuraDbContext context,
     IInvoiceGenerator invoiceGenerator,
     IResend resend
 ) : IInvoiceService
 {
     public async Task<IEnumerable<InvoiceModel>> GetInvoices()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var invoices = await context.Invoices
             .Include(i => i.Customer)
             .Include(i => i.LineItems)
@@ -42,7 +40,6 @@ public class ServerInvoiceService(
 
     public async Task<int> GetNextInvoiceNumber()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var highestInvoiceNumber = (await context.Invoices
                 .Select(i => i.InvoiceNumber)
                 .ToListAsync())
@@ -57,7 +54,6 @@ public class ServerInvoiceService(
 
     public async Task CreateInvoice(InvoiceModel invoiceModel)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         if (invoiceModel.InvoiceId == Guid.Empty) invoiceModel.InvoiceId = Guid.NewGuid();
         invoiceModel.Balance = invoiceModel.LineItems.Sum(i => i.UnitPrice * i.Quantity);
         var invoice = new Invoice
@@ -84,7 +80,6 @@ public class ServerInvoiceService(
 
     public async Task<string> GetInvoiceTemplate()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var template = (await context.Configurations
             .SingleOrDefaultAsync(c => c.Name == "InvoiceTemplate"))?.Value;
         return template ?? "<html><body>No template found</body></html>";
@@ -92,7 +87,6 @@ public class ServerInvoiceService(
 
     public async Task SaveInvoiceTemplate(string template)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var config = await context.Configurations
             .SingleOrDefaultAsync(c => c.Name == "InvoiceTemplate");
         if (config == null)
@@ -115,7 +109,6 @@ public class ServerInvoiceService(
 
     public async Task EmailInvoice(Guid invoiceId)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var invoice = await context.FindInvoiceEager(invoiceId);
         if (invoice == null)
         {

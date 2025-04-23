@@ -1,19 +1,17 @@
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
-using Buenaventura.Dtos;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
 public class ServerAccountService(
-    IDbContextFactory<BuenaventuraDbContext> dbContextFactory,
+    BuenaventuraDbContext context,
     ITransactionRepository transactionRepo
 ) : IAccountService
 {
     public async Task<IEnumerable<AccountWithBalance>> GetAccounts()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var exchangeRate = await context.Currencies.GetCadExchangeRate();
         var accounts = await context.Accounts
             .Where(a => !a.IsHidden)
@@ -45,7 +43,6 @@ public class ServerAccountService(
 
     public async Task<AccountWithBalance> GetAccount(Guid id)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var exchangeRate = await context.Currencies.GetCadExchangeRate();
         var account = await context.Accounts.Include(account => account.Transactions)
             .FirstOrDefaultAsync(a => a.AccountId == id);
@@ -91,7 +88,6 @@ public class ServerAccountService(
 
     public async Task DeleteTransaction(Guid transactionId)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var transaction = await transactionRepo.Get(transactionId);
         if (transaction.InvoiceId.HasValue)
         {
@@ -108,7 +104,6 @@ public class ServerAccountService(
 
     public async Task SaveAccountOrder(List<OrderedAccount> accountOrders)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var accounts = await context.Accounts.ToListAsync();
         foreach (var orderedAccount in accountOrders)
         {
@@ -124,7 +119,6 @@ public class ServerAccountService(
 
     public async Task<TransactionListModel> GetPotentialDuplicateTransactions(Guid accountId)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var transactions = (await context.Transactions
                 .Include(t => t.Account)
                 .Include(t => t.Category)

@@ -6,12 +6,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerCategoryService(
-    IDbContextFactory<BuenaventuraDbContext> dbContextFactory
+    BuenaventuraDbContext context
 ) : ICategoryService
 {
     public async Task<IEnumerable<CategoryModel>> GetCategories()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var categories = await context.Categories
             .GroupJoin(context.Transactions,
                 category => category.CategoryId,

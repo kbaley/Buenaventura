@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerDashboardService(
-    IDbContextFactory<BuenaventuraDbContext> dbContextFactory,
+    BuenaventuraDbContext context,
     IReportRepository reportRepo) : IDashboardService
 {
     public async Task<IEnumerable<ReportDataPoint>> GetNetWorthData()
@@ -30,7 +30,6 @@ public class ServerDashboardService(
 
     public async Task<decimal> GetCreditCardBalance()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var creditCardBalance = context.Accounts
             .Where(a => a.AccountType == "Credit Card")
             .Sum(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
@@ -39,7 +38,6 @@ public class ServerDashboardService(
 
     public async Task<decimal> GetLiquidAssetBalance()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var assetBalance = context.Accounts
             .Where(a => a.AccountType == "Cash" || a.AccountType == "Bank Account")
             .Sum(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
@@ -51,7 +49,6 @@ public class ServerDashboardService(
         var start = DateTime.Today.FirstDayOfMonth();
         var end = start.AddMonths(1);
 
-        var context = await dbContextFactory.CreateDbContextAsync();
         var expenses = await context.Transactions
             .Include(t => t.Category)
             .Where(t => t.TransactionDate >= start && t.TransactionDate < end &&
@@ -113,8 +110,6 @@ public class ServerDashboardService(
         // Skip the current month; it'll throw the numbers out of whack because the income is usually at the end
         var period = ReportPeriod.GetLast12MonthsFromLastMonth();
 
-        var context = await dbContextFactory.CreateDbContextAsync();
-
         var incomeExpenseData = new List<IncomeExpenseDataPoint>();
         var currentDate = period.Start;
 
@@ -161,7 +156,6 @@ public class ServerDashboardService(
 
     private async Task<dynamic> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var categories = await context.Categories.Where(c => c.Type == categoryType).ToListAsync();
         var expenses = (await reportRepo.GetTransactionsByCategoryType(categoryType, start, end)).ToList();
         if (categoryType == "Income") {

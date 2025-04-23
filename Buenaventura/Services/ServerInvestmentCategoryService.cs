@@ -5,11 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public class ServerInvestmentCategoryService(IDbContextFactory<BuenaventuraDbContext> dbContextFactory) : IInvestmentCategoryService
+public class ServerInvestmentCategoryService(
+    BuenaventuraDbContext context
+        ) : IInvestmentCategoryService
 {
     public async Task<IEnumerable<InvestmentCategoryModel>> GetCategories()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         return context.InvestmentCategories.Select(c => new InvestmentCategoryModel
         {
             InvestmentCategoryId = c.InvestmentCategoryId,

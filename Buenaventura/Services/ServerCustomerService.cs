@@ -7,12 +7,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerCustomerService(
-    IDbContextFactory<BuenaventuraDbContext> dbContextFactory
+    BuenaventuraDbContext context
 ) : ICustomerService
 {
     public async Task<IEnumerable<CustomerModel>> GetCustomers()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var customers = await context.Customers
             .OrderBy(c => c.Name)
             .ToListAsync();
@@ -28,7 +27,6 @@ public class ServerCustomerService(
 
     public async Task<CustomerModel> GetCustomer(Guid customerId)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var customer = await context.Customers
             .FirstOrDefaultAsync(c => c.CustomerId == customerId);
         if (customer == null)
@@ -50,7 +48,6 @@ public class ServerCustomerService(
 
     public async Task DeleteCustomer(Guid customerId)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var customer = await context.Customers.FindAsync(customerId).ConfigureAwait(false);
         if (customer == null)
         {
@@ -62,7 +59,6 @@ public class ServerCustomerService(
 
     public async Task UpdateCustomer(CustomerModel customerModel)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var customer = await context.Customers.FindAsync(customerModel.CustomerId);
         if (customer == null)
         {
@@ -79,7 +75,6 @@ public class ServerCustomerService(
 
     public async Task AddCustomer(CustomerModel customerModel)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var customer = new Customer
         {
             CustomerId = Guid.NewGuid(),

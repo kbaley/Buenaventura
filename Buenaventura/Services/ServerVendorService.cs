@@ -6,12 +6,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerVendorService(
-    IDbContextFactory<BuenaventuraDbContext> dbContextFactory
+    BuenaventuraDbContext context
 ) : IVendorService
 {
     public async Task<IEnumerable<VendorModel>> GetVendors()
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         var vendors = await context.Vendors.ToListAsync();
         return vendors.Select(v => new VendorModel
         {

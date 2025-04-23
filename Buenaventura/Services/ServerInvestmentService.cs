@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buenaventura.Services;
 
 public class ServerInvestmentService(
-    IDbContextFactory<BuenaventuraDbContext> contextFactory,
+    BuenaventuraDbContext context,
     IInvestmentPriceParser priceParser,
     IInvestmentTransactionGenerator transactionGenerator,
     ITransactionRepository transactionRepo
@@ -16,7 +16,6 @@ public class ServerInvestmentService(
 {
     public async Task<InvestmentListModel> GetInvestments()
     {
-        var context = await contextFactory.CreateDbContextAsync();
         var investments = await context.Investments
             .Include(i => i.Transactions)
             .Include(i => i.Dividends)
@@ -56,7 +55,6 @@ public class ServerInvestmentService(
 
     public async Task<InvestmentListModel> UpdateCurrentPrices()
     {
-        var context = await contextFactory.CreateDbContextAsync();
         var mustUpdatePrices = context.Investments
             .Any(i => !i.DontRetrievePrices && i.LastPriceRetrievalDate < DateTime.Today);
         if (mustUpdatePrices)
@@ -75,7 +73,6 @@ public class ServerInvestmentService(
 
     public async Task MakeCorrectingEntry()
     {
-        var context = await contextFactory.CreateDbContextAsync();
         var investments = context.Investments
             .Include(i => i.Transactions);
         var currencyController = new CurrenciesController(context);
@@ -119,7 +116,6 @@ public class ServerInvestmentService(
 
     public async Task DeleteInvestment(Guid investmentId)
     {
-        var context = await contextFactory.CreateDbContextAsync();
         await using var tx = await context.Database.BeginTransactionAsync();
         var investment = await context.Investments
             .Include(i => i.Transactions)
@@ -152,7 +148,6 @@ public class ServerInvestmentService(
 
     public async Task AddInvestment(AddInvestmentModel investmentModel)
     {
-        var context = await contextFactory.CreateDbContextAsync();
         await using var tx = await context.Database.BeginTransactionAsync();
         // Check if we've bought this investment before
         var investment = await context.Investments
@@ -192,7 +187,6 @@ public class ServerInvestmentService(
 
     public async Task BuySell(BuySellModel model)
     {
-        var context = await contextFactory.CreateDbContextAsync();
         var investment = await context.Investments.SingleAsync(i => i.InvestmentId == model.InvestmentId);
         await transactionGenerator.CreateInvestmentTransaction(model, investment!, context);
         await context.SaveChangesAsync();
@@ -200,7 +194,6 @@ public class ServerInvestmentService(
 
     public async Task RecordDividend(Guid investmentId, RecordDividendModel model)
     {
-        var context = await contextFactory.CreateDbContextAsync();
         await using var tx = await context.Database.BeginTransactionAsync();
         var investmentIncomeCategory = await context.Categories
             .SingleAsync(c => c.Name == "Investment Income");

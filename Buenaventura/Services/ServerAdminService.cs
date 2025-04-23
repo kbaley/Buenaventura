@@ -5,11 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public class ServerAdminService(IDbContextFactory<BuenaventuraDbContext> dbContextFactory): IAdminService
+public class ServerAdminService(
+    BuenaventuraDbContext context
+    ): IAdminService
 {
     public async Task ScrambleDatabase(ScrambleModel model)
     {
-        var context = await dbContextFactory.CreateDbContextAsync();
         await using var transaction = await context.Database.BeginTransactionAsync();
         var accountNames = new List<string>
         {

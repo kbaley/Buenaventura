@@ -36,14 +36,14 @@ builder.Services.AddControllers()
     });
 builder.Services.AddAutoMapper(typeof(ServerAccountService));
 var connectionString = builder.Configuration.GetConnectionString("Buenaventura");
-builder.Services.AddDbContextFactory<BuenaventuraDbContext>(options =>
-    options
-        .UseSnakeCaseNamingConvention()
-        .UseNpgsql(connectionString, npgOptions =>
-        {
-            npgOptions.MigrationsHistoryTable("__ef_migrations_history", "public");
-        })
-    );
+builder.Services.AddDbContext<BuenaventuraDbContext>(options =>
+{
+    options.UseNpgsql(connectionString, npgOptions =>
+    {
+        npgOptions.MigrationsHistoryTable("__ef_migrations_history", "public");
+    });
+    options.UseSnakeCaseNamingConvention();
+});
 
 // Register server-side implementations of services
 builder.Services
