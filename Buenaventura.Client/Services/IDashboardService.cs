@@ -9,4 +9,5 @@ public interface IDashboardService : IAppService
     Task<decimal> GetLiquidAssetBalance();
     Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData();
     Task<decimal> GetThisMonthExpenses();
+    Task<IEnumerable<ReportDataPoint>> GetInvestmentData();
 }

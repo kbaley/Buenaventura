@@ -71,15 +71,15 @@ else
         <!-- Investment Value Over Time -->
         <MudItem xs="12" md="6">
             <MudPaper Elevation="1" Class="pa-4">
-                <ApexChart TItem="LineChartDataPoint"
+                <ApexChart TItem="ReportDataPoint"
                            Options="investmentsChartOptions"
                            Title="Investment Value Over Time">
                     <ApexPointSeries
-                        TItem="LineChartDataPoint"
+                        TItem="ReportDataPoint"
                         Items="investmentData"
                         Name="Investment Value"
-                        XValue="@(e => e.Month)"
-                        YValue="@(e => e.Amount)"
+                        XValue="@(e => e.Label)"
+                        YValue="@(e => e.Value)"
                         SeriesType="SeriesType.Line"/>
                 </ApexChart>
             </MudPaper>

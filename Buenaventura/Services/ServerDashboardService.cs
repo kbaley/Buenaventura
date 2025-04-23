@@ -60,6 +60,24 @@ public class ServerDashboardService(
         return expenses;
     }
 
+    public async Task<IEnumerable<ReportDataPoint>> GetInvestmentData()
+    {
+        var period = ReportPeriod.GetLast12Months();
+        var report = new List<ReportDataPoint>();
+        var currentData = period.Start;
+        while (currentData < period.End)
+        {
+            report.Add(new ReportDataPoint
+            {
+                Label = currentData.ToString("MMM yy"),
+                Value = await reportRepo.GetInvestmentTotalFor(currentData.LastDayOfMonth())
+            });
+            currentData = currentData.AddMonths(1);
+        }
+
+        return report;
+    }
+
     public async Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData()
     {
         // Skip the current month; it'll throw the numbers out of whack because the income is usually at the end

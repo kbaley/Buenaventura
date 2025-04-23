@@ -11,12 +11,17 @@ public partial class Dashboard(IDashboardService dashboardService)
     private decimal expensesThisMonth;
     private IEnumerable<IncomeExpenseDataPoint> incomeExpenseData = [];
     private IEnumerable<ReportDataPoint> netWorthData = [];
+    private IEnumerable<ReportDataPoint> investmentData = [];
     private ApexChart<IncomeExpenseDataPoint> incomeExpenseChart;
     private ApexChart<ReportDataPoint> netWorthChart;
+    private ApexChart<ReportDataPoint> investmentsChart;
     private bool isLoading = true;
 
     private ApexChartOptions<ReportDataPoint> netWorthChartOptions = ChartOptions.GetDefaultOptions<ReportDataPoint>();
-    private ApexChartOptions<LineChartDataPoint> investmentsChartOptions = ChartOptions.GetDefaultOptions<LineChartDataPoint>();
+
+    private ApexChartOptions<ReportDataPoint> investmentsChartOptions =
+        ChartOptions.GetDefaultOptions<ReportDataPoint>();
+
     private ApexChartOptions<IncomeExpenseDataPoint> incomeExpenseChartOptions =
         ChartOptions.GetDefaultOptions<IncomeExpenseDataPoint>();
 
@@ -28,16 +33,21 @@ public partial class Dashboard(IDashboardService dashboardService)
         liquidAssetBalance = await dashboardService.GetLiquidAssetBalance();
         incomeExpenseData = await dashboardService.GetIncomeExpenseData();
         netWorthData = await dashboardService.GetNetWorthData();
+        investmentData = await dashboardService.GetInvestmentData();
         StateHasChanged();
         if (incomeExpenseChart != null)
         {
             await incomeExpenseChart.UpdateSeriesAsync(false);
         }
-
         if (netWorthChart != null)
         {
             await netWorthChart.UpdateSeriesAsync(false);
         }
+        if (investmentsChart != null)
+        {
+            await investmentsChart.UpdateSeriesAsync(false);
+        }
+
         isLoading = false;
 
         await base.OnParametersSetAsync();
@@ -51,22 +61,6 @@ public partial class Dashboard(IDashboardService dashboardService)
         new() { Category = "Entertainment", Amount = 10 },
         new() { Category = "Utilities", Amount = 15 },
         new() { Category = "Other", Amount = 18 }
-    ];
-
-    private readonly List<LineChartDataPoint> investmentData =
-    [
-        new() { Month = "May 2024", Amount = 10000 },
-        new() { Month = "Jun 2024", Amount = 12000 },
-        new() { Month = "Jul 2024", Amount = 15000 },
-        new() { Month = "Aug 2024", Amount = 13000 },
-        new() { Month = "Sep 2024", Amount = 14000 },
-        new() { Month = "Oct 2024", Amount = 16000 },
-        new() { Month = "Nov 2024", Amount = 17000 },
-        new() { Month = "Dec 2024", Amount = 18000 },
-        new() { Month = "Jan 2025", Amount = 19000 },
-        new() { Month = "Feb 2025", Amount = 20000 },
-        new() { Month = "Mar 2025", Amount = 21000 },
-        new() { Month = "Apr 2025", Amount = 22000 }
     ];
 
     private readonly List<ExpenseDataPoint> assetData =
@@ -100,12 +94,6 @@ public partial class Dashboard(IDashboardService dashboardService)
     public class ExpenseDataPoint
     {
         public string Category { get; set; } = "";
-        public decimal Amount { get; set; }
-    }
-
-    public class LineChartDataPoint
-    {
-        public string Month { get; set; } = "";
         public decimal Amount { get; set; }
     }
 

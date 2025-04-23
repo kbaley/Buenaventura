@@ -39,4 +39,11 @@ public class ClientDashboardService(HttpClient httpClient) : IDashboardService
         var result = await httpClient.GetFromJsonAsync<decimal>(url);
         return result;
     }
+
+    public async Task<IEnumerable<ReportDataPoint>> GetInvestmentData()
+    {
+        var url = $"api/dashboard/investments";
+        var result = await httpClient.GetFromJsonAsync<IEnumerable<ReportDataPoint>>(url);
+        return result ?? [];
+    }
 }

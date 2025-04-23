@@ -29,13 +29,13 @@ namespace Buenaventura.Data
             var usTotal = await context.Transactions
                 .Include(t => t.Account)
                 .Where(t => t.TransactionDate <= date 
-                    && t.Account.AccountType == "Investment"
+                    && t.Account!.AccountType == "Investment"
                     && t.Account.Currency == "USD")
                 .SumAsync(t => t.Amount);
             var cadTotal = await context.Transactions
                 .Include(t => t.Account)
                 .Where(t => t.TransactionDate <= date 
-                    && t.Account.AccountType == "Investment"
+                    && t.Account!.AccountType == "Investment"
                     && t.Account.Currency == "CAD")
                 .SumAsync(t => t.Amount);
             return Math.Round(usTotal + (cadTotal / exchangeRate), 2);
