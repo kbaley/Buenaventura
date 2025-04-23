@@ -1,0 +1,45 @@
+@using ApexCharts
+@using ChartOptions = Buenaventura.Client.Services.ChartOptions
+@if (IsLoading)
+{
+    <MudGrid>
+        <MudItem xs="12">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="30%"/>
+        </MudItem>
+        <MudItem xs="1">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" Width="100%"/>
+        </MudItem>
+        <MudItem xs="11">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" Width="100%"/>
+        </MudItem>
+        <MudItem xs="1"/>
+        <MudItem xs="11">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="100%"/>
+        </MudItem>
+    </MudGrid>
+}
+else
+{
+    <ApexChart TItem="ReportDataPoint"
+               Options="investmentsChartOptions"
+               Title="@Title">
+        <ApexPointSeries
+            TItem="ReportDataPoint"
+            Items="ChartData"
+            Name="Investment Value"
+            XValue="@(e => e.Label)"
+            YValue="@(e => e.Value)"
+            SeriesType="SeriesType.Line"/>
+    </ApexChart>
+}
+
+@code {
+
+    [Parameter] public bool IsLoading { get; set; } = true;
+    [Parameter] public IEnumerable<ReportDataPoint> ChartData { get; set; }= [];
+    [Parameter] public string Title { get; set; } = "";
+
+    private ApexChartOptions<ReportDataPoint> investmentsChartOptions =
+        ChartOptions.GetDefaultOptions<ReportDataPoint>();
+
+}
