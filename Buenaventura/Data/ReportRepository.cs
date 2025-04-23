@@ -41,7 +41,7 @@ namespace Buenaventura.Data
             return Math.Round(usTotal + (cadTotal / exchangeRate), 2);
         }
 
-        public IEnumerable<CategoryTotal> GetTransactionsByCategoryType(string categoryType, DateTime start, DateTime end)
+        public async Task<IEnumerable<CategoryTotal>> GetTransactionsByCategoryType(string categoryType, DateTime start, DateTime end)
         {
             var amountPrefix = "";
             if (categoryType == "Expense")
@@ -54,7 +54,7 @@ namespace Buenaventura.Data
                 "WHERE transaction_date > @start and transaction_date <= @end " +
                 "AND c.Type = '" + categoryType + "' " +
                 "GROUP BY t.category_id, c.name, EXTRACT(MONTH from t.transaction_date), EXTRACT(YEAR from t.transaction_date)";
-            var data = conn.Query(sql, new { start, end });
+            var data = await conn.QueryAsync(sql, new { start, end });
 
             var results = data.GroupBy(x => x.category_id)
                             .Select(x => new CategoryTotal

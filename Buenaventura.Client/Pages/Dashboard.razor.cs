@@ -12,9 +12,11 @@ public partial class Dashboard(IDashboardService dashboardService)
     private IEnumerable<IncomeExpenseDataPoint> incomeExpenseData = [];
     private IEnumerable<ReportDataPoint> netWorthData = [];
     private IEnumerable<ReportDataPoint> investmentData = [];
+    private IEnumerable<ReportDataPoint> expenseData = [];
     private ApexChart<IncomeExpenseDataPoint> incomeExpenseChart;
     private ApexChart<ReportDataPoint> netWorthChart;
     private ApexChart<ReportDataPoint> investmentsChart;
+    private ApexChart<ReportDataPoint> expenseChart;
     private bool isLoading = true;
 
     private ApexChartOptions<ReportDataPoint> netWorthChartOptions = ChartOptions.GetDefaultOptions<ReportDataPoint>();
@@ -34,6 +36,7 @@ public partial class Dashboard(IDashboardService dashboardService)
         incomeExpenseData = await dashboardService.GetIncomeExpenseData();
         netWorthData = await dashboardService.GetNetWorthData();
         investmentData = await dashboardService.GetInvestmentData();
+        expenseData = await dashboardService.GetExpenseData();
         StateHasChanged();
         if (incomeExpenseChart != null)
         {
@@ -47,21 +50,15 @@ public partial class Dashboard(IDashboardService dashboardService)
         {
             await investmentsChart.UpdateSeriesAsync(false);
         }
+        if (expenseChart != null)
+        {
+            await expenseChart.UpdateSeriesAsync(false);
+        }
 
         isLoading = false;
 
         await base.OnParametersSetAsync();
     }
-
-    private readonly List<ExpenseDataPoint> expenseData =
-    [
-        new() { Category = "Housing", Amount = 35 },
-        new() { Category = "Food", Amount = 25 },
-        new() { Category = "Transportation", Amount = 15 },
-        new() { Category = "Entertainment", Amount = 10 },
-        new() { Category = "Utilities", Amount = 15 },
-        new() { Category = "Other", Amount = 18 }
-    ];
 
     private readonly List<ExpenseDataPoint> assetData =
     [

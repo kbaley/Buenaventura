@@ -35,22 +35,6 @@ public class ReportsController(
     }
 
     [HttpGet]
-    public IActionResult Income([FromQuery] ReportQuery query) 
-    {
-        var year = query.Year ?? DateTime.Today.Year;
-        var end = new DateTime(year, 12, 31);
-        var start = new DateTime(year, 1, 1);
-        var report = GetEntriesByCategoryType("Income", start, end);
-        return Ok(report );
-    }
-
-    private class CategoryTotals
-    {
-        public IEnumerable<CategoryTotal> Expenses { get; set; } = [];
-        public dynamic? MonthTotals { get; set; }
-    }
-
-    [HttpGet]
     public IEnumerable<Transaction> ExpensesForCategory(Guid categoryId, DateTime month) {
         var start = new DateTime(month.Year, month.Month, 1);
         var end = start.AddMonths(1);
@@ -59,60 +43,6 @@ public class ReportsController(
             .Where(t => t.CategoryId == categoryId
                         && t.TransactionDate >= start && t.TransactionDate < end);
         return expenses.ToList();
-    }
-
-    [HttpGet]
-    public IActionResult ExpensesByCategory([FromQuery] ReportQuery query) 
-    {
-        var year = query.Year ?? DateTime.Today.Year;
-        var end = new DateTime(year, 12, 31);
-        var start = new DateTime(year, 1, 1);
-        var report = GetEntriesByCategoryType("Expense", start, end);
-        return Ok(report );
-    }
-    public dynamic GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end)
-    {
-        var categories = context.Categories.Where(c => c.Type == categoryType).ToList();
-        var expenses = reportRepo.GetTransactionsByCategoryType(categoryType, start, end).ToList();
-        if (categoryType == "Income") {
-            var invoiceTotals = reportRepo.GetInvoiceLineItemsIncomeTotals(start, end);
-            foreach (var item in invoiceTotals)
-            {
-                var match = expenses.SingleOrDefault(e => e.CategoryId == item.CategoryId);
-                if (match == null) {
-                    expenses.Add(item);
-                } else {
-                    match.Merge(item);
-                }
-            }
-        }
-        expenses.ForEach(e => e.Total = e.Amounts.Sum(a => a.Amount));
-        expenses = expenses.OrderByDescending(e => e.Total).ToList();
-
-        // Add categories with no expenses
-        var missingCategories = categories.Where(c => expenses.All(e => e.CategoryId != c.CategoryId)).ToList();
-        foreach (var category in missingCategories)
-        {
-            expenses.Add(new CategoryTotal{ 
-                CategoryId = category.CategoryId, 
-                CategoryName = category.Name, 
-                Total = 0.0M,
-                Amounts = new List<DateAndAmount>()});
-        }
-        var monthTotals = new List<dynamic>();
-        var numMonths = end.Month - start.Month + 1; // Assumes we aren't spanning years
-        for (var i = 0; i < numMonths; i++)
-        {
-            end = end.FirstDayOfMonth();
-            var total = expenses.Sum(e => e.Amounts.Where(x => x.Date == end).Sum(x => x.Amount));
-            monthTotals.Add(new { date = end, total });
-
-            end = end.AddMonths(-1);
-        }
-        return new CategoryTotals{
-            Expenses = expenses,
-            MonthTotals = monthTotals
-        };
     }
 
     [HttpGet]

@@ -78,6 +78,13 @@ public class ServerDashboardService(
         return report;
     }
 
+    public async Task<IEnumerable<ReportDataPoint>> GetExpenseData()
+    {
+        var period = ReportPeriod.GetLast12Months();
+        var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End);
+        var report = new List<ReportDataPoint>();
+    }
+
     public async Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData()
     {
         // Skip the current month; it'll throw the numbers out of whack because the income is usually at the end
@@ -128,43 +135,56 @@ public class ServerDashboardService(
 
         return incomeExpenseData;
     }
-}
-
-/// <summary>
-/// Dates for a reporting period
-///
-/// The end date is meant to be exclusive, so the period is [start, end)
-/// </summary>
-public class ReportPeriod
-{
-    public DateTime Start { get; set; }
-    public DateTime End { get; set; }
     
-    public static ReportPeriod GetLast12Months()
+    public async Task<dynamic> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end)
     {
-        var today = DateTime.Today;
-        var end = today.FirstDayOfMonth().AddMonths(1);
-        var start = today.AddMonths(-11).FirstDayOfMonth();
-        return new ReportPeriod
+        var context = await dbContextFactory.CreateDbContextAsync();
+        var categories = await context.Categories.Where(c => c.Type == categoryType).ToListAsync();
+        var expenses = (await reportRepo.GetTransactionsByCategoryType(categoryType, start, end)).ToList();
+        if (categoryType == "Income") {
+            var invoiceTotals = reportRepo.GetInvoiceLineItemsIncomeTotals(start, end);
+            foreach (var item in invoiceTotals)
+            {
+                var match = expenses.SingleOrDefault(e => e.CategoryId == item.CategoryId);
+                if (match == null) {
+                    expenses.Add(item);
+                } else {
+                    match.Merge(item);
+                }
+            }
+        }
+        expenses.ForEach(e => e.Total = e.Amounts.Sum(a => a.Amount));
+        expenses = expenses.OrderByDescending(e => e.Total).ToList();
+
+        // Add categories with no expenses
+        var missingCategories = categories.Where(c => expenses.All(e => e.CategoryId != c.CategoryId)).ToList();
+        foreach (var category in missingCategories)
         {
-            Start = start,
-            End = end
+            expenses.Add(new CategoryTotal{ 
+                CategoryId = category.CategoryId, 
+                CategoryName = category.Name, 
+                Total = 0.0M,
+                Amounts = new List<DateAndAmount>()});
+        }
+        var monthTotals = new List<dynamic>();
+        var numMonths = end.Month - start.Month + 1; // Assumes we aren't spanning years
+        for (var i = 0; i < numMonths; i++)
+        {
+            end = end.FirstDayOfMonth();
+            var total = expenses.Sum(e => e.Amounts.Where(x => x.Date == end).Sum(x => x.Amount));
+            monthTotals.Add(new { date = end, total });
+
+            end = end.AddMonths(-1);
+        }
+        return new CategoryTotals{
+            Expenses = expenses,
+            MonthTotals = monthTotals
         };
     }
     
-    /// <summary>
-    /// Get the 12-month period ending the first day of this month
-    /// </summary>
-    /// <returns></returns>
-    public static ReportPeriod GetLast12MonthsFromLastMonth()
+    private class CategoryTotals
     {
-        var today = DateTime.Today;
-        var end = today.FirstDayOfMonth();
-        var start = today.AddMonths(-12).FirstDayOfMonth();
-        return new ReportPeriod
-        {
-            Start = start,
-            End = end
-        };
+        public IEnumerable<CategoryTotal> Expenses { get; set; } = [];
+        public dynamic? MonthTotals { get; set; }
     }
 }
