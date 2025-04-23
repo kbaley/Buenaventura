@@ -5,16 +5,30 @@
 
 <MudText Typo="Typo.h4" GutterBottom="true">Dashboard</MudText>
 
-@if (isLoading)
-{
-    <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
-}
-else
-{
     <MudGrid>
 
         <MudItem xs="12" md="9">
-            <MudPaper Elevation="1" Class="pa-4">
+            <MudPaper Elevation="1" Class="pa-4" Height="367px">
+            @if (isLoading)
+            {
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="25%"/>
+                    </MudItem>
+                    <MudItem xs="1">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="250px" Width="100%"/>
+                    </MudItem>
+                    <MudItem xs="11">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="250px" Width="100%"/>
+                    </MudItem>
+                    <MudItem xs="1" />
+                    <MudItem xs="11">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="100%"/>
+                    </MudItem>
+                </MudGrid>
+            }
+            else
+            {
                 <ApexChart TItem="IncomeExpenseDataPoint"
                            Title="Income vs. Expenses (Last 12 Months)"
                            Height="320"
@@ -42,6 +56,7 @@ else
                         YValue="@(e => e.CashFlow)"
                         SeriesType="SeriesType.Line"/>
                 </ApexChart>
+            }
             </MudPaper>
         </MudItem>
         <MudItem xs="12" md="3">
@@ -71,6 +86,12 @@ else
         <!-- Investment Value Over Time -->
         <MudItem xs="12" md="6">
             <MudPaper Elevation="1" Class="pa-4">
+            @if (isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
+            }
+            else
+            {
                 <ApexChart TItem="ReportDataPoint"
                            Options="investmentsChartOptions"
                            Title="Investment Value Over Time">
@@ -82,12 +103,19 @@ else
                         YValue="@(e => e.Value)"
                         SeriesType="SeriesType.Line"/>
                 </ApexChart>
+            }
             </MudPaper>
         </MudItem>
 
         <!-- Net Worth Over Last 12 Months -->
         <MudItem xs="12" md="6">
             <MudPaper Elevation="1" Class="pa-4">
+            @if (isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
+            }
+            else
+            {
                 <ApexChart TItem="ReportDataPoint"
                            Title="Net Worth Over Time"
                            Options="netWorthChartOptions"
@@ -100,11 +128,18 @@ else
                         YValue="@(e => e.Value)"
                         SeriesType="SeriesType.Line"/>
                 </ApexChart>
+            }
             </MudPaper>
         </MudItem>
 
         <MudItem xs="12" md="6">
             <MudPaper Elevation="1" Class="pa-4">
+            @if (isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
+            }
+            else
+            {
                 <ApexChart TItem="ReportDataPoint"
                            Title="Expense Breakdown by Category"
                            Height="300">
@@ -115,15 +150,21 @@ else
                         SeriesType="SeriesType.Pie"
                         XValue="@(e => e.Label)"
                         YValue="@(e => e.Value)"
-                        ShowDataLabels="true"
-                    />
+                        ShowDataLabels="true"/>
                 </ApexChart>
+            }
             </MudPaper>
         </MudItem>
 
         <!-- Asset Class Breakdown -->
         <MudItem xs="12" md="6">
             <MudPaper Elevation="1" Class="pa-4">
+            @if (isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
+            }
+            else
+            {
                 <ApexChart TItem="ExpenseDataPoint"
                            Title="Asset Class Breakdown"
                            Height="300">
@@ -135,6 +176,7 @@ else
                         XValue="@(e => e.Category)"
                         YValue="@(e => e.Amount)"/>
                 </ApexChart>
+            }
             </MudPaper>
         </MudItem>
 
@@ -142,6 +184,12 @@ else
         <!-- Show bar chart with three bars per category: Current Month, Previous 3 months average, and Yearly average -->
         <MudItem xs="12" md="6">
             <MudPaper Elevation="1" Class="pa-4">
+            @if (isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
+            }
+            else
+            {
                 <ApexChart TItem="Top5ExpenseDataPoint"
                            Title="Top 5 Expenses"
                            Height="300">
@@ -167,6 +215,7 @@ else
                         YValue="@(e => e.Previous12MonthsAverage)"
                         SeriesType="SeriesType.Bar"/>
                 </ApexChart>
+            }
             </MudPaper>
         </MudItem>
 
