@@ -62,26 +62,11 @@
     </MudItem>
 
     <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4">
-            @if (isLoading)
-            {
-                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
-            }
-            else
-            {
-                <ApexChart TItem="ReportDataPoint"
-                           Title="Expense Breakdown by Category"
-                           Height="300">
-                    <ApexPointSeries
-                        TItem="ReportDataPoint"
-                        Items="expenseData"
-                        Name="Expenses"
-                        SeriesType="SeriesType.Pie"
-                        XValue="@(e => e.Label)"
-                        YValue="@(e => e.Value)"
-                        ShowDataLabels="true"/>
-                </ApexChart>
-            }
+        <MudPaper Elevation="1" Class="pa-4" Height="335px">
+            <ExpenseChart
+                IsLoading="@isLoading"
+                ExpenseData="@expenseData"
+            />
         </MudPaper>
     </MudItem>
 

@@ -13,9 +13,7 @@ public partial class Dashboard(IDashboardService dashboardService)
     private IEnumerable<ReportDataPoint> netWorthData = [];
     private IEnumerable<ReportDataPoint> investmentData = [];
     private IEnumerable<ReportDataPoint> expenseData = [];
-    private ApexChart<ReportDataPoint> expenseChart;
     private bool isLoading = true;
-
 
     protected override async Task OnParametersSetAsync()
     {
@@ -46,13 +44,7 @@ public partial class Dashboard(IDashboardService dashboardService)
         netWorthData = await netWorthTask;
         investmentData = await investmentTask;
         expenseData = await expenseTask;
-
         StateHasChanged();
-        if (expenseChart != null)
-        {
-            await expenseChart.UpdateSeriesAsync(false);
-        }
-
         isLoading = false;
 
         await base.OnParametersSetAsync();
