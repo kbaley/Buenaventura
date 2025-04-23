@@ -83,6 +83,29 @@ public class ServerDashboardService(
         var period = ReportPeriod.GetLast12Months();
         var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End);
         var report = new List<ReportDataPoint>();
+        
+        foreach (var category in expenseData.Expenses)
+        {
+            report.Add(new ReportDataPoint
+            {
+                Label = category.CategoryName,
+                Value = category.Total
+            });
+        }
+
+        var otherCategory = new ReportDataPoint
+        {
+            Label = "Other",
+            Value = 0
+        };
+        var totalExpenses = report.Sum(t => t.Value);
+        var threshold = 0.04M * totalExpenses;
+        var smallExpenses = report.Where(t => t.Value < threshold);
+        otherCategory.Value = smallExpenses.Sum(t => t.Value);
+        report.RemoveAll(t => t.Value < threshold);
+        report.Add(otherCategory);
+
+        return report;
     }
 
     public async Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData()
@@ -135,8 +158,8 @@ public class ServerDashboardService(
 
         return incomeExpenseData;
     }
-    
-    public async Task<dynamic> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end)
+
+    private async Task<dynamic> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end)
     {
         var context = await dbContextFactory.CreateDbContextAsync();
         var categories = await context.Categories.Where(c => c.Type == categoryType).ToListAsync();

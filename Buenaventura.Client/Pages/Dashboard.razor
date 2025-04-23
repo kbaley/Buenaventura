@@ -105,16 +105,18 @@ else
 
         <MudItem xs="12" md="6">
             <MudPaper Elevation="1" Class="pa-4">
-                <ApexChart TItem="ExpenseDataPoint"
+                <ApexChart TItem="ReportDataPoint"
                            Title="Expense Breakdown by Category"
                            Height="300">
                     <ApexPointSeries
-                        TItem="ExpenseDataPoint"
+                        TItem="ReportDataPoint"
                         Items="expenseData"
                         Name="Expenses"
                         SeriesType="SeriesType.Pie"
-                        XValue="@(e => e.Category)"
-                        YValue="@(e => e.Amount)"/>
+                        XValue="@(e => e.Label)"
+                        YValue="@(e => e.Value)"
+                        ShowDataLabels="true"
+                    />
                 </ApexChart>
             </MudPaper>
         </MudItem>

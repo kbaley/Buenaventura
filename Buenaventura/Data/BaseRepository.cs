@@ -5,22 +5,13 @@ namespace Buenaventura.Data;
 
 public abstract class BaseRepository
 {
-    internal readonly string _connectionString;
-    internal IConfiguration _config;
+    private readonly string _connectionString;
 
-    public BaseRepository(IConfiguration config)
+    protected BaseRepository(IConfiguration config)
     {
-        _config = config;
-#if DEBUG
-        _connectionString = config.GetConnectionString("localConnection");
-#else
-            _connectionString = config.GetConnectionString("defaultConnection");
-#endif
+        _connectionString = config.GetConnectionString("Buenaventura") ?? "";
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
     }
 
-    internal IDbConnection Connection
-    {
-        get { return new NpgsqlConnection(_connectionString); }
-    }
+    internal IDbConnection Connection => new NpgsqlConnection(_connectionString);
 }
