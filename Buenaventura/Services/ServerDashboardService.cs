@@ -105,6 +105,20 @@ public class ServerDashboardService(
         return report;
     }
 
+    public async Task<DashboardStats> GetDashboardStats()
+    {
+        var stats = new DashboardStats();
+        stats.CreditCardBalance = await GetCreditCardBalance();
+        stats.LiquidAssetBalance = await GetLiquidAssetBalance();
+        stats.ExpensesThisMonth = await GetThisMonthExpenses();
+        stats.NetWorth = await GetNetWorthData();
+        stats.Investments = await GetInvestmentData();
+        stats.Expenses = await GetExpenseData();
+        stats.IncomeExpenses = await GetIncomeExpenseData();
+
+        return stats;
+    }
+
     public async Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData()
     {
         // Skip the current month; it'll throw the numbers out of whack because the income is usually at the end

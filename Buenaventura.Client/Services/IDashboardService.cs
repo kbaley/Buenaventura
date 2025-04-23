@@ -11,4 +11,5 @@ public interface IDashboardService : IAppService
     Task<decimal> GetThisMonthExpenses();
     Task<IEnumerable<ReportDataPoint>> GetInvestmentData();
     Task<IEnumerable<ReportDataPoint>> GetExpenseData();
+    Task<DashboardStats> GetDashboardStats();
 }

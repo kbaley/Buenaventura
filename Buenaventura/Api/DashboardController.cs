@@ -17,6 +17,12 @@ public class DashboardController(
     IReportRepository reportRepo) : ControllerBase
 {
     [HttpGet]
+    public async Task<DashboardStats> DashboardStats()
+    {
+        return await dashboardService.GetDashboardStats();
+    }
+    
+    [HttpGet]
     public async Task<decimal> CreditCardBalance()
     {
         return await dashboardService.GetCreditCardBalance();        
