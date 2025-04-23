@@ -17,12 +17,6 @@ public class DashboardController(
     IReportRepository reportRepo) : ControllerBase
 {
     [HttpGet]
-    public async Task<DashboardStats> DashboardStats()
-    {
-        return await dashboardService.GetDashboardStats();
-    }
-    
-    [HttpGet]
     public async Task<decimal> CreditCardBalance()
     {
         return await dashboardService.GetCreditCardBalance();        
@@ -56,6 +50,12 @@ public class DashboardController(
     public async Task<IEnumerable<ReportDataPoint>> Expenses()
     {
         return await dashboardService.GetExpenseData();
+    }
+
+    [HttpGet]
+    public async Task<IEnumerable<ReportDataPoint>> AssetClasses()
+    {
+        return await dashboardService.GetAssetClassData();
     }
     
     [HttpGet]

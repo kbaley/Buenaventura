@@ -1,4 +1,4 @@
-@using ApexCharts
+@using ApexCharts;
 @using ChartOptions = Buenaventura.Client.Services.ChartOptions
 @if (IsLoading)
 {
@@ -6,11 +6,11 @@
         <MudItem xs="12">
             <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="30%"/>
         </MudItem>
-        <MudItem xs="2" />
+        <MudItem xs="2"/>
         <MudItem xs="5">
             <MudSkeleton SkeletonType="SkeletonType.Circle" Height="240px"/>
         </MudItem>
-        <MudItem xs="2" />
+        <MudItem xs="2"/>
         <MudItem xs="3">
             <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="240px" Width="100%"/>
         </MudItem>
@@ -19,24 +19,24 @@
 else
 {
     <ApexChart TItem="ReportDataPoint"
-               Title="Expense Breakdown by Category"
+               Title="Asset Class Breakdown"
                Height="300"
-                Options="@chartOptions"
+               Options="@chartOptions"
     >
         <ApexPointSeries
             TItem="ReportDataPoint"
-            Items="expenseData"
+            Items="assetData"
             Name="Expenses"
-            SeriesType="SeriesType.Pie"
+            SeriesType="SeriesType.Donut"
             XValue="@(e => e.Label)"
-            YValue="@(e => e.Value)"
-            ShowDataLabels="true"/>
+            YValue="@(e => e.Value)"/>
     </ApexChart>
 }
 
 @code {
+    [Parameter] public bool IsLoading { get; set; } = true;
+    [Parameter] public IEnumerable<ReportDataPoint> assetData { get; set; } = [];
+
     private ApexChartOptions<ReportDataPoint> chartOptions = ChartOptions.GetDefaultOptions<ReportDataPoint>();
 
-    [Parameter] public bool IsLoading { get; set; } = true;
-    [Parameter] public IEnumerable<ReportDataPoint> expenseData { get; set; } = [];
 }

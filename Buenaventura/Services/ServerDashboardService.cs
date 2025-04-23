@@ -105,18 +105,19 @@ public class ServerDashboardService(
         return report;
     }
 
-    public async Task<DashboardStats> GetDashboardStats()
+    public async Task<IEnumerable<ReportDataPoint>> GetAssetClassData()
     {
-        var stats = new DashboardStats();
-        stats.CreditCardBalance = await GetCreditCardBalance();
-        stats.LiquidAssetBalance = await GetLiquidAssetBalance();
-        stats.ExpensesThisMonth = await GetThisMonthExpenses();
-        stats.NetWorth = await GetNetWorthData();
-        stats.Investments = await GetInvestmentData();
-        stats.Expenses = await GetExpenseData();
-        stats.IncomeExpenses = await GetIncomeExpenseData();
-
-        return stats;
+        var assetBalances = (await context.Accounts
+                .GroupBy(a => a.AccountType)
+                .Select(g => new ReportDataPoint()
+                {
+                    Label = g.Key,
+                    Value = g.Sum(a => a.Transactions.Sum(t => t.AmountInBaseCurrency))
+                })
+                .ToListAsync())
+            .Where(a => a.Value > 0);
+        
+        return assetBalances;
     }
 
     public async Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData()

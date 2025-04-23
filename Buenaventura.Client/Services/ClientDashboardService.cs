@@ -54,10 +54,10 @@ public class ClientDashboardService(HttpClient httpClient) : IDashboardService
         return result ?? [];
     }
 
-    public async Task<DashboardStats> GetDashboardStats()
+    public async Task<IEnumerable<ReportDataPoint>> GetAssetClassData()
     {
-        var url = $"api/dashboard/dashboardstats";
-        var result = await httpClient.GetFromJsonAsync<DashboardStats>(url);
-        return result ?? new DashboardStats();
+        var url = $"api/dashboard/assetclasses";
+        var result = await httpClient.GetFromJsonAsync<IEnumerable<ReportDataPoint>>(url);
+        return result ?? [];
     }
 }

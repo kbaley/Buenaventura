@@ -1,4 +1,3 @@
-using ApexCharts;
 using Buenaventura.Client.Services;
 using Buenaventura.Shared;
 
@@ -13,6 +12,7 @@ public partial class Dashboard(IDashboardService dashboardService)
     private IEnumerable<ReportDataPoint> netWorthData = [];
     private IEnumerable<ReportDataPoint> investmentData = [];
     private IEnumerable<ReportDataPoint> expenseData = [];
+    private IEnumerable<ReportDataPoint> assetData = [];
     private bool isLoading = true;
 
     protected override async Task OnParametersSetAsync()
@@ -26,6 +26,7 @@ public partial class Dashboard(IDashboardService dashboardService)
         var netWorthTask = dashboardService.GetNetWorthData();
         var investmentTask = dashboardService.GetInvestmentData();
         var expenseTask = dashboardService.GetExpenseData();
+        var assetTask = dashboardService.GetAssetClassData();
 
         await Task.WhenAll(
             expensesTask,
@@ -34,7 +35,8 @@ public partial class Dashboard(IDashboardService dashboardService)
             incomeExpenseTask,
             netWorthTask,
             investmentTask,
-            expenseTask
+            expenseTask,
+            assetTask
         );
 
         expensesThisMonth = await expensesTask;
@@ -44,18 +46,12 @@ public partial class Dashboard(IDashboardService dashboardService)
         netWorthData = await netWorthTask;
         investmentData = await investmentTask;
         expenseData = await expenseTask;
+        assetData = await assetTask;
         StateHasChanged();
         isLoading = false;
 
         await base.OnParametersSetAsync();
     }
-
-    private readonly List<ExpenseDataPoint> assetData =
-    [
-        new() { Category = "Bank Accounts", Amount = 35 },
-        new() { Category = "Investments", Amount = 25 },
-        new() { Category = "Assets", Amount = 15 },
-    ];
 
     private List<Top5ExpenseDataPoint> topExpensesData =
     [
@@ -77,12 +73,6 @@ public partial class Dashboard(IDashboardService dashboardService)
             Category = "Utilities", CurrentMonth = 300, Previous3MonthsAverage = 250, Previous12MonthsAverage = 200
         }
     ];
-
-    public class ExpenseDataPoint
-    {
-        public string Category { get; set; } = "";
-        public decimal Amount { get; set; }
-    }
 
     private class Top5ExpenseDataPoint
     {

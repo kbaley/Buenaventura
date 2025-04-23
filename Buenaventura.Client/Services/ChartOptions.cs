@@ -10,6 +10,7 @@ public class ChartOptions
         {
             Tooltip = new Tooltip
             {
+                FillSeriesColor = false,
                 Y = new TooltipY
                 {
                     // The Y-axis formatter will apply to the tooltip by default 

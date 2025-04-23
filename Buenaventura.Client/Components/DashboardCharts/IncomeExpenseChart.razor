@@ -24,7 +24,7 @@ else
                Title="Income vs. Expenses (Last 12 Months)"
                Height="320"
                Options="incomeExpenseChartOptions"
-               @ref="incomeExpenseChart">
+    >
         <ApexPointSeries
             TItem="IncomeExpenseDataPoint"
             Items="IncomeExpenseData"
@@ -52,9 +52,7 @@ else
 @code {
     [Parameter] public bool IsLoading { get; set; } = true;
     [Parameter] public IEnumerable<IncomeExpenseDataPoint> IncomeExpenseData { get; set; } = [];
-    private ApexChart<IncomeExpenseDataPoint> incomeExpenseChart;
 
-    private ApexChartOptions<IncomeExpenseDataPoint> incomeExpenseChartOptions =
-        ChartOptions.GetDefaultOptions<IncomeExpenseDataPoint>();
+    private ApexChartOptions<IncomeExpenseDataPoint> incomeExpenseChartOptions = ChartOptions.GetDefaultOptions<IncomeExpenseDataPoint>();
 
 }

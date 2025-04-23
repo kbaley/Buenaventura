@@ -72,25 +72,11 @@
 
     <!-- Asset Class Breakdown -->
     <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4">
-            @if (isLoading)
-            {
-                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
-            }
-            else
-            {
-                <ApexChart TItem="ExpenseDataPoint"
-                           Title="Asset Class Breakdown"
-                           Height="300">
-                    <ApexPointSeries
-                        TItem="ExpenseDataPoint"
-                        Items="assetData"
-                        Name="Expenses"
-                        SeriesType="SeriesType.Donut"
-                        XValue="@(e => e.Category)"
-                        YValue="@(e => e.Amount)"/>
-                </ApexChart>
-            }
+        <MudPaper Elevation="1" Class="pa-4" Height="335px">
+            <AssetClassChart
+                IsLoading="@isLoading"
+                AssetData="@assetData"
+            />
         </MudPaper>
     </MudItem>
 

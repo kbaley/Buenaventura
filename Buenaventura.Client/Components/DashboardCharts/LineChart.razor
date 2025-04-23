@@ -39,7 +39,6 @@ else
     [Parameter] public IEnumerable<ReportDataPoint> ChartData { get; set; }= [];
     [Parameter] public string Title { get; set; } = "";
 
-    private ApexChartOptions<ReportDataPoint> investmentsChartOptions =
-        ChartOptions.GetDefaultOptions<ReportDataPoint>();
+    private ApexChartOptions<ReportDataPoint> investmentsChartOptions = ChartOptions.GetDefaultOptions<ReportDataPoint>();
 
 }
