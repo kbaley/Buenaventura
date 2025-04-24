@@ -20,7 +20,8 @@ public class ServerCategoryService(
                     CategoryId = category.CategoryId,
                     Name = category.Name,
                     Type = CategoryType.REGULAR,
-                    TimesUsed = transaction.Count()
+                    TimesUsed = transaction.Count(),
+                    IncludeInReports = category.IncludeInReports
                 })
             .OrderByDescending(c => c.TimesUsed)
             .ToListAsync();
