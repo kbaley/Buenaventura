@@ -57,6 +57,12 @@ public class DashboardController(
     {
         return await dashboardService.GetAssetClassData();
     }
+
+    [HttpGet]
+    public async Task<IEnumerable<ExpenseAveragesDataPoint>> ExpenseAverages()
+    {
+        return await dashboardService.GetExpenseAveragesData();
+    }
     
     [HttpGet]
     public async Task<IEnumerable<IncomeExpenseDataPoint>> IncomeExpenses()

@@ -1,0 +1,59 @@
+@using ApexCharts
+@using ChartOptions = Buenaventura.Client.Services.ChartOptions
+@if (IsLoading)
+{
+    <MudGrid>
+        <MudItem xs="12">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="30%"/>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="220px" Width="100%"/>
+        </MudItem>
+        <MudItem xs="10">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="220px" Width="100%"/>
+        </MudItem>
+        <MudItem xs="2"/>
+        <MudItem xs="10">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="100%"/>
+        </MudItem>
+    </MudGrid>
+}
+else
+{
+    <ApexChart TItem="ExpenseAveragesDataPoint"
+               Title="Expense Averages"
+               Height="300"
+               Options="@chartOptions"
+    >
+        <ApexPointSeries
+            TItem="ExpenseAveragesDataPoint"
+            Items="expenseData"
+            Name="Current Month"
+            XValue="@(e => e.Category)"
+            YValue="@(e => e.Last30Days)"
+            SeriesType="SeriesType.Bar"/>
+        <ApexPointSeries
+            TItem="ExpenseAveragesDataPoint"
+            Items="expenseData"
+            Name="3 Month Avg"
+            XValue="@(e => e.Category)"
+            YValue="@(e => e.Last90DaysAverage)"
+            SeriesType="SeriesType.Bar"/>
+        <ApexPointSeries
+            TItem="ExpenseAveragesDataPoint"
+            Items="expenseData"
+            Name="12 Month Avg"
+            XValue="@(e => e.Category)"
+            YValue="@(e => e.Last360DaysAverage)"
+            SeriesType="SeriesType.Bar"/>
+    </ApexChart>
+}
+
+@code {
+
+    private readonly ApexChartOptions<ExpenseAveragesDataPoint> chartOptions 
+        = ChartOptions.GetDefaultOptions<ExpenseAveragesDataPoint>();
+
+    [Parameter] public bool IsLoading { get; set; } = true;
+    [Parameter] public IEnumerable<ExpenseAveragesDataPoint> expenseData { get; set; } = [];
+}

@@ -15,4 +15,5 @@ public class Category
 
     public Guid? ParentCategoryId { get; set; }
     public Category? ParentCategory { get; set; }
+    public ICollection<Transaction> Transactions { get; set; } = [];
 }

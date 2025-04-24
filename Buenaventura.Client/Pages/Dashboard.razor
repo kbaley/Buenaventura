@@ -83,39 +83,11 @@
     <!-- Top 5 Expenses -->
     <!-- Show bar chart with three bars per category: Current Month, Previous 3 months average, and Yearly average -->
     <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4">
-            @if (isLoading)
-            {
-                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
-            }
-            else
-            {
-                <ApexChart TItem="Top5ExpenseDataPoint"
-                           Title="Top 5 Expenses"
-                           Height="300">
-                    <ApexPointSeries
-                        TItem="Top5ExpenseDataPoint"
-                        Items="topExpensesData"
-                        Name="Current Month"
-                        XValue="@(e => e.Category)"
-                        YValue="@(e => e.CurrentMonth)"
-                        SeriesType="SeriesType.Bar"/>
-                    <ApexPointSeries
-                        TItem="Top5ExpenseDataPoint"
-                        Items="topExpensesData"
-                        Name="3 Month Avg"
-                        XValue="@(e => e.Category)"
-                        YValue="@(e => e.Previous3MonthsAverage)"
-                        SeriesType="SeriesType.Bar"/>
-                    <ApexPointSeries
-                        TItem="Top5ExpenseDataPoint"
-                        Items="topExpensesData"
-                        Name="12 Month Avg"
-                        XValue="@(e => e.Category)"
-                        YValue="@(e => e.Previous12MonthsAverage)"
-                        SeriesType="SeriesType.Bar"/>
-                </ApexChart>
-            }
+        <MudPaper Elevation="1" Class="pa-4" Height="347px">
+            <ExpenseAveragesChart
+                IsLoading="isLoading"
+                ExpenseData="expenseAveragesData"
+            />
         </MudPaper>
     </MudItem>
 

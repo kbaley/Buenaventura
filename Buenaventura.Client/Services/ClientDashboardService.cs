@@ -60,4 +60,11 @@ public class ClientDashboardService(HttpClient httpClient) : IDashboardService
         var result = await httpClient.GetFromJsonAsync<IEnumerable<ReportDataPoint>>(url);
         return result ?? [];
     }
+
+    public async Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData()
+    {
+        var url = $"api/dashboard/expenseaverages";
+        var result = await httpClient.GetFromJsonAsync<IEnumerable<ExpenseAveragesDataPoint>>(url);
+        return result ?? [];
+    }
 }

@@ -12,4 +12,5 @@ public interface IDashboardService : IAppService
     Task<IEnumerable<ReportDataPoint>> GetInvestmentData();
     Task<IEnumerable<ReportDataPoint>> GetExpenseData();
     Task<IEnumerable<ReportDataPoint>> GetAssetClassData();
+    Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData();
 }

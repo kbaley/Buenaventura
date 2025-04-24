@@ -30,17 +30,17 @@ public class ServerDashboardService(
 
     public async Task<decimal> GetCreditCardBalance()
     {
-        var creditCardBalance = context.Accounts
+        var creditCardBalance = await context.Accounts
             .Where(a => a.AccountType == "Credit Card")
-            .Sum(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
+            .SumAsync(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
         return -creditCardBalance;
     }
 
     public async Task<decimal> GetLiquidAssetBalance()
     {
-        var assetBalance = context.Accounts
+        var assetBalance = await context.Accounts
             .Where(a => a.AccountType == "Cash" || a.AccountType == "Bank Account")
-            .Sum(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
+            .SumAsync(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
         return assetBalance;
     }
 
@@ -118,6 +118,33 @@ public class ServerDashboardService(
             .Where(a => a.Value > 0);
         
         return assetBalances;
+    }
+
+    public async Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData()
+    {
+        // Retrieve expense totals for the last 12 months, grouped by month for the
+        // expenses tied to categories where Category.IncludeInReport = true
+        var now = DateTime.UtcNow;
+        var last30Days = now.AddDays(-30);
+        var last90Days = now.AddDays(-90);
+        var last360Days = now.AddDays(-360);
+        var results = await context.Categories
+            .Include(c => c.Transactions)
+            .Where(c => c.IncludeInReports)
+            .Select(c => new ExpenseAveragesDataPoint
+            {
+                Category = c.Name,
+                Last30Days = c.Transactions
+                    .Where(t => t.TransactionDate >= last30Days)
+                    .Sum(t => -t.AmountInBaseCurrency),
+                Last90DaysAverage = c.Transactions
+                    .Where(t => t.TransactionDate >= last90Days)
+                    .Sum(t => -t.AmountInBaseCurrency) / 3,
+                Last360DaysAverage = c.Transactions
+                    .Where(t => t.TransactionDate >= last360Days)
+                    .Sum(t => -t.AmountInBaseCurrency) / 12
+            }).ToListAsync();
+        return results;
     }
 
     public async Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData()
