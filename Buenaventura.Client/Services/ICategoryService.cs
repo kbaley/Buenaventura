@@ -7,4 +7,5 @@ public interface ICategoryService : IAppService
     Task<IEnumerable<CategoryModel>> GetCategories();
     Task DeleteCategory(Guid id);
     Task UpdateCategory(CategoryModel categoryModel);
+    Task<CategoryModel> GetCategory(Guid id);
 }

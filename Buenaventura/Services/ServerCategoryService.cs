@@ -47,4 +47,20 @@ public class ServerCategoryService(
         category.Type = categoryModel.CategoryClass;
         await context.SaveChangesAsync().ConfigureAwait(false);
     }
+
+    public async Task<CategoryModel> GetCategory(Guid id)
+    {
+        var category = await context.Categories.FindAsync(id);
+        if (category == null)
+        {
+            throw new Exception("Category not found");
+        }
+        return new CategoryModel
+        {
+            CategoryId = category.CategoryId,
+            Name = category.Name,
+            CategoryClass = category.Type,
+            IncludeInReports = category.IncludeInReports
+        };
+    }
 }

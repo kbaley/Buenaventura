@@ -1,0 +1,45 @@
+@page "/category/{categoryId:guid}"
+@using Buenaventura.Shared
+@inject ICategoryService categoryService
+@inject NavigationManager navigationManager
+
+<MudGrid>
+    <MudItem xs="12" md="8">
+        <MudText Typo="Typo.h4" GutterBottom="true">Edit Category</MudText>
+        <MudTextField Label="Name" @bind-Value="category.Name" Required="true"/>
+
+        <MudSelect T="string" Label="Category Class" @bind-Value="category.CategoryClass">
+            <MudSelectItem Value="expense">Expense</MudSelectItem>
+            <MudSelectItem Value="income">Income</MudSelectItem>
+            <MudSelectItem Value="uncategorized">Uncategorized</MudSelectItem>
+        </MudSelect>
+
+        <MudCheckBox T="bool" Label="Include In Reports" @bind-Value="category.IncludeInReports"/>
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveCategory">Save</MudButton>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public Guid CategoryId { get; set; }
+    private CategoryModel category = new();
+    private readonly string expense = "Expense";
+    private readonly string income = "Income";
+    private readonly string uncategorized = "Uncategorized";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await categoryService.GetCategory(CategoryId);
+        if (result != null)
+        {
+            category = result;
+        }
+    }
+
+    private async Task SaveCategory()
+    {
+        await categoryService.UpdateCategory(category);
+        navigationManager.NavigateTo("/categories");
+    }
+
+}

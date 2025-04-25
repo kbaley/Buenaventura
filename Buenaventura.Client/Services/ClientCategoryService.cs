@@ -23,4 +23,9 @@ public class ClientCategoryService(HttpClient httpClient) : ClientService<Catego
         }
         await Put(categoryModel.CategoryId.Value, categoryModel);
     }
+
+    public async Task<CategoryModel> GetCategory(Guid id)
+    {
+        return await Get(id);
+    }
 }
