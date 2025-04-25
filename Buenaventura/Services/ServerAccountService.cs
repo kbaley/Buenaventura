@@ -21,7 +21,7 @@ public class ServerAccountService(
                 AccountId = a.AccountId,
                 Name = a.Name,
                 Currency = a.Currency,
-                Vendor = a.Currency,
+                Vendor = a.Vendor,
                 AccountType = a.AccountType,
                 MortgagePayment = a.MortgagePayment,
                 MortgageType = a.MortgageType,

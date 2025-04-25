@@ -1,22 +1,35 @@
-@page "/accountorder"
+@page "/accounts"
+@using ApexCharts
+@using Color = MudBlazor.Color
 @inject IAccountService accountService
 @inject AccountSyncService accountSyncService
 @inject NavigationManager NavigationManager
 
 @attribute [Authorize]
 
-<MudText Typo="Typo.h4" GutterBottom="true">Account Display Order</MudText>
+<MudText Typo="Typo.h4" GutterBottom="true">Accounts</MudText>
 
 <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background-color: var(--mud-palette-surface);">
     <MudTable Dense="true" Hover="true" Bordered="true" T="AccountWithBalance" Items="@accounts">
         <HeaderContent>
             <MudTh>Name</MudTh>
-            <MudTh>Type</MudTh>
+            <MudTh>Currency</MudTh>
+            <MudTh>Vendor</MudTh>
+            <MudTh>AccountType</MudTh>
+            <MudTh>IsHidden</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Type">@context.AccountType</MudTd>
+            <MudTd DataLabel="Currency">@context.Currency</MudTd>
+            <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+            <MudTd DataLabel="AccountType">@context.AccountType</MudTd>
+            <MudTd DataLabel="IsHidden">
+                @if(context.IsHidden)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Primary" />
+                }
+            </MudTd>
             <MudTd DataLabel="Actions">
                 <MudStack Spacing="2" Row="true">
                     <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" 
