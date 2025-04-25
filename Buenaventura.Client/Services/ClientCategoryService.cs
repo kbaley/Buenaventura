@@ -9,4 +9,18 @@ public class ClientCategoryService(HttpClient httpClient) : ClientService<Catego
     {
         return await GetAll();
     }
+
+    public async Task DeleteCategory(Guid id)
+    {
+        await Delete(id);
+    }
+
+    public async Task UpdateCategory(CategoryModel categoryModel)
+    {
+        if (categoryModel.CategoryId == null)
+        {
+            throw new ArgumentNullException(nameof(categoryModel.CategoryId), "CategoryId cannot be null");
+        }
+        await Put(categoryModel.CategoryId.Value, categoryModel);
+    }
 }

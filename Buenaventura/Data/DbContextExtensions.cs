@@ -108,8 +108,11 @@ public static class DbContextExtensions
 
     public static async Task RemoveByIdAsync<T>(this DbSet<T> items, Guid id) where T : class
     {
-        var item = await items.FindAsync(id).ConfigureAwait(false);
-        items.Remove(item);
+        var item = await items.FindAsync(id);
+        if (item != null)
+        {
+            items.Remove(item);
+        }
     }
 
     public static decimal GetPaymentsFor(this DbSet<Transaction> transactions, Guid invoiceId)

@@ -1,0 +1,90 @@
+@page "/categories"
+@using Buenaventura.Client.Services
+@using Buenaventura.Shared
+@inject ICategoryService categoryService
+@inject IDialogService dialogService
+@inject NavigationManager navigationManager
+
+@attribute [Authorize]
+
+<MudGrid>
+    <MudItem xs="6">
+        <MudText Typo="Typo.h4" GutterBottom="true">Categories</MudText>
+    </MudItem>
+</MudGrid>
+
+@if (categories == null)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+}
+else
+{
+    <MudPaper Elevation="0" Class="pa-4 mt-4">
+        <MudTable Items="@categories" Dense="true" Hover="true" Bordered="true" Striped="true">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Class</MudTh>
+                <MudTh>Include in Reports</MudTh>
+                <MudTh>Times Used</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Class">@context.CategoryClass</MudTd>
+                <MudTd DataLabel="Include in Reports">
+                    @if (context.IncludeInReports)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success"/>
+                    }
+                </MudTd>
+                <MudTd DataLabel="Times Used">@context.TimesUsed</MudTd>
+                <MudTd>
+                    <MudStack Row="true" Spacing="2">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                     Color="Color.Primary" 
+                                     OnClick="@(() => EditCategory(context))"
+                                     Title="Edit category"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                     Color="Color.Error" 
+                                     OnClick="@(() => DeleteCategory(context))"
+                                     Disabled="@(context.TimesUsed > 0)"
+                                     Title="@(context.TimesUsed > 0 ? "Cannot delete category that is in use" : "Delete category")"/>
+                    </MudStack>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+
+@code {
+    private IEnumerable<CategoryModel>? categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await categoryService.GetCategories();
+    }
+
+    private void EditCategory(CategoryModel category)
+    {
+        navigationManager.NavigateTo($"/category/{category.CategoryId}");
+    }
+
+    private async Task DeleteCategory(CategoryModel category)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to delete category {category.Name}?",
+            ["ButtonText"] = "Delete",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await dialogService.ShowAsync<ConfirmationDialog>("Delete Category", parameters);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            await categoryService.DeleteCategory(category.CategoryId!.Value);
+            categories = await categoryService.GetCategories();
+            StateHasChanged();
+        }
+    }
+} 

@@ -1,5 +1,4 @@
 ﻿using Buenaventura.Client.Services;
-using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +10,7 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class CustomersController(BuenaventuraDbContext context, ICustomerService customerService) : ControllerBase
+public class CustomersController(ICustomerService customerService) : ControllerBase
 {
     [HttpGet]
     public async Task<IEnumerable<CustomerModel>> GetCustomers()
