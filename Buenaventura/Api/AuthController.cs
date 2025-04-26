@@ -45,7 +45,7 @@ public class AuthController(BuenaventuraDbContext context)
             }
 
             _context.Users.Add(user);
-            await _context.SaveChangesAsync().ConfigureAwait(false);
+            await _context.SaveChangesAsync();
         }
 */
 

@@ -20,8 +20,3 @@ public class InvoiceForPosting
         return LineItems.Where(li => li.Status != "Deleted").Sum(li => li.Quantity * li.UnitAmount);
     }
 }
-
-public class UploadTemplateViewModel
-{
-    public IFormFile? File { get; set; }
-}

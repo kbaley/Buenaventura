@@ -59,7 +59,7 @@ public class ServerInvestmentService(
             .Any(i => !i.DontRetrievePrices && i.LastPriceRetrievalDate < DateTime.Today);
         if (mustUpdatePrices)
         {
-            await priceParser.UpdatePricesFor(context).ConfigureAwait(false);
+            await priceParser.UpdatePricesFor(context);
         }
 
         if (mustUpdatePrices)
@@ -94,7 +94,7 @@ public class ServerInvestmentService(
         var difference = Math.Round(investmentsTotal - bookBalance, 2);
         if (Math.Abs(difference) >= 1)
         {
-            var category = await context.GetOrCreateCategory("Gain/loss on investments").ConfigureAwait(false);
+            var category = await context.GetOrCreateCategory("Gain/loss on investments");
             var transaction = new TransactionForDisplay
             {
                 TransactionId = Guid.NewGuid(),

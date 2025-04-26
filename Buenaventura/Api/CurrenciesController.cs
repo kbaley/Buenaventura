@@ -36,7 +36,7 @@ public class CurrenciesController(BuenaventuraDbContext context) : ControllerBas
                     LastRetrieved = DateTime.Today
                 };
                 context.Currencies.Add(currency);
-                await context.SaveChangesAsync().ConfigureAwait(false);
+                await context.SaveChangesAsync();
             }
             catch (Exception e)
             {

@@ -74,10 +74,10 @@ public class DashboardController(
     public async Task<IActionResult> GetDashboardStats()
     {
         var numMonths = 3;
-        var gainLossCategory = await context.GetOrCreateCategory("Gain/loss on investments").ConfigureAwait(false);
+        var gainLossCategory = await context.GetOrCreateCategory("Gain/loss on investments");
         var end = DateTime.Today.LastDayOfMonth();
         var start = end.AddMonths(0 - numMonths).FirstDayOfMonth();
-        var investmentGains = await reportRepo.GetMonthlyTotalsForCategory(gainLossCategory.CategoryId, start, end).ConfigureAwait(false);
+        var investmentGains = await reportRepo.GetMonthlyTotalsForCategory(gainLossCategory.CategoryId, start, end);
         var accountBalances = await context.Accounts
             .Include(a => a.Transactions)
             .Select(a => new {

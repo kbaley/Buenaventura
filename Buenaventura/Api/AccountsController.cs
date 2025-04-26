@@ -76,7 +76,7 @@ public class AccountsController(
     public async Task<IActionResult> PutAccount([FromRoute] Guid id, [FromBody] AccountWithBalance account)
     {
         context.Entry(account).State = EntityState.Modified;
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync();
 
         return Ok(account);
     }
@@ -114,7 +114,7 @@ public class AccountsController(
             Transactions = new List<TransactionForDisplay>([transaction.ToDto()]),
             CurrentBalance = account.StartingBalance
         };
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync();
 
         return CreatedAtAction("PostAccount", new { id = mappedAccount.AccountId }, model);
     }
@@ -122,13 +122,13 @@ public class AccountsController(
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAccount([FromRoute] Guid id)
     {
-        var account = await context.Accounts.FindAsync(id).ConfigureAwait(false);
+        var account = await context.Accounts.FindAsync(id);
         if (account == null)
         {
             return NotFound();
         }
         context.Remove(account);
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync();
         return Ok(account);
     }
     

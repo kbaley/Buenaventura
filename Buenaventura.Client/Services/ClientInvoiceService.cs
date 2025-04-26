@@ -36,6 +36,7 @@ public class ClientInvoiceService(HttpClient httpClient) : ClientService<Invoice
     public async Task SaveInvoiceTemplate(string template)
     {
         var url = $"api/{Endpoint}/invoicetemplate";
+        // Special handling because the template will be HTML
         var content = JsonContent.Create(new { Template = template });
         var response = await Client.PostAsync(url, content);
         response.EnsureSuccessStatusCode();

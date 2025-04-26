@@ -48,13 +48,13 @@ public class ServerCustomerService(
 
     public async Task DeleteCustomer(Guid customerId)
     {
-        var customer = await context.Customers.FindAsync(customerId).ConfigureAwait(false);
+        var customer = await context.Customers.FindAsync(customerId);
         if (customer == null)
         {
             throw new Exception("Customer not found");
         }
         context.Customers.Remove(customer);
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync();
     }
 
     public async Task UpdateCustomer(CustomerModel customerModel)
@@ -86,6 +86,6 @@ public class ServerCustomerService(
             Region = customerModel.Region,
         };
         context.Customers.Add(customer);
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync();
     }
 }

@@ -85,14 +85,14 @@ public static class DbContextExtensions
             Name = name,
             Type = "Expense"
         };
-        await context.Categories.AddAsync(category).ConfigureAwait(false);
+        await context.Categories.AddAsync(category);
         await context.SaveChangesAsync();
         return category;
     }
 
     public static async Task<Category?> GetOrCreateCategory(this BuenaventuraDbContext context, CategoryModel categoryModel)
     {
-        var categories = await context.Categories.ToListAsync().ConfigureAwait(false);
+        var categories = await context.Categories.ToListAsync();
         if (categoryModel is { Type: CategoryType.REGULAR, CategoryId: not null })
         {
             return categories.Single(c => c.CategoryId == categoryModel.CategoryId);

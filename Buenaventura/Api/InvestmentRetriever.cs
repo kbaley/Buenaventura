@@ -17,7 +17,7 @@ public class InvestmentRetriever(IConfiguration config) : IInvestmentRetriever
         };
         request.Headers.Add("x-rapidapi-host", "apidojo-yahoo-finance-v1.p.rapidapi.com");
         request.Headers.Add("x-rapidapi-key", config.GetValue<string>("RapidApiKey"));
-        var response = await client.SendAsync(request).ConfigureAwait(false);
+        var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
         var stringResult = await response.Content.ReadAsStringAsync();
         return stringResult;

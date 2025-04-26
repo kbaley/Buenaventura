@@ -43,7 +43,7 @@ public class InvestmentTransactionGenerator : IInvestmentTransactionGenerator
         if (model.Shares != 1) buySell += "s";
         var description = $"Investment: {buySell} of {investment.Symbol} at {model.Price:N2}";
         var investmentAccount =
-            await context.Accounts.FirstAsync(a => a.AccountType == "Investment").ConfigureAwait(false);
+            await context.Accounts.FirstAsync(a => a.AccountType == "Investment");
         var enteredDate = DateTime.Now;
         var exchangeRate = await context.Currencies.GetCadExchangeRate();
         var investmentAccountTransaction = new Transaction

@@ -26,13 +26,13 @@ namespace Buenaventura.Api
                 .Include(i => i.Dividends)
                 .Include(i => i.Transactions)
                 .ThenInclude(t => t.Transaction.Account)
-                .SingleOrDefaultAsync(i => i.InvestmentId == investmentId).ConfigureAwait(false);
+                .SingleOrDefaultAsync(i => i.InvestmentId == investmentId);
             if (investment == null)
             {
                 return NotFound();
             }
 
-            await context.Entry(investment).Collection(i => i.Transactions).LoadAsync().ConfigureAwait(false);
+            await context.Entry(investment).Collection(i => i.Transactions).LoadAsync();
             var dividends = GetDividendDtosFrom(investment);
             var mappedInvestment = mapper.Map<InvestmentDetailDto>(investment);
             mappedInvestment.Transactions = mappedInvestment.Transactions.OrderBy(t => t.Date);
@@ -99,7 +99,7 @@ namespace Buenaventura.Api
                 }
             }
 
-            await context.SaveChangesAsync().ConfigureAwait(false);
+            await context.SaveChangesAsync();
             return await GetInvestments();
         }
 
@@ -142,7 +142,7 @@ namespace Buenaventura.Api
             }
 
             // Don't update the price
-            var investmentFromDb = await context.Investments.FindAsync(investment.InvestmentId).ConfigureAwait(false);
+            var investmentFromDb = await context.Investments.FindAsync(investment.InvestmentId);
             context.Entry(investmentFromDb).State = EntityState.Detached;
             var lastPrice = investmentFromDb!.LastPrice;
             var lastPriceRetrievalDate = investmentFromDb.LastPriceRetrievalDate;
@@ -157,8 +157,8 @@ namespace Buenaventura.Api
             }
 
             await context.SaveChangesAsync();
-            await context.Entry(investmentMapped).ReloadAsync().ConfigureAwait(false);
-            await context.Entry(investmentMapped).Collection(i => i.Transactions).LoadAsync().ConfigureAwait(false);
+            await context.Entry(investmentMapped).ReloadAsync();
+            await context.Entry(investmentMapped).Collection(i => i.Transactions).LoadAsync();
             var returnInvestment = mapper.Map<InvestmentModel>(investmentMapped);
 
             return Ok(returnInvestment);

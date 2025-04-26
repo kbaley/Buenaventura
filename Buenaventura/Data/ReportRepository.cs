@@ -100,7 +100,7 @@ namespace Buenaventura.Data
                     WHERE transaction_date > @start and transaction_date <= @end
                     AND t.category_id = @categoryId
                     GROUP BY EXTRACT(MONTH from t.transaction_date), EXTRACT(YEAR from t.transaction_date)";
-            var data = await conn.QueryAsync(sql, new { start, end, categoryId }).ConfigureAwait(false);
+            var data = await conn.QueryAsync(sql, new { start, end, categoryId });
             var results = data.Select(e => new
             {
                 date = new DateTime(e.year, e.month, 1),

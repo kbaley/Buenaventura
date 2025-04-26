@@ -33,7 +33,8 @@ public class InvestmentPriceParser(IInvestmentRetriever investmentRetriever) : I
                 context.Investments.Update(i);
             }
         }
-        await context.SaveChangesAsync().ConfigureAwait(false);
+
+        await context.SaveChangesAsync();
     }
 
 }

@@ -32,7 +32,7 @@ public class ServerCategoryService(
     public async Task DeleteCategory(Guid id)
     {
         await context.Categories.RemoveByIdAsync(id);
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync();
     }
 
     public async Task UpdateCategory(CategoryModel categoryModel)
@@ -45,7 +45,7 @@ public class ServerCategoryService(
         category.IncludeInReports = categoryModel.IncludeInReports;
         category.Name = categoryModel.Name;
         category.Type = categoryModel.CategoryClass;
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync();
     }
 
     public async Task<CategoryModel> GetCategory(Guid id)

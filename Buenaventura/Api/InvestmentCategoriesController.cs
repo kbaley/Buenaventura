@@ -45,15 +45,15 @@ public class InvestmentCategoriesController(BuenaventuraDbContext context, IMapp
                     context.Entry(mappedCategory).State = EntityState.Modified;
                     break;
                 case "deleted":
-                    await context.InvestmentCategories.RemoveByIdAsync(category.InvestmentCategoryId).ConfigureAwait(false);
+                    await context.InvestmentCategories.RemoveByIdAsync(category.InvestmentCategoryId);
                     break;
                 case "added":
-                    await context.InvestmentCategories.AddAsync(mappedCategory).ConfigureAwait(false);
+                    await context.InvestmentCategories.AddAsync(mappedCategory);
                     break;
 
             }
         }
-        await context.SaveChangesAsync().ConfigureAwait(false);
+        await context.SaveChangesAsync();
 
         return Ok(context.InvestmentCategories);
     }
