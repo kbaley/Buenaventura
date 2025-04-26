@@ -1,5 +1,4 @@
 @page "/accounts"
-@using ApexCharts
 @using Color = MudBlazor.Color
 @inject IAccountService accountService
 @inject AccountSyncService accountSyncService
@@ -32,6 +31,10 @@
             </MudTd>
             <MudTd DataLabel="Actions">
                 <MudStack Spacing="2" Row="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Primary"
+                                   OnClick="() => NavigateToEditAccount(context.AccountId)"
+                    />
                     <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" 
                                  Color="Color.Primary" 
                                  OnClick="() => MoveAccountUp(context)"
@@ -117,6 +120,11 @@
         await accountService.SaveAccountOrder(accountOrders);
         await accountSyncService.RefreshAccounts();
         NavigationManager.NavigateTo("/");
+    }
+
+    private void NavigateToEditAccount(Guid accountId)
+    {
+        NavigationManager.NavigateTo($"/account/edit/{accountId}");
     }
 
 } 

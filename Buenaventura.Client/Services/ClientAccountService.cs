@@ -60,4 +60,9 @@ public class ClientAccountService(HttpClient httpClient) : ClientService<Account
         var url = $"{accountId}/transactions/duplicates";
         return await GetItem<TransactionListModel>(url);
     }
+
+    public async Task UpdateAccount(AccountWithBalance account)
+    {
+        await Put(account.AccountId, account);
+    }
 }

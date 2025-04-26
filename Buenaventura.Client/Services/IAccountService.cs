@@ -12,4 +12,5 @@ public interface IAccountService : IAppService
      Task DeleteTransaction(Guid transactionId);
      Task SaveAccountOrder(List<OrderedAccount> accountOrders);
      Task<TransactionListModel> GetPotentialDuplicateTransactions(Guid accountId);
+     Task UpdateAccount(AccountWithBalance account);
 }

@@ -73,41 +73,13 @@ public class AccountsController(
     
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutAccount([FromRoute] Guid id, [FromBody] Account account)
+    public async Task<IActionResult> PutAccount([FromRoute] Guid id, [FromBody] AccountWithBalance account)
     {
         context.Entry(account).State = EntityState.Modified;
         await context.SaveChangesAsync().ConfigureAwait(false);
 
         return Ok(account);
     }
-
-    // [HttpPost]
-    // [Route("[action]")]
-    // public IActionResult PostQif([FromForm] AccountQifViewModel model)
-    // {
-    //     var transactions = 
-    //         model.File != null 
-    //         ? _transactionParser.Parse(model.File, model.AccountId, model.FromDate) 
-    //         : _transactionParser.Parse(model.Transactions, model.AccountId, model.FromDate);
-    //     var insertedTransactions = new List<TransactionForDisplay>();
-    //     foreach (var trx in transactions)
-    //     {
-    //         if (string.IsNullOrWhiteSpace(trx.DownloadId))
-    //         {
-    //             transactionRepo.Insert(trx);
-    //             insertedTransactions.Add(trx);
-    //         }
-    //         else
-    //         {
-    //             var existingTrx = context.Transactions.Any(t => t.DownloadId == trx.DownloadId);
-    //             if (!existingTrx) {
-    //                 transactionRepo.Insert(trx);
-    //                 insertedTransactions.Add(trx);
-    //             }
-    //         }
-    //     }
-    //     return CreatedAtAction("PostQif", new { id = model.AccountId }, insertedTransactions);
-    // }
 
     [HttpPost]
     public async Task<IActionResult> PostAccount([FromBody] AccountForPosting account)

@@ -1,0 +1,94 @@
+@page "/account/edit/{accountId:guid}"
+@inject IAccountService accountService
+@inject NavigationManager navigationManager
+
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudText Typo="Typo.h4" GutterBottom="true">Edit Account</MudText>
+    <MudPaper Class="pa-4" Elevation="1">
+        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Label="Name" @bind-Value="account.Name" Required="true"/>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="Vendor" @bind-Value="account.Vendor"/>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudSelect T="string" Label="Account Type" @bind-Value="account.AccountType">
+                        @foreach (var accountType in accountTypes)
+                        {
+                            <MudSelectItem Value="@accountType">@accountType</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudTextField Label="Currency" @bind-Value="account.Currency"/>
+                    <MudSelect T="string" Label="Currency" @bind-Value="account.Currency">
+                        @foreach (var currency in currencies)
+                        {
+                            <MudSelectItem Value="@currency">@currency</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="12">
+                    <MudCheckBox T="bool" Label="Hidden" @bind-Value="account.IsHidden"/>
+                </MudItem>
+                <MudItem xs="12" md="12">
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="SaveAccount"
+                               Disabled="!success"
+                               Class="mt-4">
+                        <MudIcon Icon="@Icons.Material.Filled.Save" Class="me-2"/>
+                        Save
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Default"
+                               OnClick="Cancel"
+                               Class="mt-4">
+                        Cancel
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+@code {
+    [Parameter] public Guid AccountId { get; set; }
+    private AccountWithBalance account = new();
+    private readonly List<string> accountTypes =
+        ["Cash", "Bank Account", "Credit Card", "Investment", "Mortgage", "Loan", "Asset"];
+
+    private readonly List<string> currencies = ["USD", "CAD"];
+    private bool success;
+    private string[] errors = [];
+    private MudForm? form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        account = await accountService.GetAccount(AccountId);
+        await base.OnInitializedAsync();
+        
+        // Use StateHasChanged and InvokeAsync to ensure the UI is updated
+        // and then validate the form after the component has rendered
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(10); // Small delay to ensure the form is fully rendered
+        form?.Validate();
+    }
+
+    private async Task SaveAccount()
+    {
+        if (!success) return;
+        await accountService.UpdateAccount(account);
+        navigationManager.NavigateTo("/accounts");
+    }
+    
+    private void Cancel()
+    {
+        navigationManager.NavigateTo("/accounts");
+    }
+}

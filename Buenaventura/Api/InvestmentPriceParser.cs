@@ -20,7 +20,7 @@ public class InvestmentPriceParser(IInvestmentRetriever investmentRetriever) : I
             })
             .Where(s => s.Shares != 0)
             .Select(s => s.Symbol).ToList();
-        var quoteData = await investmentRetriever.RetrieveTodaysPricesFor(symbols).ConfigureAwait(false);
+        var quoteData = await investmentRetriever.RetrieveTodaysPricesFor(symbols);
         var resultJson = JObject.Parse(quoteData).SelectToken("quoteResponse.result") ?? "";
         var results = JsonConvert.DeserializeObject<List<MarketPrice>>(resultJson.ToString());
         foreach (var item in results!)

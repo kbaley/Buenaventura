@@ -56,7 +56,7 @@ public class ServerAccountService(
             AccountId = account.AccountId,
             Name = account.Name,
             Currency = account.Currency,
-            Vendor = account.Currency,
+            Vendor = account.Vendor,
             AccountType = account.AccountType,
             MortgagePayment = account.MortgagePayment,
             MortgageType = account.MortgageType,
@@ -136,5 +136,21 @@ public class ServerAccountService(
             Items = transactions,
             TotalCount = transactions.Count,
         };
+    }
+
+    public async Task UpdateAccount(AccountWithBalance account)
+    {
+        var dbAccount = await context.Accounts.FindAsync(account.AccountId);
+        if (dbAccount == null)
+        {
+            return;
+        }
+
+        dbAccount.Name = account.Name;
+        dbAccount.Currency = account.Currency;
+        dbAccount.Vendor = account.Vendor;
+        dbAccount.AccountType = account.AccountType;
+        dbAccount.IsHidden = account.IsHidden;
+        await context.SaveChangesAsync();
     }
 }
