@@ -1,5 +1,4 @@
 ﻿@page "/"
-@using ApexCharts;
 @using Buenaventura.Client.Components.DashboardCharts
 
 @attribute [Authorize]
@@ -19,7 +18,9 @@
         <MudGrid>
             <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
-                    <MudText Typo="Typo.h6">Expenses This Month</MudText>
+                    <MudLink Href="/expense-analysis">
+                        <MudText Typo="Typo.h6">Expenses This Month</MudText>
+                    </MudLink>
                     <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">@(expensesThisMonth.ToString("C"))</MudText>
                 </MudPaper>
             </MudItem>
