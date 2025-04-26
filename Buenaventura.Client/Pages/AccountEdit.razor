@@ -1,6 +1,7 @@
 @page "/account/edit/{accountId:guid}"
 @inject IAccountService accountService
 @inject NavigationManager navigationManager
+@inject AccountSyncService accountSyncService
 
 @attribute [Authorize]
 
@@ -24,7 +25,6 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" md="3">
-                    <MudTextField Label="Currency" @bind-Value="account.Currency"/>
                     <MudSelect T="string" Label="Currency" @bind-Value="account.Currency">
                         @foreach (var currency in currencies)
                         {
@@ -84,6 +84,8 @@
     {
         if (!success) return;
         await accountService.UpdateAccount(account);
+        await accountSyncService.RefreshAccounts();
+        StateHasChanged();
         navigationManager.NavigateTo("/accounts");
     }
     

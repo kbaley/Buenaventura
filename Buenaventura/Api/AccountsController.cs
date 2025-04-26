@@ -73,12 +73,13 @@ public class AccountsController(
     
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutAccount([FromRoute] Guid id, [FromBody] AccountWithBalance account)
+    public async Task PutAccount([FromRoute] Guid id, [FromBody] AccountWithBalance account)
     {
-        context.Entry(account).State = EntityState.Modified;
-        await context.SaveChangesAsync();
-
-        return Ok(account);
+        if (id != account.AccountId)
+        {
+            throw new Exception("AccountId does not match");
+        }
+        await accountService.UpdateAccount(account);
     }
 
     [HttpPost]
