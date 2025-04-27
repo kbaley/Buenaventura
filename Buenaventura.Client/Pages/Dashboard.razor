@@ -21,20 +21,20 @@
                     <MudLink Href="/expense-analysis">
                         <MudText Typo="Typo.h6">Expenses This Month</MudText>
                     </MudLink>
-                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">@(expensesThisMonth.ToString("C"))</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Success">@(expensesThisMonth.ToString("C"))</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
                     <MudText Typo="Typo.h6">Credit Card Total</MudText>
-                    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Error">@(creditCardBalance.ToString("C"))</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Error">@(creditCardBalance.ToString("C"))</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12">
                 <MudPaper Elevation="1" Class="pa-4">
                     <MudText Typo="Typo.h6">Bank Account Total</MudText>
                     <MudText Typo="Typo.h4"
-                             Color="MudBlazor.Color.Success">@(liquidAssetBalance.ToString("C"))</MudText>
+                             Color="Color.Success">@(liquidAssetBalance.ToString("C"))</MudText>
                 </MudPaper>
             </MudItem>
         </MudGrid>
@@ -42,24 +42,22 @@
 
     <!-- Investment Value Over Time -->
     <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4" Height="418px">
-            <LineChart 
-                IsLoading="isLoading"
-                ChartData="investmentData"
-                Title="Investment Value Over Time"
-            />
-        </MudPaper>
+        <LineChart
+            IsLoading="isLoading"
+            ChartData="investmentData"
+            Title="Investment Value Over Time"
+            Height="418"
+        />
     </MudItem>
 
     <!-- Net Worth Over Last 12 Months -->
     <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4" Height="418px">
-            <LineChart
-                IsLoading="isLoading"
-                ChartData="netWorthData"
-                Title="Net Worth Over Time"
-            />
-        </MudPaper>
+        <LineChart
+            IsLoading="isLoading"
+            ChartData="netWorthData"
+            Title="Net Worth Over Time"
+            Height="418"
+        />
     </MudItem>
 
     <MudItem xs="12" md="6">

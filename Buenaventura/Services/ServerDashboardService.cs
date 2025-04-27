@@ -226,7 +226,7 @@ public class ServerDashboardService(
                 Amounts = new List<DateAndAmount>()});
         }
         var monthTotals = new List<dynamic>();
-        var numMonths = end.Month - start.Month + 1; // Assumes we aren't spanning years
+        var numMonths = (end.Year * 100 + end.Month) - (start.Year * 100 + start.Month) + 1; 
         for (var i = 0; i < numMonths; i++)
         {
             end = end.FirstDayOfMonth();

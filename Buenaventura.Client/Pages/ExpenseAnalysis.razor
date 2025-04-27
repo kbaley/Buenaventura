@@ -1,16 +1,27 @@
 @page "/expense-analysis"
 @using Buenaventura.Client.Components.DashboardCharts
+@inject IDashboardService dashboardService
 
 @attribute [Authorize]
 
 <MudText Typo="Typo.h4" GutterBottom="true">Expense Analysis</MudText>
 
 <MudGrid>
+    <!-- Monthly Expenses Line Chart -->
+    <MudItem xs="12" md="9">
+        <LineChart
+            IsLoading="isLoading"
+            ChartData="@monthlyExpenseData"
+            Title="Monthly Expenses (Last 12 Months)"
+                Height="350"
+            />
+    </MudItem>
+
     <!-- Total Expenses This Month -->
-    <MudItem xs="12" md="4">
+    <MudItem xs="12" md="3">
         <MudPaper Elevation="1" Class="pa-4">
             <MudText Typo="Typo.h6">Expenses This Month</MudText>
-            <MudText Typo="Typo.h4" Color="MudBlazor.Color.Success">@(expensesThisMonth.ToString("C"))</MudText>
+            <MudText Typo="Typo.h4" Color="Color.Success">@(expensesThisMonth.ToString("C"))</MudText>
         </MudPaper>
     </MudItem>
 
@@ -26,21 +37,10 @@
 
     <!-- Expense Averages -->
     <MudItem xs="12" md="6">
-        <MudPaper Elevation="1" Class="pa-4" Height="347px">
+        <MudPaper Elevation="1" Class="pa-4" Height="335px">
             <ExpenseAveragesChart
                 IsLoading="isLoading"
-                ExpenseData="expenseAveragesData"
-            />
-        </MudPaper>
-    </MudItem>
-
-    <!-- Monthly Expenses Line Chart -->
-    <MudItem xs="12">
-        <MudPaper Elevation="1" Class="pa-4" Height="400px">
-            <LineChart
-                IsLoading="isLoading"
-                ChartData="monthlyExpenseData"
-                Title="Monthly Expenses (Last 12 Months)"
+                ExpenseData="@expenseAveragesData"
             />
         </MudPaper>
     </MudItem>
@@ -80,8 +80,8 @@
 </MudGrid>
 
 @code {
-    private bool isLoading = false;
-    private decimal expensesThisMonth = 2345.67m;
+    private bool isLoading = true;
+    private decimal expensesThisMonth;
     private IEnumerable<ReportDataPoint> expenseData = [];
     private IEnumerable<ExpenseAveragesDataPoint> expenseAveragesData = [];
     private IEnumerable<ReportDataPoint> monthlyExpenseData = [];
@@ -90,34 +90,31 @@
     private List<decimal> monthlyTotals = [];
     private decimal grandTotal = 0;
 
-    protected override void OnInitialized()
+    protected override async Task OnParametersSetAsync()
     {
-        // Generate sample data
+        isLoading = true;
+        var expensesTask = dashboardService.GetThisMonthExpenses();
+        var expenseTask = dashboardService.GetExpenseData();
+        var expenseAveragesTask = dashboardService.GetExpenseAveragesData();
+        await Task.WhenAll(
+            expensesTask,
+            expenseTask,
+            expenseAveragesTask
+        );
+
+        expensesThisMonth = -(await expensesTask);
+        expenseData = await expenseTask;
+        expenseAveragesData = await expenseAveragesTask;
+        StateHasChanged();
+        isLoading = false;
+        
         GenerateSampleData();
+
+        await base.OnParametersSetAsync();
     }
 
     private void GenerateSampleData()
     {
-        // Sample expense breakdown by category
-        expenseData = new List<ReportDataPoint>
-        {
-            new ReportDataPoint { Label = "Housing", Value = 1200 },
-            new ReportDataPoint { Label = "Food", Value = 450 },
-            new ReportDataPoint { Label = "Transportation", Value = 350 },
-            new ReportDataPoint { Label = "Entertainment", Value = 200 },
-            new ReportDataPoint { Label = "Utilities", Value = 145.67m }
-        };
-
-        // Sample expense averages data
-        expenseAveragesData = new List<ExpenseAveragesDataPoint>
-        {
-            new ExpenseAveragesDataPoint { Category = "Housing", Last30Days = 1200, Last90DaysAverage = 1180, Last360DaysAverage = 1150 },
-            new ExpenseAveragesDataPoint { Category = "Food", Last30Days = 450, Last90DaysAverage = 430, Last360DaysAverage = 410 },
-            new ExpenseAveragesDataPoint { Category = "Transportation", Last30Days = 350, Last90DaysAverage = 330, Last360DaysAverage = 300 },
-            new ExpenseAveragesDataPoint { Category = "Entertainment", Last30Days = 200, Last90DaysAverage = 180, Last360DaysAverage = 160 },
-            new ExpenseAveragesDataPoint { Category = "Utilities", Last30Days = 145.67m, Last90DaysAverage = 140, Last360DaysAverage = 135 }
-        };
-
         // Generate last 12 months
         var currentDate = DateTime.Now;
         for (int i = 11; i >= 0; i--)
@@ -138,6 +135,7 @@
                 Value = baseAmount
             });
         }
+
         monthlyExpenseData = monthlyExpenses;
 
         // Sample category monthly data for table
@@ -146,7 +144,7 @@
         monthlyTotals = new List<decimal>();
 
         // Initialize monthly totals
-        for (int i = 0; i < 12; i++)
+        for (var i = 0; i < 12; i++)
         {
             monthlyTotals.Add(0);
         }
@@ -175,21 +173,21 @@
 
                 // Add some variation
                 decimal amount = baseValue + random.Next(-50, 100);
-                
+
                 // Ensure no negative values
                 amount = Math.Max(0, amount);
-                
+
                 var monthAmount = new MonthAmount
                 {
                     Month = lastTwelveMonths[i],
                     Amount = amount
                 };
-                
+
                 categoryData.MonthlyAmounts.Add(monthAmount);
                 categoryData.Total += amount;
                 monthlyTotals[i] += amount;
             }
-            
+
             categoryMonthlyData.Add(categoryData);
         }
 
@@ -211,4 +209,5 @@
         public string Month { get; set; } = "";
         public decimal Amount { get; set; }
     }
+
 }

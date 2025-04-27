@@ -42,7 +42,7 @@ public partial class Dashboard(IDashboardService dashboardService)
             expenseAveragesTask
         );
 
-        expensesThisMonth = await expensesTask;
+        expensesThisMonth = -(await expensesTask);
         creditCardBalance = await creditCardTask;
         liquidAssetBalance = await liquidAssetTask;
         incomeExpenseData = await incomeExpenseTask;
