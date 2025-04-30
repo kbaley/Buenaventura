@@ -50,9 +50,9 @@ public class AccountsController(
                          $"\"{transaction.Vendor?.Replace("\"", "\"\"")}\"," +
                          $"\"{transaction.Category.Name.Replace("\"", "\"\"")}\"," +
                          $"\"{transaction.Description?.Replace("\"", "\"\"")}\"," +
-                         $"{transaction.Debit?.ToString("N2") ?? ""}," +
-                         $"{transaction.Credit?.ToString("N2") ?? ""}," +
-                         $"{transaction.RunningTotal:N2}\n";
+                         $"{transaction.Debit?.ToString() ?? ""}," +
+                         $"{transaction.Credit?.ToString() ?? ""}," +
+                         $"{transaction.RunningTotal}\n";
         }
 
         var fileName = $"{account.Name.Replace(" ", "_")}_transactions_{DateTime.Now:yyyy-MM-dd}.csv";
