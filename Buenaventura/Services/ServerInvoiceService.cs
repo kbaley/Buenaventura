@@ -126,8 +126,8 @@ public class ServerInvoiceService(
         {
             From = from,
             Subject = subject,
-            TextBody = $"Dear {invoice.Customer.ContactName},\n\nPlease find attached your invoice #{invoice.InvoiceNumber}.\n\nTotal Amount: {invoice.Balance:C}\n\nThank you for your business.\n\nBest regards,\nKyle Baley",
-            HtmlBody = $"Dear {invoice.Customer.ContactName},<br/><br/>Please find attached your invoice #{invoice.InvoiceNumber} in the amount of {invoice.Balance:C}<br/><br/>Thank you for your business.<br/><br/>Best regards,<br/>Kyle Baley"
+            TextBody = $"Hi {invoice.Customer.ContactName},\n\nPlease find attached your invoice #{invoice.InvoiceNumber}.\n\nTotal Amount: {invoice.Balance:C}\n\nThank you for your business.\n\nBest regards,\nKyle Baley",
+            HtmlBody = $"Hi {invoice.Customer.ContactName},<br/><br/>Please find attached your invoice #{invoice.InvoiceNumber} in the amount of {invoice.Balance:C}<br/><br/>Thank you for your business.<br/><br/>Best regards,<br/>Kyle Baley"
         };
         
         msg.To.Add(to);
