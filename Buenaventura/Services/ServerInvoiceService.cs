@@ -4,6 +4,7 @@ using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
 using Resend;
+using System.Globalization;
 
 namespace Buenaventura.Services;
 
@@ -122,12 +123,14 @@ public class ServerInvoiceService(
         
         var pdfContent = await invoiceGenerator.GeneratePdf(invoiceId);
         
+        var culture = new CultureInfo("en-US"); 
+
         var msg = new EmailMessage
         {
             From = from,
             Subject = subject,
-            TextBody = $"Hi {invoice.Customer.ContactName},\n\nPlease find attached my invoice #{invoice.InvoiceNumber}.\n\nTotal Amount: {invoice.Balance:C}\n\nThank you for your business.\n\nBest regards,\nKyle Baley",
-            HtmlBody = $"Hi {invoice.Customer.ContactName},<br/><br/>Please find attached my invoice #{invoice.InvoiceNumber} in the amount of {invoice.Balance:C}<br/><br/>Thank you for your business.<br/><br/>Best regards,<br/>Kyle Baley"
+            TextBody = $"Hi {invoice.Customer.ContactName},\n\nPlease find attached my invoice #{invoice.InvoiceNumber}.\n\nTotal Amount: {invoice.Balance.ToString("C", culture)}\n\nThank you for your business.\n\nBest regards,\nKyle Baley",
+            HtmlBody = $"Hi {invoice.Customer.ContactName},<br/><br/>Please find attached my invoice #{invoice.InvoiceNumber} in the amount of {invoice.Balance.ToString("C", culture)}<br/><br/>Thank you for your business.<br/><br/>Best regards,<br/>Kyle Baley"
         };
         
         msg.To.Add(to);
