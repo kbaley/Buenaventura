@@ -20,7 +20,9 @@
             <MudAppBar Elevation="25">
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                                OnClick="@((e) => DrawerToggle())"/>
-                <MudImage Class="ml-3" Src="images/logo-horizontal-light.png" Height="35"/>
+                <MudLink Href="/" Style="display: inline-block;">
+                    <MudImage Class="ml-3" Src="images/logo-horizontal-light.png" Height="35"/>
+                </MudLink>
                 <MudSpacer/>
                 <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="investments" Class="d-none d-sm-flex">
                     <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Class="me-1"/>

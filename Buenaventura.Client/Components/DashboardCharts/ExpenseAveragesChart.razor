@@ -28,21 +28,21 @@ else
         <ApexPointSeries
             TItem="ExpenseAveragesDataPoint"
             Items="expenseData"
-            Name="Current Month"
+            Name="Last 30 Days"
             XValue="@(e => e.Category)"
             YValue="@(e => e.Last30Days)"
             SeriesType="SeriesType.Bar"/>
         <ApexPointSeries
             TItem="ExpenseAveragesDataPoint"
             Items="expenseData"
-            Name="3 Month Avg"
+            Name="Last 90 Days"
             XValue="@(e => e.Category)"
             YValue="@(e => e.Last90DaysAverage)"
             SeriesType="SeriesType.Bar"/>
         <ApexPointSeries
             TItem="ExpenseAveragesDataPoint"
             Items="expenseData"
-            Name="12 Month Avg"
+            Name="Last 360 Days"
             XValue="@(e => e.Category)"
             YValue="@(e => e.Last360DaysAverage)"
             SeriesType="SeriesType.Bar"/>

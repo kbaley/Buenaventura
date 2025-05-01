@@ -67,26 +67,7 @@ public partial class AccountTransactions(
     {
         if (AccountId != previousAccountId)
         {
-            loading = true;
-            Account = await accountService.GetAccount(AccountId);
-            searchString = string.Empty;
-            await ReloadTransactions();
-            categories = [];
-            categories.AddRange(masterCategoryList);
-            foreach (var account in accounts.Where(
-                         a => a.AccountId != AccountId))
-            {
-                categories.Add(new CategoryModel
-                {
-                    CategoryId = Guid.Empty,
-                    Name = $"TRANSFER: {account.Name}",
-                    Type = CategoryType.TRANSFER,
-                    TransferAccountId = account.AccountId,
-                });
-            }
-
-            loading = false;
-            previousAccountId = AccountId;
+            await LoadAccount();
         }
     }
 
@@ -308,13 +289,40 @@ public partial class AccountTransactions(
 
         context.Category = category;
     }
+
+    private async Task LoadAccount(bool reloadTransactions = true)
+    {
+        
+        loading = true;
+        Account = await accountService.GetAccount(AccountId);
+        searchString = string.Empty;
+        if (reloadTransactions)
+        {
+            await ReloadTransactions();
+        }
+        categories = [];
+        categories.AddRange(masterCategoryList);
+        foreach (var account in accounts.Where(
+                     a => a.AccountId != AccountId))
+        {
+            categories.Add(new CategoryModel
+            {
+                CategoryId = Guid.Empty,
+                Name = $"TRANSFER: {account.Name}",
+                Type = CategoryType.TRANSFER,
+                TransferAccountId = account.AccountId,
+            });
+        }
+
+        loading = false;
+        previousAccountId = AccountId;
+    }
     
     private async Task<TableData<TransactionForDisplay>> ServerReload(TableState state, CancellationToken token)
     {
         if (AccountId != previousAccountId)
         {
-            previousAccountId = AccountId;
-            Account = await accountService.GetAccount(AccountId);
+            await LoadAccount(false);
         }
 
         if (showDuplicates)
