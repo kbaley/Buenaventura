@@ -41,7 +41,9 @@ public partial class AccountTransactions(
         await base.OnInitializedAsync();
 
         masterCategoryList = (await categoryService.GetCategories()).ToList();
-        var invoices = await invoiceService.GetInvoices();
+        var invoices = (await invoiceService.GetInvoices())
+            .Where(i => i.Balance > 0)
+            .ToList();
         foreach (var invoice in invoices)
         {
             masterCategoryList = masterCategoryList.Append(new CategoryModel
