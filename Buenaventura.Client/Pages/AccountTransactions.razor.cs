@@ -238,8 +238,21 @@ public partial class AccountTransactions(
         }
 
         var searchLower = search.ToLower();
-        return Task.FromResult(categories
-            .Where(c => c.Name.ToLower().Contains(searchLower, StringComparison.CurrentCultureIgnoreCase)));
+        var matchingCategories = categories
+            .Where(c => c.Name.ToLower().Contains(searchLower, StringComparison.CurrentCultureIgnoreCase))
+            .ToList();
+            
+        // If no exact match is found and search is not empty, add a new FREEFORM category option
+        if (!matchingCategories.Any(c => c.Name.Equals(search, StringComparison.CurrentCultureIgnoreCase)) && !string.IsNullOrWhiteSpace(search))
+        {
+            matchingCategories.Add(new CategoryModel
+            {
+                Name = search,
+                Type = CategoryType.FREEFORM
+            });
+        }
+            
+        return Task.FromResult<IEnumerable<CategoryModel>>(matchingCategories);
     }
 
     private Task<IEnumerable<string>> SearchVendors(string? search, CancellationToken token)
