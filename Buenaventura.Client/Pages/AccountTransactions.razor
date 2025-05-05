@@ -1,6 +1,7 @@
 @page "/account/{accountId:guid}"
 
 @attribute [Authorize]
+@using Buenaventura.Client.Components.TransactionUpload
 
 <MudText Typo="Typo.h4" GutterBottom="true">@Account.Name</MudText>
 
@@ -22,6 +23,7 @@
         <MudIconButton Icon="@Icons.Material.Filled.Download" 
                        Href="@($"api/accounts/{Account.AccountId}/transactions/csv")"
                        Target="_blank" Class="ml-2"/>
+        <BulkTransactionUpload AccountId="@AccountId" OnTransactionsProcessed="ReloadTransactions" />
         <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
                        OnClick="ToggleDuplicateSearch"
                        Color="@(showDuplicates ? Color.Primary : Color.Default)"

@@ -65,4 +65,18 @@ public class ClientAccountService(HttpClient httpClient) : ClientService<Account
     {
         await Put(account.AccountId, account);
     }
+
+    public async Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime start, DateTime end)
+    {
+        // Get all transactions without pagination for duplicate checking
+        var url = $"{accountId}/transactions/all?start={start}&end={end}";
+        return await GetItem<TransactionListModel>(url);
+    }
+
+    public async Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions)
+    {
+        var url = $"{accountId}/transactions/bulk";
+        var response = await httpClient.PostAsJsonAsync(url, transactions);
+        return response.IsSuccessStatusCode;
+    }
 }

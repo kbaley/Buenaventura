@@ -153,4 +153,14 @@ public class ServerAccountService(
         dbAccount.IsHidden = account.IsHidden;
         await context.SaveChangesAsync();
     }
+
+    public async Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime start, DateTime end)
+    {
+        return await transactionRepo.GetInDateRange(accountId, start, end);
+    }
+
+    public async Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions)
+    {
+        throw new NotImplementedException();
+    }
 }

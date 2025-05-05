@@ -13,4 +13,6 @@ public interface IAccountService : IAppService
      Task SaveAccountOrder(List<OrderedAccount> accountOrders);
      Task<TransactionListModel> GetPotentialDuplicateTransactions(Guid accountId);
      Task UpdateAccount(AccountWithBalance account);
+     Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime startDate, DateTime endDate);
+     Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions);
 }

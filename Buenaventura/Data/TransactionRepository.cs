@@ -227,6 +227,53 @@ namespace Buenaventura.Data
             });
         }
 
+        public async Task<TransactionListModel> GetInDateRange(Guid accountId, DateTime start, DateTime end)
+        {
+            var transactionList = await context.Transactions
+                .Include(t => t.LeftTransfer)
+                .Include(t => t.LeftTransfer!.RightTransaction)
+                .Include(t => t.LeftTransfer!.RightTransaction!.Account)
+                .Include(t => t.Category)
+                .Include(t => t.Account)
+                .Where(t => t.AccountId == accountId
+                            && t.TransactionDate >= start
+                            && t.TransactionDate <= end
+                    )
+                .OrderByDescending(t => t.TransactionDate)
+                .ThenByDescending(t => t.EnteredDate)
+                .ThenBy(t => t.TransactionId)
+                .ToListAsync();
+            var transactions = transactionList
+                .Where(t => t != null)
+                .Select(t => t.ToDto())
+                .ToList();
+
+            var totalTransactionCount = await context.Transactions
+                .CountAsync(t => t.AccountId == accountId
+                                 && t.TransactionDate >= start
+                                 && t.TransactionDate <= end);
+            var endingBalance = await context.Transactions
+                .Where(t => t.AccountId == accountId)
+                .OrderByDescending(t => t.TransactionDate)
+                .ThenByDescending(t => t.EnteredDate)
+                .ThenBy(t => t.TransactionId)
+                .SumAsync(t => t.Amount);
+            var startingBalance = endingBalance - transactions.Sum(t => t.Amount);
+            transactions.ForEach(t => {
+                t.SetDebitAndCredit();
+                t.RunningTotal = endingBalance;
+                endingBalance -= t.Amount;
+            });
+
+            var model = new TransactionListModel
+            {
+                Items = transactions,
+                StartingBalance = startingBalance,
+                TotalCount = totalTransactionCount
+            };
+            return model;
+        }
+
         public async Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50)
         {
             var transactionList = await context.Transactions

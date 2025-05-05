@@ -31,6 +31,14 @@ public class AccountsController(
         return await accountService.GetTransactions(id, query.Search ?? "", query.Page, query.PageSize);
     }
 
+    [HttpGet("{id}/transactions/all")]
+    public async Task<TransactionListModel> GetAllTransactions([FromRoute] Guid id, [FromQuery] DateTime start,
+        [FromQuery] DateTime end)
+    {
+        // Get all transactions without pagination for duplicate checking
+        return await accountService.GetAllTransactions(id, start, end); 
+    }
+
     [HttpGet("{id}/transactions/duplicates")]
     public async Task<TransactionListModel> GetPotentialDuplicateTransactions([FromRoute] Guid id)
     {
@@ -63,6 +71,25 @@ public class AccountsController(
     public async Task CreateTransaction([FromRoute] Guid id, [FromBody] TransactionForDisplay transaction)
     {
         await accountService.AddTransaction(id, transaction);
+    }
+    
+    [HttpPost("{id}/transactions/bulk")]
+    public async Task<IActionResult> AddBulkTransactions([FromRoute] Guid id, [FromBody] List<TransactionForDisplay> transactions)
+    {
+        try
+        {
+            foreach (var transaction in transactions)
+            {
+                // Set the account ID for each transaction
+                transaction.AccountId = id;
+                await accountService.AddTransaction(id, transaction);
+            }
+            return Ok(true);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
     
     [HttpGet("{id}")]

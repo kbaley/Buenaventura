@@ -1,0 +1,150 @@
+@using Buenaventura.Shared
+@using Buenaventura.Client.Services
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+@inject MudBlazor.IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" Class="mb-4">Review Transactions</MudText>
+        
+        <MudTable Items="@PendingTransactions" Dense="true" Hover="true" Bordered="true" Striped="true" 
+                  FixedHeader="true" Height="500px">
+            <HeaderContent>
+                <MudTh>
+                    <MudCheckBox Checked="@SelectAll" 
+                                 T="bool"
+                                 Color="Color.Primary" 
+                                 CheckedChanged="@SelectAllChanged"/>
+                </MudTh>
+                <MudTh Style="width: 125px;">Date</MudTh>
+                <MudTh Style="width: 175px;">Vendor</MudTh>
+                <MudTh Style="width: 150px;">Reference #</MudTh>
+                <MudTh Class="flex-grow-1">Description</MudTh>
+                <MudTh Class="transaction-amount">Debit</MudTh>
+                <MudTh Class="transaction-amount">Credit</MudTh>
+            </HeaderContent>
+            <RowTemplate Context="transaction">
+                <MudTd>
+                    <MudCheckBox @bind-Value="@transaction.IsSelected" 
+                                 T="bool"
+                                 Color="Color.Primary" 
+                                 Disabled="@transaction.IsAlreadyProcessed"/>
+                </MudTd>
+                <MudTd DataLabel="Date" Style="@GetRowStyle(transaction)">@transaction.DateFormatted</MudTd>
+                <MudTd DataLabel="Vendor" Style="@GetRowStyle(transaction)">@transaction.Vendor</MudTd>
+                <MudTd DataLabel="Reference #" Style="@GetRowStyle(transaction)">@transaction.ReferenceNumber</MudTd>
+                <MudTd DataLabel="Description" Style="@GetRowStyle(transaction)">@transaction.Description</MudTd>
+                <MudTd DataLabel="Debit" Class="transaction-amount" Style="@GetRowStyle(transaction)">@transaction.DebitFormatted</MudTd>
+                <MudTd DataLabel="Credit" Class="transaction-amount" Style="@GetRowStyle(transaction)">@transaction.CreditFormatted</MudTd>
+                
+                @if (transaction.HasPotentialMatch && transaction.PotentialMatch != null)
+                {
+                    <MudTr Style="background-color: #FFFDE7;">
+                        <MudTd></MudTd>
+                        <MudTd>@transaction.PotentialMatch.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
+                        <MudTd>@transaction.PotentialMatch.Vendor</MudTd>
+                        <MudTd>@transaction.PotentialMatch.DownloadId</MudTd>
+                        <MudTd>@transaction.PotentialMatch.Description</MudTd>
+                        <MudTd Class="transaction-amount">@(transaction.PotentialMatch.Debit?.ToString("N2"))</MudTd>
+                        <MudTd Class="transaction-amount">@(transaction.PotentialMatch.Credit?.ToString("N2"))</MudTd>
+                    </MudTr>
+                }
+            </RowTemplate>
+        </MudTable>
+        
+        <MudText Typo="Typo.body2" Class="mt-4">
+            <MudChip T="string" Color="Color.Success" Size="Size.Small">Green</MudChip> Already processed transactions
+        </MudText>
+        <MudText Typo="Typo.body2">
+            <MudChip T="string" Color="Color.Warning" Size="Size.Small">Yellow</MudChip> Potential matches with existing transactions
+        </MudText>
+        
+        <MudText Typo="Typo.body1" Class="mt-4">
+            Selected transactions: @PendingTransactions.Count(t => t.IsSelected) of @PendingTransactions.Count
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SaveTransactions">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; } = default!;
+    [Parameter] public List<PendingTransactionModel> PendingTransactions { get; set; } = new();
+    [Parameter] public Guid AccountId { get; set; }
+    
+    private bool SelectAll { get; set; }
+    
+    private void SelectAllChanged(bool value)
+    {
+        foreach (var transaction in PendingTransactions.Where(t => !t.IsAlreadyProcessed))
+        {
+            transaction.IsSelected = value;
+        }
+    }
+    
+    private string GetRowStyle(PendingTransactionModel transaction)
+    {
+        if (transaction.IsAlreadyProcessed)
+        {
+            return "background-color: #E8F5E9;"; // Light green
+        }
+        
+        if (transaction.HasPotentialMatch)
+        {
+            return "background-color: #FFFDE7;"; // Light yellow
+        }
+        
+        return string.Empty;
+    }
+    
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+    
+    private async Task SaveTransactions()
+    {
+        try
+        {
+            var selectedTransactions = PendingTransactions.Where(t => t.IsSelected).ToList();
+            
+            if (!selectedTransactions.Any())
+            {
+                Snackbar.Add("No transactions selected", Severity.Warning);
+                return;
+            }
+            
+            // Convert pending transactions to TransactionForDisplay objects
+            var transactionsToAdd = selectedTransactions.Select(t => new TransactionForDisplay
+            {
+                TransactionDate = t.TransactionDate,
+                Vendor = t.Vendor,
+                Description = t.Description,
+                Debit = t.Debit,
+                Credit = t.Credit,
+                DownloadId = t.ReferenceNumber,
+                AccountId = AccountId
+            }).ToList();
+            
+            // Add the transactions
+            var result = await AccountService.AddBulkTransactions(AccountId, transactionsToAdd);
+            
+            if (result)
+            {
+                Snackbar.Add($"Successfully added {selectedTransactions.Count} transactions", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add("Failed to add transactions", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+}
