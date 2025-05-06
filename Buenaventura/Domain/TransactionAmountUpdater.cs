@@ -5,16 +5,20 @@ public abstract class TransactionAmountUpdater(Transaction transaction, decimal 
     protected readonly Transaction _transaction = transaction;
     protected readonly decimal _cadExchangeRate = cadExchangeRate;
 
-    // Returns an updated corresponding transaction, if one exists
-    public abstract Transaction UpdateAmount(decimal newAmount);
+    // Returns an updated corresponding transaction if one exists
+    public abstract Transaction? UpdateAmount(decimal newAmount);
 }
 
 public class TransactionAmountUpdaterRegular(Transaction transaction, decimal cadExchangeRate)
     : TransactionAmountUpdater(transaction,
         cadExchangeRate)
 {
-    public override Transaction UpdateAmount(decimal newAmount)
+    public override Transaction? UpdateAmount(decimal newAmount)
     {
+        if (_transaction.Account == null)
+        {
+            throw new Exception("Account is null for transaction");
+        }
         // For regular transactions, if this is a CAD account, also update the AmountInBaseCurrency
         _transaction.Amount = newAmount;
         var accountCurrency = _transaction.Account.Currency;
@@ -37,10 +41,14 @@ public class TransactionAmountUpdaterTransfer(Transaction transaction, decimal c
         //     leave AmountInBaseCurrency as is. I.e. the USD side is the source of truth.
         // If both sides are CAD, we update the AmountInBaseCurrency on both sides
         _transaction.Amount = newAmount;
-        var leftTransfer = _transaction.LeftTransfer;
+        if (_transaction.LeftTransfer == null || _transaction.LeftTransfer.RightTransaction == null ||
+            _transaction.LeftTransfer.RightTransaction.Account == null)
+        {
+            throw new Exception("LeftTransfer or RightTransaction or Account is null for transaction");
+        }
         
-        var relatedTransaction = _transaction.LeftTransfer!.RightTransaction!;
-        var relatedAccountCurrency = _transaction.LeftTransfer!.RightTransaction!.Account!.Currency;
+        var relatedTransaction = _transaction.LeftTransfer.RightTransaction;
+        var relatedAccountCurrency = _transaction.LeftTransfer.RightTransaction.Account.Currency;
         var accountCurrency = _transaction.Account!.Currency;
         if (relatedAccountCurrency == "USD" && accountCurrency == "USD")
         {

@@ -1,5 +1,4 @@
 using Buenaventura.Domain;
-using Buenaventura.Dtos;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,10 +8,7 @@ public static class DbContextExtensions
 {
     public static async Task<decimal> GetCadExchangeRate(this DbSet<Currency> currencies, DateTime? asOf = null)
     {
-        if (!asOf.HasValue)
-        {
-            asOf = DateTime.Now;
-        }
+        asOf ??= DateTime.Now;
 
         var currency = (await currencies
             .Where(c => c.Symbol == "CAD")

@@ -55,8 +55,8 @@ namespace Buenaventura.Data
                 .Include(t => t.Category)
                 .Include(t => t.RightTransfer)
                 .Include(t => t.LeftTransfer)
-                .ThenInclude(t => t.RightTransaction)
-                .ThenInclude(t => t.Account)
+                .ThenInclude(t => t!.RightTransaction)
+                .ThenInclude(t => t!.Account)
                 .SingleAsync(t => t.TransactionId == transaction.TransactionId);
             if (TransactionTypeChanged(transaction, dbTransaction))
             {
@@ -119,8 +119,13 @@ namespace Buenaventura.Data
                     updater = new TransactionAmountUpdaterTransfer(dbTransaction, _cadExchangeRate);
                     
                     var relatedTransaction = updater.UpdateAmount(transaction.Amount);
-                    context.Transactions.Update(relatedTransaction);
+                    if (relatedTransaction != null)
+                    {
+                        context.Transactions.Update(relatedTransaction);
+                    }
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
