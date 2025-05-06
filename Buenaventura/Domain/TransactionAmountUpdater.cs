@@ -1,27 +1,18 @@
 namespace Buenaventura.Domain;
 
-public abstract class TransactionAmountUpdater
+public abstract class TransactionAmountUpdater(Transaction transaction, decimal cadExchangeRate)
 {
-    protected readonly Transaction _transaction;
-    protected readonly decimal _cadExchangeRate;
-
-    public TransactionAmountUpdater(Transaction transaction, decimal cadExchangeRate)
-    {
-        _transaction = transaction;
-        _cadExchangeRate = cadExchangeRate;
-    }
+    protected readonly Transaction _transaction = transaction;
+    protected readonly decimal _cadExchangeRate = cadExchangeRate;
 
     // Returns an updated corresponding transaction, if one exists
     public abstract Transaction UpdateAmount(decimal newAmount);
 }
 
-public class TransactionAmountUpdaterRegular : TransactionAmountUpdater
-{
-    public TransactionAmountUpdaterRegular(Transaction transaction, decimal cadExchangeRate) : base(transaction,
+public class TransactionAmountUpdaterRegular(Transaction transaction, decimal cadExchangeRate)
+    : TransactionAmountUpdater(transaction,
         cadExchangeRate)
-    {
-    }
-
+{
     public override Transaction UpdateAmount(decimal newAmount)
     {
         // For regular transactions, if this is a CAD account, also update the AmountInBaseCurrency
@@ -34,13 +25,10 @@ public class TransactionAmountUpdaterRegular : TransactionAmountUpdater
     }
 }
 
-public class TransactionAmountUpdaterTransfer : TransactionAmountUpdater
-{
-    public TransactionAmountUpdaterTransfer(Transaction transaction, decimal cadExchangeRate) : base(transaction,
+public class TransactionAmountUpdaterTransfer(Transaction transaction, decimal cadExchangeRate)
+    : TransactionAmountUpdater(transaction,
         cadExchangeRate)
-    {
-    }
-
+{
     public override Transaction UpdateAmount(decimal newAmount)
     {
         // If both sides are USD, update the Amount and AmountInBaseCurrency for both sides
@@ -49,9 +37,11 @@ public class TransactionAmountUpdaterTransfer : TransactionAmountUpdater
         //     leave AmountInBaseCurrency as is. I.e. the USD side is the source of truth.
         // If both sides are CAD, we update the AmountInBaseCurrency on both sides
         _transaction.Amount = newAmount;
-        var relatedTransaction = _transaction.LeftTransfer.RightTransaction;
-        var relatedAccountCurrency = _transaction.LeftTransfer.RightTransaction.Account.Currency;
-        var accountCurrency = _transaction.Account.Currency;
+        var leftTransfer = _transaction.LeftTransfer;
+        
+        var relatedTransaction = _transaction.LeftTransfer!.RightTransaction!;
+        var relatedAccountCurrency = _transaction.LeftTransfer!.RightTransaction!.Account!.Currency;
+        var accountCurrency = _transaction.Account!.Currency;
         if (relatedAccountCurrency == "USD" && accountCurrency == "USD")
         {
             // Update the amounts and amounts in USD on both sides of the transaction

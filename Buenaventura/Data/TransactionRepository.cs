@@ -54,6 +54,9 @@ namespace Buenaventura.Data
                 .Include(t => t.Account)
                 .Include(t => t.Category)
                 .Include(t => t.RightTransfer)
+                .Include(t => t.LeftTransfer)
+                .ThenInclude(t => t.RightTransaction)
+                .ThenInclude(t => t.Account)
                 .SingleAsync(t => t.TransactionId == transaction.TransactionId);
             if (TransactionTypeChanged(transaction, dbTransaction))
             {
@@ -114,6 +117,7 @@ namespace Buenaventura.Data
                     await context.Entry(dbTransaction).Reference(t => t.LeftTransfer).LoadAsync();
                     await context.Entry(dbTransaction.LeftTransfer!).Reference(t => t.RightTransaction).LoadAsync();
                     updater = new TransactionAmountUpdaterTransfer(dbTransaction, _cadExchangeRate);
+                    
                     var relatedTransaction = updater.UpdateAmount(transaction.Amount);
                     context.Transactions.Update(relatedTransaction);
                     break;

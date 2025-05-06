@@ -25,6 +25,7 @@ public static class Mappers
             EnteredDate = transaction.EnteredDate,
             Vendor = transaction.Vendor,
             TransactionId = transaction.TransactionId,
+            TransactionType = transaction.TransactionType,
         };
     }
 }
