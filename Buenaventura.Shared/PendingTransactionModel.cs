@@ -16,8 +16,8 @@ public class PendingTransactionModel
     public TransactionForDisplay? PotentialMatch { get; set; }
     
     // Helper properties for display
-    public decimal? Debit => Amount < 0 ? Math.Abs(Amount) : null;
-    public decimal? Credit => Amount >= 0 ? Amount : null;
+    public decimal? Credit => Amount < 0 ? Math.Abs(Amount) : null;
+    public decimal? Debit => Amount >= 0 ? Amount : null;
     public string DebitFormatted => Debit.HasValue ? Debit.Value.ToString("N2") : string.Empty;
     public string CreditFormatted => Credit.HasValue ? Credit.Value.ToString("N2") : string.Empty;
     public string DateFormatted => TransactionDate.ToString("MM/dd/yyyy");

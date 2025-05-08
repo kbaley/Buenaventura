@@ -150,8 +150,6 @@
             }
 
             // Check for potential matches based on date and amount
-            Console.WriteLine(transaction.Amount);
-            Console.WriteLine(existingTransactions.Items.Any(t => t.Amount == transaction.Amount));
             var potentialMatches = existingTransactions.Items.Where(t =>
                 t.TransactionDate.Date == transaction.TransactionDate.Date &&
                 -transaction.Amount == t.Amount
@@ -159,10 +157,9 @@
 
             if (potentialMatches.Any())
             {
-                Console.WriteLine("Has Match");
                 transaction.HasPotentialMatch = true;
                 transaction.PotentialMatch = potentialMatches.First();
-                transaction.IsSelected = false;
+                transaction.IsSelected = true;
             }
         }
     }
