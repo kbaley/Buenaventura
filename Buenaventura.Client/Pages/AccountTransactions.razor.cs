@@ -24,7 +24,6 @@ public partial class AccountTransactions(
     private MudTable<TransactionForDisplay>? transactionTable;
     private TransactionForDisplay? editingTransaction { get; set; }
     private TransactionForDisplay? transactionBackup { get; set; }
-    private readonly Variant textVariant = Variant.Text;
     private MudTextField<string>? transactionDateField;
     private bool showDuplicates = false;
     private TransactionListModel? originalTransactions;

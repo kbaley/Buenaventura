@@ -1,20 +1,28 @@
 @namespace Buenaventura.Client
 
-<MudTextField T="string" ValueChanged="OnValueChanged" Value="@Value" Immediate="true" @ref="textField"
-              Variant="@Variant" Typo="@Typo" OnKeyDown="@OnKeyDown"
-/>
+<div class="mud-input-control mud-input-input-control">
+    <div class="mud-input-control-input-container">
+        <div class="mud-input mud-input-text mud-input-underline mud-typography-inherit">
+            <InputText
+                class="mud-input-slot mud-input-root mud-input-root-text"
+                @bind-Value="@Value"
+                @oninput="@HandleInput"
+                @onkeydown="@OnKeyDown"/>
+            <div class="mud-input-slot mud-input-root mud-input-root-text" style="display:none"
+                 tabindex="-1"></div>
+        </div>
+    </div>
+</div>
 
 @code {
 
-    private MudTextField<string>? textField;
     [Parameter] public string Value { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
-    [Parameter] public Variant Variant { get; set; } = Variant.Text;
-    [Parameter] public Typo Typo { get; set; } = Typo.inherit;
     [Parameter] public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
 
-    private async Task OnValueChanged(string input)
+    private async Task HandleInput(ChangeEventArgs args)
     {
+        var input = args.Value?.ToString() ?? "";
         var rawDigits = new string(input.Where(char.IsDigit).ToArray());
         rawDigits = rawDigits.PadLeft(3, '0');
         var debitForEdit = "0.00";
@@ -25,10 +33,6 @@
 
         Value = debitForEdit;
 
-        if (textField != null)
-        {
-            await textField!.SetText(debitForEdit);
-        }
         if (ValueChanged.HasDelegate)
         {
             await ValueChanged.InvokeAsync(debitForEdit);

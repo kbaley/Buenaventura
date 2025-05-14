@@ -17,14 +17,13 @@
             <MudTextField T="string" Value="@searchString" ValueChanged="@(s => OnSearchChanged(s))"
                           Placeholder="Search" Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
-                          Clearable="true" Immediate="true"
-            />
+                          Clearable="true" Immediate="true"/>
         </div>
-        <MudIconButton Icon="@Icons.Material.Filled.Download" 
+        <MudIconButton Icon="@Icons.Material.Filled.Download"
                        Href="@($"api/accounts/{Account.AccountId}/transactions/csv")"
                        Target="_blank" Class="ml-2"/>
-        <BulkTransactionUpload AccountId="@AccountId" OnTransactionsProcessed="ReloadTransactions" />
-        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" 
+        <BulkTransactionUpload AccountId="@AccountId" OnTransactionsProcessed="ReloadTransactions"/>
+        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
                        OnClick="ToggleDuplicateSearch"
                        Color="@(showDuplicates ? Color.Primary : Color.Default)"
                        Class="ml-2"
@@ -43,13 +42,12 @@
         @if (editingTransaction == context || newTransaction == context)
         {
             <MudTd DataLabel="Date" Class="mud-table-small-cell">
-                <MudTextField @bind-Value="@context.TransactionDateForEdit" Variant="@textVariant"
+                <MudTextField @bind-Value="@context.TransactionDateForEdit" Variant="Variant.Text"
                               OnKeyDown="@(e => HandleKeyDown(e, context, true))" Typo="Typo.inherit"
-                              Immediate="true" @ref="@transactionDateField"
-                />
+                              Immediate="true" @ref="@transactionDateField"/>
             </MudTd>
             <MudTd DataLabel="Vendor" Class="mud-table-small-cell">
-                <MudAutocomplete Value="@context.Vendor" Variant="@textVariant" T="string"
+                <MudAutocomplete Value="@context.Vendor" Variant="Variant.Text" T="string"
                                  ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true"
                                  Typo="Typo.inherit" ValueChanged="@(vendor => FindCategoryForVendor(vendor, context))"
                                  RelativeWidth="DropdownWidth.Adaptive" CoerceValue="true"
@@ -58,7 +56,7 @@
             <MudTd DataLabel="Category" Class="mud-table-small-cell">
                 <MudAutocomplete
                     T="CategoryModel"
-                    @bind-Value="@context.Category" Variant="@textVariant"
+                    @bind-Value="@context.Category" Variant="Variant.Text"
                     ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true"
                     Typo="Typo.inherit"
                     ToStringFunc="@(cat => cat?.Name)"
@@ -67,24 +65,25 @@
 
             </MudTd>
             <MudTd DataLabel="Description" Class="mud-table-small-cell">
-                <MudTextField @bind-Value="@context.Description" Variant="@textVariant" T="string"
-                              OnKeyDown="@(async e => await HandleKeyDown(e, context))" Typo="Typo.inherit"
-                              Immediate="true"/>
+                <TextField @bind-Value="@context.Description"
+                           OnKeyDown="@(async e => await HandleKeyDown(e, context))"
+                />
             </MudTd>
             <MudTd DataLabel="Debit" Class="mud-table-small-cell align-right">
-                <MoneyTextField @bind-Value="@context.DebitForEdit" Variant="@textVariant"
-                                OnKeyDown="@(async e => await HandleKeyDown(e, context))" Typo="Typo.inherit"
+                <MoneyTextField @bind-Value="@context.DebitForEdit"
+                                OnKeyDown="@(async e => await HandleKeyDown(e, context))"
                 />
             </MudTd>
             <MudTd DataLabel="Credit" Class="mud-table-small-cell align-right">
-                <MoneyTextField @bind-Value="@context.CreditForEdit" Variant="@textVariant"
-                                OnKeyDown="@(async e => await HandleKeyDown(e, context))" Typo="Typo.inherit"
+                <MoneyTextField @bind-Value="@context.CreditForEdit"
+                                OnKeyDown="@(async e => await HandleKeyDown(e, context))"
                 />
             </MudTd>
             <MudTd DataLabel="Balance" Class="transaction-amount">
                 @if (editingTransaction == context)
                 {
-                    <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="(() => CancelEdit(context))"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Cancel" Style="padding: 0;"
+                                   OnClick="(() => CancelEdit(context))"/>
                 }
             </MudTd>
         }

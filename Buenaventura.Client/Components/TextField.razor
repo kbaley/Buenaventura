@@ -1,0 +1,31 @@
+<div class="mud-input-control mud-input-input-control">
+    <div class="mud-input-control-input-container">
+        <div class="mud-input mud-input-text mud-input-underline mud-typography-inherit">
+            <InputText
+                class="mud-input-slot mud-input-root mud-input-root-text"
+                @bind-Value="@Value"
+                @oninput="@(HandleInput)"
+                @onkeydown="@OnKeyDown"></InputText>
+            <div class="mud-input-slot mud-input-root mud-input-root-text" style="display:none"
+                 tabindex="-1"></div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        Value = e.Value?.ToString() ?? "";
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+}
