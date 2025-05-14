@@ -6,7 +6,7 @@
 <MudText Typo="Typo.h4" GutterBottom="true">@Account.Name</MudText>
 
 <MudTable T="TransactionForDisplay" ServerData="ServerReload" Hover="true" Bordered="true" Striped="true" Dense="true"
-          Loading="@loading" @ref="transactionTable" RowsPerPage="25" Elevation="6"
+          Loading="@loading" @ref="transactionTable" RowsPerPage="50" Elevation="6"
           OnRowClick="BeginEdit"
 >
     <ToolBarContent>
