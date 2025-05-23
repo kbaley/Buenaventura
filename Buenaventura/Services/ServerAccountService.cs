@@ -161,6 +161,26 @@ public class ServerAccountService(
 
     public async Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions)
     {
-        throw new NotImplementedException();
+        foreach (var transaction in transactions)
+        {
+            // Set the account ID for each transaction
+            transaction.AccountId = accountId;
+            if (transaction.TransactionId == Guid.Empty)
+            {
+                await AddTransaction(accountId, transaction);
+            }
+            else
+            {
+                // Update the transaction's download ID instead
+                var dbTransaction = await context.Transactions.FindAsync(transaction.TransactionId);
+                if (dbTransaction != null)
+                {
+                    dbTransaction.DownloadId = transaction.DownloadId;
+                    context.Transactions.Update(dbTransaction);
+                }
+            }
+        }
+        await context.SaveChangesAsync();
+        return true;
     }
 }

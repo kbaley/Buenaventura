@@ -74,22 +74,9 @@ public class AccountsController(
     }
     
     [HttpPost("{id}/transactions/bulk")]
-    public async Task<IActionResult> AddBulkTransactions([FromRoute] Guid id, [FromBody] List<TransactionForDisplay> transactions)
+    public async Task AddBulkTransactions([FromRoute] Guid id, [FromBody] List<TransactionForDisplay> transactions)
     {
-        try
-        {
-            foreach (var transaction in transactions)
-            {
-                // Set the account ID for each transaction
-                transaction.AccountId = id;
-                await accountService.AddTransaction(id, transaction);
-            }
-            return Ok(true);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await accountService.AddBulkTransactions(id, transactions);
     }
     
     [HttpGet("{id}")]

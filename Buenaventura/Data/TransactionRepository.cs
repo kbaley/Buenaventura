@@ -72,6 +72,7 @@ namespace Buenaventura.Data
             dbTransaction.IsReconciled = transaction.IsReconciled;
             dbTransaction.InvoiceId = transaction.InvoiceId;
             dbTransaction.TransactionDate = transaction.TransactionDate;
+            dbTransaction.DownloadId = transaction.DownloadId;
             dbTransaction.Category = await context.GetOrCreateCategory(transaction.Category);
 
             await UpdateAmount(dbTransaction, transaction);
