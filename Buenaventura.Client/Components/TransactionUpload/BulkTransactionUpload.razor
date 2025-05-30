@@ -138,9 +138,12 @@
             // Check if already processed by DownloadId
             if (!string.IsNullOrEmpty(transaction.ReferenceNumber))
             {
+                // Need to match the reference number AND other fields because the bank reference numbers
+                // are just the amount of the transaction with the decimal removed and some zero padding
                 var alreadyProcessed = existingTransactions.Items.Any(t =>
-                    t.DownloadId == transaction.ReferenceNumber);
-
+                    t.DownloadId == transaction.ReferenceNumber && t.TransactionDate == transaction.TransactionDate 
+                    && -t.Amount == transaction.Amount);
+                
                 if (alreadyProcessed)
                 {
                     transaction.IsAlreadyProcessed = true;
