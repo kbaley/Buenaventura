@@ -5,6 +5,7 @@ using Buenaventura.Domain;
 using CryptoHelper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Api;
 
@@ -20,6 +21,13 @@ public class AuthController(BuenaventuraDbContext context)
         var user = context.Users.First();
         var newPasswordHash = hasher.HashPassword(user, password);
         return newPasswordHash;
+    }
+    
+    [HttpGet]
+    [Route("[action]")]
+    public async Task<int> GetUserCount()
+    {
+        return await context.Users.CountAsync();
     }
 
 /*
