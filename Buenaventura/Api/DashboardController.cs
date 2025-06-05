@@ -49,7 +49,14 @@ public class DashboardController(
     [HttpGet]
     public async Task<IEnumerable<ReportDataPoint>> Expenses()
     {
-        return await dashboardService.GetExpenseData();
+        return await dashboardService.GetExpenseCategoryBreakdown();
+    }
+    
+    [HttpGet]
+    [ActionName("expensetotalsbymonth")]
+    public async Task<CategoryTotals> GetExpenseTotalsByMonth()
+    {
+        return await dashboardService.GetExpenseTotalsByMonth();
     }
 
     [HttpGet]

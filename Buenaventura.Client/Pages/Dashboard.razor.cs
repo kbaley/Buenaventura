@@ -26,7 +26,7 @@ public partial class Dashboard(IDashboardService dashboardService)
         var incomeExpenseTask = dashboardService.GetIncomeExpenseData();
         var netWorthTask = dashboardService.GetNetWorthData();
         var investmentTask = dashboardService.GetInvestmentData();
-        var expenseTask = dashboardService.GetExpenseData();
+        var expenseTask = dashboardService.GetExpenseCategoryBreakdown();
         var assetTask = dashboardService.GetAssetClassData();
         var expenseAveragesTask = dashboardService.GetExpenseAveragesData();
 

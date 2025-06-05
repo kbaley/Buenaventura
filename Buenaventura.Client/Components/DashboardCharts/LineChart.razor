@@ -1,51 +1,62 @@
 @using ApexCharts
 @using ChartOptions = Buenaventura.Client.Services.ChartOptions
 <MudPaper Elevation="1" Class="pa-4" Height="@paperHeight">
-@if (IsLoading)
-{
-    <MudGrid>
-        <MudItem xs="12">
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="30%"/>
-        </MudItem>
-        <MudItem xs="2">
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="@skeletonHeight" Width="100%"/>
-        </MudItem>
-        <MudItem xs="10">
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="@skeletonHeight" Width="100%"/>
-        </MudItem>
-        <MudItem xs="2"/>
-        <MudItem xs="10">
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="100%"/>
-        </MudItem>
-    </MudGrid>
-}
-else
-{
-    <ApexChart TItem="ReportDataPoint"
-               Options="investmentsChartOptions"
-               Height="@(Height-50)"
-               Title="@Title">
-        <ApexPointSeries
-            TItem="ReportDataPoint"
-            Items="ChartData"
-            Name="Value"
-            XValue="@(e => e.Label)"
-            YValue="@(e => e.Value)"
-            SeriesType="SeriesType.Line"/>
-    </ApexChart>
-}
+    @if (IsLoading)
+    {
+        <MudGrid>
+            <MudItem xs="12">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="30%"/>
+            </MudItem>
+            <MudItem xs="2">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="@skeletonHeight" Width="100%"/>
+            </MudItem>
+            <MudItem xs="10">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="@skeletonHeight" Width="100%"/>
+            </MudItem>
+            <MudItem xs="2"/>
+            <MudItem xs="10">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="20px" Width="100%"/>
+            </MudItem>
+        </MudGrid>
+    }
+    else
+    {
+        <ApexChart TItem="ReportDataPoint"
+                   Options="investmentsChartOptions"
+                   Height="@(Height - 50)"
+                   Title="@Title">
+            <ApexPointSeries
+                TItem="ReportDataPoint"
+                Items="ChartData"
+                Name="Value"
+                XValue="@(e => e.Label)"
+                YValue="@(e => e.Value)"
+                SeriesType="SeriesType.Line"/>
+            @if (TrendLine.Any())
+            {
+                <ApexPointSeries
+                    TItem="ReportDataPoint"
+                    Items="TrendLine"
+                    Name="Trend Line"
+                    XValue="@(e => e.Label)"
+                    YValue="@(e => e.Value)"
+                    SeriesType="SeriesType.Line"/>
+            }
+        </ApexChart>
+    }
 </MudPaper>
 
 @code {
 
     [Parameter] public bool IsLoading { get; set; } = true;
-    [Parameter] public IEnumerable<ReportDataPoint> ChartData { get; set; }= [];
+    [Parameter] public IEnumerable<ReportDataPoint> ChartData { get; set; } = [];
+    [Parameter] public IEnumerable<ReportDataPoint> TrendLine { get; set; } = [];
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public int Height { get; set; } = 300;
 
     private string paperHeight => $"{Height}px";
-    private string skeletonHeight => $"{Height-115}px";
+    private string skeletonHeight => $"{Height - 115}px";
 
-    private ApexChartOptions<ReportDataPoint> investmentsChartOptions = ChartOptions.GetDefaultOptions<ReportDataPoint>();
+    private readonly ApexChartOptions<ReportDataPoint> investmentsChartOptions = ChartOptions.GetDefaultOptions<ReportDataPoint>();
 
 }

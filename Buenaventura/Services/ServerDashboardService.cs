@@ -74,21 +74,29 @@ public class ServerDashboardService(
 
         return report;
     }
-
-    public async Task<IEnumerable<ReportDataPoint>> GetExpenseData()
+    
+    /// <summary>
+    /// Get a breakdown of expense totals by category and month for the last 12 months
+    /// </summary>
+    public async Task<CategoryTotals> GetExpenseTotalsByMonth()
     {
         var period = ReportPeriod.GetLast12Months();
         var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End);
-        var report = new List<ReportDataPoint>();
-        
-        foreach (var category in expenseData.Expenses)
-        {
-            report.Add(new ReportDataPoint
-            {
-                Label = category.CategoryName,
-                Value = category.Total
-            });
-        }
+        return expenseData;
+    }
+
+    /// <summary>
+    /// Gets a list of expense data points for the last 12 months
+    ///
+    /// Each data point is a tuple of (category name, total amount)
+    /// </summary>
+    public async Task<IEnumerable<ReportDataPoint>> GetExpenseCategoryBreakdown()
+    {
+        var period = ReportPeriod.GetLast12Months();
+        var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End);
+        var report = expenseData.Expenses
+            .Select(category => new ReportDataPoint
+            { Label = category.CategoryName, Value = category.Total }).ToList();
 
         var otherCategory = new ReportDataPoint
         {
@@ -196,7 +204,7 @@ public class ServerDashboardService(
         return incomeExpenseData;
     }
 
-    private async Task<dynamic> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end)
+    private async Task<CategoryTotals> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end)
     {
         var categories = await context.Categories.Where(c => c.Type == categoryType).ToListAsync();
         var expenses = (await reportRepo.GetTransactionsByCategoryType(categoryType, start, end)).ToList();
@@ -223,15 +231,19 @@ public class ServerDashboardService(
                 CategoryId = category.CategoryId, 
                 CategoryName = category.Name, 
                 Total = 0.0M,
-                Amounts = new List<DateAndAmount>()});
+                Amounts = new List<MonthlyAmount>()});
         }
-        var monthTotals = new List<dynamic>();
-        var numMonths = (end.Year * 100 + end.Month) - (start.Year * 100 + start.Month) + 1; 
+        var monthTotals = new List<MonthlyAmount>();
+        var numMonths = end.Year * 12 + end.Month - (start.Year * 12 + start.Month);
+        if (end.Date > DateTime.Today)
+        {
+            end = end.AddMonths(-1);
+        }
         for (var i = 0; i < numMonths; i++)
         {
             end = end.FirstDayOfMonth();
             var total = expenses.Sum(e => e.Amounts.Where(x => x.Date == end).Sum(x => x.Amount));
-            monthTotals.Add(new { date = end, total });
+            monthTotals.Add(new MonthlyAmount(end.Year, end.Month, total));
 
             end = end.AddMonths(-1);
         }
@@ -239,11 +251,5 @@ public class ServerDashboardService(
             Expenses = expenses,
             MonthTotals = monthTotals
         };
-    }
-    
-    private class CategoryTotals
-    {
-        public IEnumerable<CategoryTotal> Expenses { get; set; } = [];
-        public dynamic? MonthTotals { get; set; }
     }
 }

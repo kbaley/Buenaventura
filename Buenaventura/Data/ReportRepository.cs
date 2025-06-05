@@ -61,7 +61,7 @@ namespace Buenaventura.Data
                             {
                                 CategoryId = x.Key,
                                 CategoryName = x.First().name,
-                                Amounts = x.Select(e => new DateAndAmount(e.year, e.month, e.amount)).ToList()
+                                Amounts = x.Select(e => new MonthlyAmount(e.year, e.month, e.amount)).ToList()
                             });
 
             return results;
@@ -87,7 +87,7 @@ namespace Buenaventura.Data
                             {
                                 CategoryId = x.Key,
                                 CategoryName = x.First().name,
-                                Amounts = x.Select(e => new DateAndAmount(e.year, e.month, e.amount)).ToList()
+                                Amounts = x.Select(e => new MonthlyAmount(e.year, e.month, e.amount)).ToList()
                             });
 
             return results;

@@ -12,17 +12,28 @@
         <LineChart
             IsLoading="isLoading"
             ChartData="@monthlyExpenseData"
+            TrendLine="@monthlyExpenseTrendLine"
             Title="Monthly Expenses (Last 12 Months)"
-                Height="350"
-            />
+            Height="350"
+        />
     </MudItem>
 
     <!-- Total Expenses This Month -->
     <MudItem xs="12" md="3">
-        <MudPaper Elevation="1" Class="pa-4">
-            <MudText Typo="Typo.h6">Expenses This Month</MudText>
-            <MudText Typo="Typo.h4" Color="Color.Success">@(expensesThisMonth.ToString("C"))</MudText>
-        </MudPaper>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudPaper Elevation="1" Class="pa-4">
+                    <MudText Typo="Typo.h6">Expenses This Month</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Success">@(expensesThisMonth.ToString("C0"))</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12">
+                <MudPaper Elevation="1" Class="pa-4">
+                    <MudText Typo="Typo.h6">Average Monthly Expenses</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Success">@(averageMonthlyExpenses.ToString("C0"))</MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
     </MudItem>
 
     <!-- Expense Breakdown by Category -->
@@ -82,9 +93,11 @@
 @code {
     private bool isLoading = true;
     private decimal expensesThisMonth;
+    private decimal averageMonthlyExpenses;
     private IEnumerable<ReportDataPoint> expenseData = [];
     private IEnumerable<ExpenseAveragesDataPoint> expenseAveragesData = [];
     private IEnumerable<ReportDataPoint> monthlyExpenseData = [];
+    private IEnumerable<ReportDataPoint> monthlyExpenseTrendLine = [];
     private List<string> lastTwelveMonths = [];
     private List<CategoryMonthlyData> categoryMonthlyData = [];
     private List<decimal> monthlyTotals = [];
@@ -93,25 +106,92 @@
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
+        var expenseBreakdownTask = dashboardService.GetExpenseTotalsByMonth();
         var expensesTask = dashboardService.GetThisMonthExpenses();
-        var expenseTask = dashboardService.GetExpenseData();
+        var expenseTask = dashboardService.GetExpenseCategoryBreakdown();
         var expenseAveragesTask = dashboardService.GetExpenseAveragesData();
         await Task.WhenAll(
             expensesTask,
             expenseTask,
-            expenseAveragesTask
+            expenseAveragesTask,
+            expenseBreakdownTask
         );
 
         expensesThisMonth = -(await expensesTask);
         expenseData = await expenseTask;
         expenseAveragesData = await expenseAveragesTask;
+        var expenseBreakdown = await expenseBreakdownTask;
+
         StateHasChanged();
         isLoading = false;
-        
-        GenerateSampleData();
 
-        await base.OnParametersSetAsync();
+        GenerateData(expenseBreakdown);
+        monthlyExpenseTrendLine = CalculateTrendLine(expenseBreakdown.MonthTotals?.ToList());
+        averageMonthlyExpenses = (expenseBreakdown.MonthTotals?
+            .Where(x => x.Date.Date != DateTime.Today.Date)
+            .Sum(x => x.Amount) ?? 0m) / 11m;
+        GenerateSampleData();
     }
+
+    private void GenerateData(CategoryTotals expenseBreakdown)
+    {
+        if (expenseBreakdown.MonthTotals == null)
+        {
+            monthlyExpenseData = [];
+            return;
+        }
+
+        monthlyExpenseData = expenseBreakdown.MonthTotals
+            .OrderBy(x => x.Date)
+            .Select(x => new ReportDataPoint
+            {
+                Label = x.Date.ToString("MMM yyyy"),
+                Value = x.Amount,
+            });
+    }
+
+    private List<ReportDataPoint> CalculateTrendLine(List<MonthlyAmount>? data)
+    {
+        if (data == null || data.Count < 2)
+            return [];
+
+        // Ignore the current month so we don't skew the results
+        var n = data.Count - 1;
+        var sumX = 0.0;
+        var sumY = 0.0;
+        var sumXY = 0.0;
+        var sumXX = 0.0;
+
+        // Convert data points to numerical values for regression
+        for (var i = 0; i < n; i++)
+        {
+            var y = (double)data[i].Amount;
+
+            sumX += i;
+            sumY += y;
+            sumXY += i * y;
+            sumXX += i * i;
+        }
+
+        // Calculate slope (m) and y-intercept (b) for y = mx + b
+        var slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        var intercept = (sumY - slope * sumX) / n;
+
+        // Generate trend line points
+        var trendPoints = new List<ReportDataPoint>();
+        for (var i = 0; i < n; i++)
+        {
+            var trendValue = slope * i + intercept;
+            trendPoints.Add(new ReportDataPoint
+            {
+                Label = data[i].Date.ToString("MMM yyyy"),
+                Value = (decimal)trendValue
+            });
+        }
+
+        return trendPoints;
+    }
+
 
     private void GenerateSampleData()
     {
@@ -135,8 +215,6 @@
                 Value = baseAmount
             });
         }
-
-        monthlyExpenseData = monthlyExpenses;
 
         // Sample category monthly data for table
         var categories = new[] { "Housing", "Food", "Transportation", "Entertainment", "Utilities" };

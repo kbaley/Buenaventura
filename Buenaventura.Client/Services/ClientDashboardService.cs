@@ -47,7 +47,7 @@ public class ClientDashboardService(HttpClient httpClient) : IDashboardService
         return result ?? [];
     }
 
-    public async Task<IEnumerable<ReportDataPoint>> GetExpenseData()
+    public async Task<IEnumerable<ReportDataPoint>> GetExpenseCategoryBreakdown()
     {
         var url = $"api/dashboard/expenses";
         var result = await httpClient.GetFromJsonAsync<IEnumerable<ReportDataPoint>>(url);
@@ -66,5 +66,12 @@ public class ClientDashboardService(HttpClient httpClient) : IDashboardService
         var url = $"api/dashboard/expenseaverages";
         var result = await httpClient.GetFromJsonAsync<IEnumerable<ExpenseAveragesDataPoint>>(url);
         return result ?? [];
+    }
+
+    public async Task<CategoryTotals> GetExpenseTotalsByMonth()
+    {
+        var url = $"api/dashboard/expensetotalsbymonth";
+        var result = await httpClient.GetFromJsonAsync<CategoryTotals>(url);
+        return result ?? new CategoryTotals();
     }
 }
