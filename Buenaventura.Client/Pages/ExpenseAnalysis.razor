@@ -65,15 +65,17 @@
                     <MudTh>Category</MudTh>
                     @foreach (var month in lastTwelveMonths)
                     {
-                        <MudTh>@month</MudTh>
+                        <MudTh>@month.ToString("MMM yyyy")</MudTh>
                     }
                     <MudTh>Total</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Category">@context.CategoryName</MudTd>
-                    @foreach (var amount in context.MonthlyAmounts)
+                    @foreach (var month in lastTwelveMonths)
                     {
-                        <MudTd DataLabel="@amount.Month">@amount.Amount.ToString("C0")</MudTd>
+                        var categoryAmount = context.Amounts.SingleOrDefault(a => a.Date.Month == month.Month && a.Date.Year == month.Year);
+                        var amount = categoryAmount?.Amount ?? 0m;
+                        <MudTd DataLabel="@month.Date.ToString("MMM yyyy")">@amount.ToString("C0")</MudTd>
                     }
                     <MudTd DataLabel="Total">@context.Total.ToString("C0")</MudTd>
                 </RowTemplate>
@@ -98,8 +100,8 @@
     private IEnumerable<ExpenseAveragesDataPoint> expenseAveragesData = [];
     private IEnumerable<ReportDataPoint> monthlyExpenseData = [];
     private IEnumerable<ReportDataPoint> monthlyExpenseTrendLine = [];
-    private List<string> lastTwelveMonths = [];
-    private List<CategoryMonthlyData> categoryMonthlyData = [];
+    private List<DateTime> lastTwelveMonths = [];
+    private List<CategoryTotal> categoryMonthlyData = [];
     private List<decimal> monthlyTotals = [];
     private decimal grandTotal = 0;
 
@@ -125,16 +127,31 @@
         StateHasChanged();
         isLoading = false;
 
+
         GenerateData(expenseBreakdown);
         monthlyExpenseTrendLine = CalculateTrendLine(expenseBreakdown.MonthTotals?.ToList());
         averageMonthlyExpenses = (expenseBreakdown.MonthTotals?
             .Where(x => x.Date.Date != DateTime.Today.Date)
             .Sum(x => x.Amount) ?? 0m) / 11m;
-        GenerateSampleData();
+        categoryMonthlyData = expenseBreakdown.Expenses.ToList();
+        // GenerateSampleData();
     }
 
     private void GenerateData(CategoryTotals expenseBreakdown)
     {
+        var currentDate = DateTime.Now;
+        lastTwelveMonths = [];
+        monthlyTotals = [];
+        for (var i = 11; i >= 0; i--)
+        {
+            var date = currentDate.AddMonths(-i);
+            monthlyTotals.Add(expenseBreakdown.Expenses
+                .Select(x => x.Amounts.FirstOrDefault(a => a.Date.Month == date.Month && a.Date.Year == date.Year)?.Amount ?? 0m).Sum());
+            lastTwelveMonths.Add(date);
+        }
+        grandTotal = monthlyTotals.Sum();
+
+
         if (expenseBreakdown.MonthTotals == null)
         {
             monthlyExpenseData = [];
@@ -193,85 +210,85 @@
     }
 
 
-    private void GenerateSampleData()
-    {
-        // Generate last 12 months
-        var currentDate = DateTime.Now;
-        for (int i = 11; i >= 0; i--)
-        {
-            var date = currentDate.AddMonths(-i);
-            lastTwelveMonths.Add(date.ToString("MMM yyyy"));
-        }
-
-        // Sample monthly expense data for line chart
-        var monthlyExpenses = new List<ReportDataPoint>();
-        var random = new Random(123); // Fixed seed for consistent sample data
-        for (int i = 0; i < 12; i++)
-        {
-            var baseAmount = 2000 + random.Next(-300, 500);
-            monthlyExpenses.Add(new ReportDataPoint
-            {
-                Label = lastTwelveMonths[i],
-                Value = baseAmount
-            });
-        }
-
-        // Sample category monthly data for table
-        var categories = new[] { "Housing", "Food", "Transportation", "Entertainment", "Utilities" };
-        categoryMonthlyData = new List<CategoryMonthlyData>();
-        monthlyTotals = new List<decimal>();
-
-        // Initialize monthly totals
-        for (var i = 0; i < 12; i++)
-        {
-            monthlyTotals.Add(0);
-        }
-
-        foreach (var category in categories)
-        {
-            var categoryData = new CategoryMonthlyData
-            {
-                CategoryName = category,
-                MonthlyAmounts = new List<MonthAmount>(),
-                Total = 0
-            };
-
-            for (int i = 0; i < 12; i++)
-            {
-                // Generate a random amount for this category and month
-                decimal baseValue = category switch
-                {
-                    "Housing" => 1200,
-                    "Food" => 450,
-                    "Transportation" => 350,
-                    "Entertainment" => 200,
-                    "Utilities" => 145,
-                    _ => 100
-                };
-
-                // Add some variation
-                decimal amount = baseValue + random.Next(-50, 100);
-
-                // Ensure no negative values
-                amount = Math.Max(0, amount);
-
-                var monthAmount = new MonthAmount
-                {
-                    Month = lastTwelveMonths[i],
-                    Amount = amount
-                };
-
-                categoryData.MonthlyAmounts.Add(monthAmount);
-                categoryData.Total += amount;
-                monthlyTotals[i] += amount;
-            }
-
-            categoryMonthlyData.Add(categoryData);
-        }
-
-        // Calculate grand total
-        grandTotal = monthlyTotals.Sum();
-    }
+    // private void GenerateSampleData()
+    // {
+    //     // Generate last 12 months
+    //     var currentDate = DateTime.Now;
+    //     for (int i = 11; i >= 0; i--)
+    //     {
+    //         var date = currentDate.AddMonths(-i);
+    //         lastTwelveMonths.Add(date.ToString("MMM yyyy"));
+    //     }
+    //
+    //     // Sample monthly expense data for line chart
+    //     var monthlyExpenses = new List<ReportDataPoint>();
+    //     var random = new Random(123); // Fixed seed for consistent sample data
+    //     for (int i = 0; i < 12; i++)
+    //     {
+    //         var baseAmount = 2000 + random.Next(-300, 500);
+    //         monthlyExpenses.Add(new ReportDataPoint
+    //         {
+    //             Label = lastTwelveMonths[i],
+    //             Value = baseAmount
+    //         });
+    //     }
+    //
+    //     // Sample category monthly data for table
+    //     var categories = new[] { "Housing", "Food", "Transportation", "Entertainment", "Utilities" };
+    //     categoryMonthlyData = new List<CategoryMonthlyData>();
+    //     monthlyTotals = new List<decimal>();
+    //
+    //     // Initialize monthly totals
+    //     for (var i = 0; i < 12; i++)
+    //     {
+    //         monthlyTotals.Add(0);
+    //     }
+    //
+    //     foreach (var category in categories)
+    //     {
+    //         var categoryData = new CategoryMonthlyData
+    //         {
+    //             CategoryName = category,
+    //             MonthlyAmounts = new List<MonthAmount>(),
+    //             Total = 0
+    //         };
+    //
+    //         for (int i = 0; i < 12; i++)
+    //         {
+    //             // Generate a random amount for this category and month
+    //             decimal baseValue = category switch
+    //             {
+    //                 "Housing" => 1200,
+    //                 "Food" => 450,
+    //                 "Transportation" => 350,
+    //                 "Entertainment" => 200,
+    //                 "Utilities" => 145,
+    //                 _ => 100
+    //             };
+    //
+    //             // Add some variation
+    //             decimal amount = baseValue + random.Next(-50, 100);
+    //
+    //             // Ensure no negative values
+    //             amount = Math.Max(0, amount);
+    //
+    //             var monthAmount = new MonthAmount
+    //             {
+    //                 Month = lastTwelveMonths[i],
+    //                 Amount = amount
+    //             };
+    //
+    //             categoryData.MonthlyAmounts.Add(monthAmount);
+    //             categoryData.Total += amount;
+    //             monthlyTotals[i] += amount;
+    //         }
+    //
+    //         categoryMonthlyData.Add(categoryData);
+    //     }
+    //
+    //     // Calculate grand total
+    //     grandTotal = monthlyTotals.Sum();
+    // }
 
     // Class to represent monthly data for each category
     private class CategoryMonthlyData
