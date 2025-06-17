@@ -74,4 +74,5 @@ public class ClientDashboardService(HttpClient httpClient) : IDashboardService
         var result = await httpClient.GetFromJsonAsync<CategoryTotals>(url);
         return result ?? new CategoryTotals();
     }
+
 }

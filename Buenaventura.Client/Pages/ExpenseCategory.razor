@@ -1,0 +1,16 @@
+@page "/expense-analysis/{categoryId:guid}"
+@inject IDashboardService DashboardService
+
+<MudText Typo="Typo.h4" GutterBottom="true">@Category.CategoryName</MudText>
+
+@code {
+    
+    [Parameter] public Guid CategoryId { get; set; }
+    private CategoryTotal Category { get; set; } = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // Category = await DashboardService.GetCategoryTotal(CategoryId);
+        // var expenseBreakdownTask = DashboardService.GetExpenseTotalsByMonth();
+    }
+}

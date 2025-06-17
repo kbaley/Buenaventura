@@ -22,6 +22,12 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return await categoryService.GetCategory(id);
     }
 
+    [HttpGet("{id}/expenses")]
+    public async Task<CategoryModel> GetCategoryExpenses(Guid id)
+    {
+        return await categoryService.GetCategory(id);
+    }
+
     [HttpPut("{id}")]
     public async Task PutCategory([FromRoute] Guid id, [FromBody] CategoryModel categoryModel)
     {

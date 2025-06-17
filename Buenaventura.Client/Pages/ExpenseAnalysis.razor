@@ -70,7 +70,11 @@
                     <MudTh>Total</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Category">@context.CategoryName</MudTd>
+                    <MudTd DataLabel="Category">
+                        <MudLink Href="@($"expense-analysis/{context.CategoryId}")">
+                            @context.CategoryName
+                        </MudLink>
+                    </MudTd>
                     @foreach (var month in lastTwelveMonths)
                     {
                         var categoryAmount = context.Amounts.SingleOrDefault(a => a.Date.Month == month.Month && a.Date.Year == month.Year);

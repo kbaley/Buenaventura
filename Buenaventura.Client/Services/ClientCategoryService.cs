@@ -28,4 +28,11 @@ public class ClientCategoryService(HttpClient httpClient) : ClientService<Catego
     {
         return await Get(id);
     }
+    
+    public async Task<CategoryTotal> GetCategoryExpenses(Guid categoryId)
+    {
+        var url = $"api/categories/{categoryId}/expenses";
+        var result = await httpClient.GetFromJsonAsync<CategoryTotal>(url);
+        return result ?? new CategoryTotal();
+    }
 }

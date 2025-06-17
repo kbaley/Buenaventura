@@ -10,7 +10,6 @@
           OnRowClick="BeginEdit"
 >
     <ToolBarContent>
-        <MudText Typo="Typo.h6">@Account.Name</MudText>
         <MudSpacer/>
         <div style="width: 400px;">
             <MudTextField T="string" Value="@searchString" ValueChanged="@(s => OnSearchChanged(s))"
@@ -20,12 +19,12 @@
         </div>
         <MudIconButton Icon="@Icons.Material.Filled.Download"
                        Href="@($"api/accounts/{Account.AccountId}/transactions/csv")"
-                       Target="_blank" Class="ml-2"/>
+                       Target="_blank" Class="ml-2 d-none d-md-inline-flex"/>
         <BulkTransactionUpload AccountId="@AccountId" OnTransactionsProcessed="ReloadTransactions"/>
         <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
                        OnClick="ToggleDuplicateSearch"
                        Color="@(showDuplicates ? Color.Primary : Color.Default)"
-                       Class="ml-2"
+                       Class="ml-2 d-none d-md-inline-flex"
                        Title="Show potential duplicate transactions"/>
     </ToolBarContent>
     <HeaderContent>
