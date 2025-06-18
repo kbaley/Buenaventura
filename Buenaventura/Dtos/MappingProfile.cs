@@ -25,7 +25,6 @@ public class MappingProfile : Profile
         CreateMap<Invoice, InvoiceForPosting>()
             .ReverseMap()
             .ForMember(dest => dest.Customer, opt => opt.Ignore());
-        CreateMap<Account, AccountForPosting>().ReverseMap();
         CreateMap<Investment, InvestmentDetailDto>()
             .ForMember(i => i.Dividends, opt => opt.Ignore())
             .ForMember(i => i.AveragePrice, opt => opt.MapFrom(src => Math.Round(src.GetAveragePricePaid(), 2)))

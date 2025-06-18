@@ -1,8 +1,5 @@
-﻿using Buenaventura.Client.Models;
-using Buenaventura.Client.Services;
-using Buenaventura.Data;
+﻿using Buenaventura.Data;
 using Buenaventura.Domain;
-using CryptoHelper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

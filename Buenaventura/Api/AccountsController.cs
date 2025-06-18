@@ -1,12 +1,9 @@
-using AutoMapper;
 using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
-using Buenaventura.Dtos;
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Api;
 
@@ -15,8 +12,7 @@ namespace Buenaventura.Api;
 [ApiController]
 public class AccountsController(
     BuenaventuraDbContext context,
-    IAccountService accountService,
-    IMapper mapper)
+    IAccountService accountService)
     : ControllerBase
 {
     [HttpGet]
@@ -99,11 +95,22 @@ public class AccountsController(
     [HttpPost]
     public async Task<IActionResult> PostAccount([FromBody] AccountForPosting account)
     {
-        var mappedAccount = mapper.Map<Account>(account);
+        var mappedAccount = new Account
+        {
+            AccountId = account.AccountId,
+            Name = account.Name,
+            Currency = account.Currency,
+            Vendor = account.Vendor,
+            AccountType = account.AccountType,
+            MortgagePayment = account.MortgagePayment,
+            MortgageType = account.MortgageType,
+            IsHidden = account.IsHidden,
+            DisplayOrder = account.DisplayOrder
+        };
         mappedAccount.AccountId = Guid.NewGuid();
         context.Accounts.Add(mappedAccount);
 
-        var category = context.GetOrCreateCategory("Starting Balance").GetAwaiter().GetResult();
+        var category = await context.GetOrCreateCategory("Starting Balance");
         var transaction = new Transaction
         {
             TransactionId = Guid.NewGuid(),

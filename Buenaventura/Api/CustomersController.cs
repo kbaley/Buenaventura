@@ -1,9 +1,7 @@
 ﻿using Buenaventura.Client.Services;
-using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Api;
 

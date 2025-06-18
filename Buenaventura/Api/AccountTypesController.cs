@@ -1,5 +1,4 @@
-﻿using Buenaventura.Domain;
-using Buenaventura.Shared;
+﻿using Buenaventura.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buenaventura.Api;

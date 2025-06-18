@@ -17,7 +17,6 @@ namespace Buenaventura.Api;
 [Route("api/[controller]")]
 [ApiController]
 public class InvoicesController(
-    IConfiguration configuration,
     IInvoiceService invoiceService,
     IInvoiceGenerator invoiceGenerator,
     BuenaventuraDbContext context,
