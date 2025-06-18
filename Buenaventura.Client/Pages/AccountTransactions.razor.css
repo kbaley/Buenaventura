@@ -14,6 +14,21 @@
         overflow-wrap: break-word;
         word-wrap: break-word;
     }
+
+    /* Styles for date grouping in mobile view */
+    .transaction-date-group .date-header {
+        background-color: var(--mud-palette-background-grey);
+        border-radius: 4px;
+        margin-bottom: 8px;
+        font-weight: 500;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .transaction-group-container {
+        margin-bottom: 16px;
+    }
 }
 
 /* Hide action buttons by default on mobile and show on hover/touch */

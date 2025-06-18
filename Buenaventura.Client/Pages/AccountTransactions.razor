@@ -135,45 +135,47 @@
     }
     else if (transactions.Items.Any())
     {
-        <MudList Dense="true" Clickable="false" T="TransactionForDisplay">
-            @foreach (var transaction in transactions.Items)
+        <div class="transaction-group-container">
+            @foreach (var dateGroup in GroupTransactionsByDate())
             {
-                <MudCard Elevation="2" Class="mb-3">
-                    <MudCardContent Class="pa-3">
-                        <div class="d-flex justify-space-between align-center">
-                            <MudText Typo="Typo.subtitle1">@transaction.TransactionDate.ToString("MM/dd/yyyy")</MudText>
-                            <MudText Typo="Typo.subtitle1" Color="@(transaction.Debit.HasValue ? Color.Error : Color.Success)">
-                                @(transaction.Debit.HasValue ? $"-${transaction.Debit?.ToString("N2")}" : $"${transaction.Credit?.ToString("N2")}")
-                            </MudText>
-                        </div>
-                        <MudDivider Class="my-2"/>
-                        <div class="d-flex flex-column">
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.body2"><strong>Vendor:</strong></MudText>
-                                <MudText Typo="Typo.body2">@transaction.Vendor</MudText>
-                            </div>
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.body2"><strong>Category:</strong></MudText>
-                                <MudText Typo="Typo.body2">@transaction.Category.Name</MudText>
-                            </div>
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.body2"><strong>Description:</strong></MudText>
-                                <MudText Typo="Typo.body2" Style="max-width: 65%; word-break: break-word;">@transaction.Description</MudText>
-                            </div>
-                            @if (string.IsNullOrEmpty(searchString) && !showDuplicates)
-                            {
-                                <div class="d-flex justify-space-between">
-                                    <MudText Typo="Typo.body2"><strong>Balance:</strong></MudText>
-                                    <MudText Typo="Typo.body2">$@transaction.RunningTotal.ToString("N2")</MudText>
-                                </div>
-                            }
-                        </div>
-                    </MudCardContent>
-                </MudCard>
-            }
-        </MudList>
+                <div class="transaction-date-group mb-4">
+                    <MudText Typo="Typo.h6" Class="date-header px-3 py-2 mb-2">
+                        @dateGroup.Key.ToString("dddd, MMMM d, yyyy")
+                    </MudText>
 
-        <div class="d-flex justify-center mb-4">
+                    @foreach (var transaction in dateGroup.Value)
+                    {
+                        <MudCard Elevation="0" Class="mb-1 mx-1">
+                            <MudCardContent Class="pa-3">
+                                <div class="d-flex justify-space-between align-center">
+                                    <MudText Typo="Typo.subtitle1">@transaction.Vendor</MudText>
+                                    <MudText Typo="Typo.subtitle1" Color="@(transaction.Debit.HasValue ? Color.Error : Color.Success)">
+                                        @(transaction.Debit.HasValue ? $"-${transaction.Debit?.ToString("N2")}" : $"${transaction.Credit?.ToString("N2")}")
+                                    </MudText>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <div class="d-flex justify-space-between">
+                                        <MudText Typo="Typo.body2">@transaction.Category.Name</MudText>
+                                        @if (string.IsNullOrEmpty(searchString) && !showDuplicates)
+                                        {
+                                            <MudText Typo="Typo.body2">$@transaction.RunningTotal.ToString("N2")</MudText>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(transaction.Description))
+                                    {
+                                        <div class="d-flex justify-space-between">
+                                            <MudText Typo="Typo.body2" Style="max-width: 65%; word-break: break-word;">@transaction.Description</MudText>
+                                        </div>
+                                    }
+                                </div>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="d-flex justify-center my-4">
             <MudPagination Count="@((int)Math.Ceiling((double)transactions.TotalCount / 50))" 
                           SelectedChanged="async page => await LoadMobilePage(page)" 
                           Color="Color.Primary"/>

@@ -97,6 +97,14 @@ public partial class AccountTransactions(
         };
     }
 
+    private Dictionary<DateTime, List<TransactionForDisplay>> GroupTransactionsByDate()
+    {
+        return transactions.Items
+            .GroupBy(t => t.TransactionDate.Date)
+            .OrderByDescending(g => g.Key)
+            .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
     private void CancelEdit(TransactionForDisplay transaction)
     {
         if (transactionBackup != null)
