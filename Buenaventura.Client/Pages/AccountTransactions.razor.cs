@@ -368,4 +368,18 @@ public partial class AccountTransactions(
             await transactionTable!.ReloadServerData();
         }
     }
+
+    private async Task LoadMobilePage(int page)
+    {
+        if (showDuplicates)
+        {
+            transactions = await accountService.GetPotentialDuplicateTransactions(AccountId);
+        }
+        else
+        {
+            // Page is 1-based but API expects 0-based index
+            transactions = await accountService.GetTransactions(AccountId, searchString, page - 1, 50);
+        }
+        StateHasChanged();
+    }
 }

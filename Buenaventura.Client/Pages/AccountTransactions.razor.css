@@ -1,0 +1,37 @@
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    .transaction-amount {
+        text-align: right;
+    }
+
+    /* Adjust spacing in cards */
+    ::deep .mud-card-content {
+        padding: 8px 12px;
+    }
+
+    /* Make sure text doesn't overflow on small screens */
+    ::deep .mud-typography {
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+    }
+}
+
+/* Hide action buttons by default on mobile and show on hover/touch */
+.action-buttons {
+    display: none;
+}
+
+.row-with-actions:hover .action-buttons,
+.row-with-actions:active .action-buttons {
+    display: flex;
+}
+
+/* Styles for the hover row content */
+.hover-row-content {
+    display: inline-block;
+}
+
+.row-with-actions:hover .hover-row-content,
+.row-with-actions:active .hover-row-content {
+    display: none;
+}
