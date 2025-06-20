@@ -13,7 +13,6 @@ namespace Buenaventura.Api;
 [ApiController]
 public class ReportsController(
     BuenaventuraDbContext context, 
-    IDashboardService dashboardService,
     IReportRepository reportRepo) : ControllerBase
 {
     [HttpGet]

@@ -62,12 +62,17 @@ public class ServerDashboardService(
         var period = ReportPeriod.GetLast12Months();
         var report = new List<ReportDataPoint>();
         var currentData = period.Start;
+        var cumulativeValue = 0m;
         while (currentData < period.End)
         {
+            var startDate = currentData.FirstDayOfMonth();
+            var endDate = currentData.LastDayOfMonth();
+            var reportValue = await reportRepo.GetInvestmentChangeFor(startDate, endDate);
+            cumulativeValue += reportValue;
             report.Add(new ReportDataPoint
             {
                 Label = currentData.ToString("MMM yy"),
-                Value = await reportRepo.GetInvestmentTotalFor(currentData.LastDayOfMonth())
+                Value = cumulativeValue
             });
             currentData = currentData.AddMonths(1);
         }

@@ -41,6 +41,38 @@ namespace Buenaventura.Data
             return Math.Round(usTotal + (cadTotal / exchangeRate), 2);
         }
 
+        public async Task<decimal> GetInvestmentChangeFor(DateTime start, DateTime end)
+        {
+            var exchangeRate = await context.Currencies.GetCadExchangeRate(end);
+            var gainLossCategory = await context.GetOrCreateCategory("Gain/loss on investments");
+
+            var usTransactions = await context.Transactions
+                .Include(t => t.Account)
+                .Where(t => t.TransactionDate <= end
+                            && t.TransactionDate >= start
+                            && t.Account!.AccountType == "Investment"
+                            && t.CategoryId == gainLossCategory.CategoryId
+                            && t.Account.Currency == "USD")
+                .ToListAsync();
+            var usTotal = await context.Transactions
+                .Include(t => t.Account)
+                .Where(t => t.TransactionDate <= end 
+                            && t.TransactionDate >= start
+                            && t.Account!.AccountType == "Investment"
+                            && t.CategoryId == gainLossCategory.CategoryId
+                            && t.Account.Currency == "USD")
+                .SumAsync(t => t.Amount);
+            var cadTotal = await context.Transactions
+                .Include(t => t.Account)
+                .Where(t => t.TransactionDate <= end 
+                            && t.TransactionDate >= start
+                            && t.Account!.AccountType == "Investment"
+                            && t.CategoryId == gainLossCategory.CategoryId
+                            && t.Account.Currency == "CAD")
+                .SumAsync(t => t.Amount);
+            return Math.Round(usTotal + (cadTotal / exchangeRate), 2);
+        }
+
         public async Task<IEnumerable<CategoryTotal>> GetTransactionsByCategoryType(string categoryType, DateTime start, DateTime end)
         {
             var amountPrefix = "";
