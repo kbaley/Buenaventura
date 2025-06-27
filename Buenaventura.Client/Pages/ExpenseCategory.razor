@@ -8,6 +8,12 @@
     [Parameter] public Guid CategoryId { get; set; }
     private CategoryTotal Category { get; set; } = new();
     
+    //TODO:
+    //  - Chart of spending on category for last twelve months
+    //  - Spending this month
+    //  - Comparison of 30 day spending: last 30 days, previous 90 days, previous 360 days
+    //  - Transaction list
+    
     protected override async Task OnInitializedAsync()
     {
         // Category = await DashboardService.GetCategoryTotal(CategoryId);
