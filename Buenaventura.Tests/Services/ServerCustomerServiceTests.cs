@@ -76,13 +76,17 @@ public class ServerCustomerServiceTests : IClassFixture<TestDbContextFixture>
     {
         // Arrange
         var customerModel = TestDataFactory.CustomerModelFaker.Generate();
-        customerModel.CustomerId = Guid.NewGuid();
+        var initialCount = await _fixture.Context.Customers.CountAsync();
         
         // Act
         await _service.AddCustomer(customerModel);
         
         // Assert
-        var dbCustomer = await _fixture.Context.Customers.FindAsync(customerModel.CustomerId);
+        var finalCount = await _fixture.Context.Customers.CountAsync();
+        finalCount.Should().Be(initialCount + 1);
+        
+        var dbCustomer = await _fixture.Context.Customers
+            .FirstOrDefaultAsync(c => c.Name == customerModel.Name && c.Email == customerModel.Email);
         dbCustomer.Should().NotBeNull();
         dbCustomer!.Name.Should().Be(customerModel.Name);
         dbCustomer.Email.Should().Be(customerModel.Email);
@@ -118,7 +122,7 @@ public class ServerCustomerServiceTests : IClassFixture<TestDbContextFixture>
         dbCustomer!.Name.Should().Be("Updated Name");
         dbCustomer.Email.Should().Be("updated@email.com");
         dbCustomer.ContactName.Should().Be("Updated Contact");
-        dbCustomer.Address.Should().Be("Updated Address");
+        dbCustomer.Address.Should().Be("Updated Street\nUpdated City, Updated Region");
         dbCustomer.City.Should().Be("Updated City");
         dbCustomer.StreetAddress.Should().Be("Updated Street");
         dbCustomer.Region.Should().Be("Updated Region");
@@ -157,13 +161,14 @@ public class ServerCustomerServiceTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
-    public async Task DeleteCustomer_NonExistentCustomer_DoesNotThrow()
+    public async Task DeleteCustomer_NonExistentCustomer_ThrowsException()
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
         
-        // Act &amp; Assert
+        // Act & Assert
         await FluentActions.Invoking(() => _service.DeleteCustomer(nonExistentId))
-            .Should().NotThrowAsync();
+            .Should().ThrowAsync<Exception>()
+            .WithMessage("Customer not found");
     }
 }

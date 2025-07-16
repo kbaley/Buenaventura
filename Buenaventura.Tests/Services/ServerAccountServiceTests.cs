@@ -121,7 +121,7 @@ public class ServerAccountServiceTests : IClassFixture<TestDbContextFixture>
         dbAccount.Currency.Should().Be("EUR");
         dbAccount.Vendor.Should().Be("Updated Vendor");
         dbAccount.AccountType.Should().Be("Updated Type");
-        dbAccount.IsHidden.Should().Be(!account.IsHidden);
+        dbAccount.IsHidden.Should().Be(updatedAccount.IsHidden);
     }
 
     [Fact]
@@ -190,6 +190,7 @@ public class ServerAccountServiceTests : IClassFixture<TestDbContextFixture>
         // Arrange
         var accountId = Guid.NewGuid();
         var transaction = TestDataFactory.TransactionForDisplayFaker.Generate();
+        transaction.Debit = 100m;  // Ensure we have a debit value
         
         // Act
         await _service.AddTransaction(accountId, transaction);
@@ -204,6 +205,7 @@ public class ServerAccountServiceTests : IClassFixture<TestDbContextFixture>
     {
         // Arrange
         var transaction = TestDataFactory.TransactionForDisplayFaker.Generate();
+        transaction.Credit = 150m;  // Ensure we have a credit value
         
         // Act
         await _service.UpdateTransaction(transaction);

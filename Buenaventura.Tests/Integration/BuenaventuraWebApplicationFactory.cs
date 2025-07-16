@@ -14,9 +14,14 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
     {
         builder.ConfigureServices(services =>
         {
-            // Remove the existing DbContext registration
-            var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<BuenaventuraDbContext>));
-            if (descriptor != null)
+            // Remove any existing DbContext configurations
+            var descriptors = services.Where(d => 
+                d.ServiceType == typeof(DbContextOptions<BuenaventuraDbContext>) ||
+                d.ServiceType == typeof(BuenaventuraDbContext) ||
+                d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>))
+                .ToList();
+
+            foreach (var descriptor in descriptors)
             {
                 services.Remove(descriptor);
             }
@@ -24,10 +29,13 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
             // Add test database
             services.AddDbContext<BuenaventuraDbContext>(options =>
             {
-                options.UseInMemoryDatabase("TestDb");
+                options.UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}");
                 options.UseSnakeCaseNamingConvention();
             });
+        });
 
+        builder.ConfigureServices(services =>
+        {
             // Build the service provider
             var sp = services.BuildServiceProvider();
 
@@ -37,36 +45,15 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
             var db = scopedServices.GetRequiredService<BuenaventuraDbContext>();
             var logger = scopedServices.GetRequiredService<ILogger<BuenaventuraWebApplicationFactory<TStartup>>>();
 
-            // Ensure the database is created
-            db.Database.EnsureCreated();
-
             try
             {
-                // Seed the database with test data
-                SeedDatabase(db);
+                // Seed the database with required data
+                Task.Run(async () => await TestDatabaseSeeder.SeedTestData(db)).Wait();
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occurred seeding the database with test messages. Error: {Message}", ex.Message);
             }
         });
-    }
-
-    private static void SeedDatabase(BuenaventuraDbContext context)
-    {
-        // Seed with test data
-        var accounts = TestDataFactory.AccountFaker.Generate(3);
-        context.Accounts.AddRange(accounts);
-
-        var categories = TestDataFactory.CategoryFaker.Generate(5);
-        context.Categories.AddRange(categories);
-
-        var customers = TestDataFactory.CustomerFaker.Generate(3);
-        context.Customers.AddRange(customers);
-
-        var investments = TestDataFactory.InvestmentFaker.Generate(3);
-        context.Investments.AddRange(investments);
-
-        context.SaveChanges();
     }
 }

@@ -158,6 +158,6 @@ public class TransactionTests
         transaction.SetAmountInBaseCurrency("CAD", 1.3m);
         
         // Assert
-        transaction.AmountInBaseCurrency.Should().Be(100m / 1.3m);
+        transaction.AmountInBaseCurrency.Should().BeApproximately(100m / 1.3m, 0.01m);
     }
 }

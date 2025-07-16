@@ -49,6 +49,7 @@ public class TestDbContextFixture : IDisposable
     public TestDbContextFixture()
     {
         Context = TestDbContextFactory.CreateInMemoryDbContext();
+        Task.Run(async () => await TestDatabaseSeeder.SeedRequiredData(Context)).Wait();
     }
     
     public void Dispose()

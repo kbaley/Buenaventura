@@ -68,7 +68,15 @@ public static class TestDataFactory
         .RuleFor(t => t.Amount, f => f.Random.Decimal(-1000, 1000))
         .RuleFor(t => t.TransactionDate, f => f.Date.Recent(365))
         .RuleFor(t => t.IsReconciled, f => f.Random.Bool())
-        .RuleFor(t => t.TransactionType, f => f.PickRandom<TransactionType>());
+        .RuleFor(t => t.TransactionType, f => f.PickRandom<TransactionType>())
+        .RuleFor(t => t.Debit, (f, t) => t.Amount > 0 ? t.Amount : null)
+        .RuleFor(t => t.Credit, (f, t) => t.Amount < 0 ? Math.Abs(t.Amount) : null)
+        .RuleFor(t => t.Category, f => new CategoryModel 
+        { 
+            CategoryId = f.Random.Guid(), 
+            Name = f.Commerce.Department(),
+            CategoryClass = f.PickRandom("Expense", "Income", "Transfer")
+        });
 
     public static Faker<InvestmentTransaction> InvestmentTransactionFaker => new Faker<InvestmentTransaction>()
         .RuleFor(it => it.InvestmentTransactionId, f => f.Random.Guid())

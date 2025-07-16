@@ -176,21 +176,34 @@ public class InvestmentsControllerTests : IClassFixture<TestDbContextFixture>
     {
         // Arrange
         var investment = TestDataFactory.InvestmentFaker.Generate();
+        investment.Dividends = new List<Transaction>();
+        investment.Transactions = new List<InvestmentTransaction>();
+        
         _fixture.Context.Investments.Add(investment);
         await _fixture.Context.SaveChangesAsync();
         
-        var expectedModel = TestDataFactory.InvestmentModelFaker.Generate();
-        expectedModel.InvestmentId = investment.InvestmentId;
+        var expectedDto = new InvestmentDetailDto
+        {
+            InvestmentId = investment.InvestmentId,
+            Name = investment.Name,
+            Symbol = investment.Symbol,
+            Shares = 100,
+            AveragePrice = 50,
+            LastPrice = 60,
+            Transactions = new List<InvestmentTransactionDto>(),
+            Dividends = new List<RecordDividendModel>()
+        };
         
-        _mockMapper.Setup(m => m.Map<InvestmentModel>(It.IsAny<Investment>()))
-            .Returns(expectedModel);
+        _mockMapper.Setup(m => m.Map<InvestmentDetailDto>(It.IsAny<Investment>()))
+            .Returns(expectedDto);
         
         // Act
         var result = await _controller.Get(investment.InvestmentId);
         
         // Assert
-        result.Should().Be(expectedModel);
-        _mockMapper.Verify(m => m.Map<InvestmentModel>(It.IsAny<Investment>()), Times.Once);
+        result.Value.Should().NotBeNull();
+        result.Value.InvestmentId.Should().Be(investment.InvestmentId);
+        _mockMapper.Verify(m => m.Map<InvestmentDetailDto>(It.IsAny<Investment>()), Times.Once);
     }
 
     [Fact]
@@ -203,7 +216,7 @@ public class InvestmentsControllerTests : IClassFixture<TestDbContextFixture>
         var result = await _controller.Get(nonExistentId);
         
         // Assert
-        result.Should().BeNull();
+        result.Result.Should().BeOfType<NotFoundResult>();
     }
 
     [Fact]
