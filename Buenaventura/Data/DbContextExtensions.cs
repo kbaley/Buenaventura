@@ -14,7 +14,13 @@ public static class DbContextExtensions
             .Where(c => c.Symbol == "CAD")
             .ToListAsync())
             .OrderBy(c => Math.Abs((asOf.Value - c.LastRetrieved).TotalMinutes))
-            .First();
+            .FirstOrDefault();
+        
+        if (currency == null)
+        {
+            throw new InvalidOperationException("CAD currency not found in database");
+        }
+        
         return currency.PriceInUsd;
     }
 

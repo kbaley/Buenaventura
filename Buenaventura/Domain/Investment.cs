@@ -24,6 +24,11 @@ public class Investment
         var totalPaid = Transactions.Sum(t => t.Shares * t.Price);
         var dividends = Dividends.Sum(d => d.Amount);
         var currentValue = GetCurrentValue();
+        
+        // Prevent division by zero
+        if (currentValue == 0)
+            return 0;
+            
         return (currentValue + dividends - totalPaid) / currentValue;
     }
 
