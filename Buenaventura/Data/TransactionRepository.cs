@@ -94,7 +94,7 @@ namespace Buenaventura.Data
         {
             if (dbTransaction.TransactionType != TransactionType.TRANSFER && dbTransaction.TransactionType != TransactionType.INVESTMENT)
                 return false;
-            if (dbTransaction.LeftTransfer!.RightTransaction!.AccountId != transaction.Category.TransferAccountId)
+            if (dbTransaction.LeftTransfer?.RightTransaction?.AccountId != transaction.Category.TransferAccountId)
                 return false;
             return true;
         }

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Buenaventura.Tests.Integration;
 
@@ -41,10 +43,9 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
             }
 
             // Add test database with a fresh configuration
-            services.AddEntityFrameworkInMemoryDatabase();
             services.AddDbContext<BuenaventuraDbContext>(options =>
             {
-                options.UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}");
+                options.UseInMemoryDatabase("TestDb");
                 options.UseSnakeCaseNamingConvention();
             }, ServiceLifetime.Scoped);
 
@@ -54,10 +55,14 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
                 options.Filters.Clear();
             });
             
+            // Replace authentication with test authentication
+            services.AddAuthentication("Test")
+                .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TestAuthenticationHandler>("Test", options => { });
+            
             // Override authorization to allow anonymous access
             services.AddAuthorization(options =>
             {
-                options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder("Test")
                     .RequireAssertion(_ => true)
                     .Build();
             });
@@ -74,11 +79,12 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
             try
             {
                 // Seed the database with required data
-                Task.Run(async () => await TestDatabaseSeeder.SeedTestData(db)).Wait();
+                TestDatabaseSeeder.SeedTestData(db).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occurred seeding the database with test messages. Error: {Message}", ex.Message);
+                throw; // Re-throw to ensure the test fails if seeding fails
             }
         });
     }
