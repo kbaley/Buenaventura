@@ -130,7 +130,15 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
     public async Task Get_ExistingTransaction_ReturnsTransaction()
     {
         // Arrange
+        var account = TestDataFactory.AccountFaker.Generate();
+        _fixture.Context.Accounts.Add(account);
+        
+        var category = TestDataFactory.CategoryFaker.Generate();
+        _fixture.Context.Categories.Add(category);
+        
         var transaction = TestDataFactory.TransactionFaker.Generate();
+        transaction.AccountId = account.AccountId;
+        transaction.CategoryId = category.CategoryId;
         _fixture.Context.Transactions.Add(transaction);
         await _fixture.Context.SaveChangesAsync();
         
@@ -167,6 +175,11 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         var transactionDto = TestDataFactory.TransactionForDisplayFaker.Generate();
         transactionDto.TransactionId = Guid.NewGuid();
         
+        // Create and add a real account for the transaction
+        var account = TestDataFactory.AccountFaker.Generate();
+        account.AccountId = transactionDto.AccountId!.Value;
+        _fixture.Context.Accounts.Add(account);
+        
         // Ensure the category exists in the database
         var category = new Category 
         { 
@@ -192,17 +205,16 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
     public async Task Update_ExistingTransaction_UpdatesTransaction()
     {
         // Arrange
-        var transaction = TestDataFactory.TransactionFaker.Generate();
-        _fixture.Context.Transactions.Add(transaction);
+        var account = TestDataFactory.AccountFaker.Generate();
+        _fixture.Context.Accounts.Add(account);
         
-        // Ensure the category exists in the database
-        var category = new Category 
-        { 
-            CategoryId = transaction.CategoryId ?? Guid.NewGuid(), 
-            Name = "Test Category",
-            Type = "Expense"
-        };
+        var category = TestDataFactory.CategoryFaker.Generate();
         _fixture.Context.Categories.Add(category);
+        
+        var transaction = TestDataFactory.TransactionFaker.Generate();
+        transaction.AccountId = account.AccountId;
+        transaction.CategoryId = category.CategoryId;
+        _fixture.Context.Transactions.Add(transaction);
         await _fixture.Context.SaveChangesAsync();
         
         var updatedTransaction = new TransactionForDisplay
@@ -213,7 +225,7 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
             Description = "Updated Description",
             Amount = 999.99m,
             TransactionDate = DateTime.Now,
-            Category = new CategoryModel { CategoryId = category.CategoryId, Name = "Test Category", CategoryClass = "Expense" },
+            Category = new CategoryModel { CategoryId = category.CategoryId, Name = category.Name, CategoryClass = category.Type },
             TransactionType = transaction.TransactionType
         };
         
@@ -237,7 +249,15 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
     public async Task Delete_ExistingTransaction_RemovesTransaction()
     {
         // Arrange
+        var account = TestDataFactory.AccountFaker.Generate();
+        _fixture.Context.Accounts.Add(account);
+        
+        var category = TestDataFactory.CategoryFaker.Generate();
+        _fixture.Context.Categories.Add(category);
+        
         var transaction = TestDataFactory.TransactionFaker.Generate();
+        transaction.AccountId = account.AccountId;
+        transaction.CategoryId = category.CategoryId;
         _fixture.Context.Transactions.Add(transaction);
         await _fixture.Context.SaveChangesAsync();
         

@@ -19,7 +19,9 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
                 d.ServiceType == typeof(DbContextOptions<BuenaventuraDbContext>) ||
                 d.ServiceType == typeof(BuenaventuraDbContext) ||
                 d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>) ||
-                d.ServiceType == typeof(DbContextOptions))
+                d.ServiceType == typeof(DbContextOptions) ||
+                d.ImplementationType?.Name.Contains("PostgreSQL") == true ||
+                d.ImplementationType?.Name.Contains("Npgsql") == true)
                 .ToList();
 
             foreach (var descriptor in descriptors)
@@ -27,12 +29,38 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
                 services.Remove(descriptor);
             }
 
+            // Also remove any Entity Framework services that might conflict
+            var efDescriptors = services.Where(d => 
+                d.ServiceType.Namespace?.Contains("EntityFramework") == true ||
+                d.ServiceType.Namespace?.Contains("Npgsql") == true)
+                .ToList();
+
+            foreach (var descriptor in efDescriptors)
+            {
+                services.Remove(descriptor);
+            }
+
             // Add test database with a fresh configuration
+            services.AddEntityFrameworkInMemoryDatabase();
             services.AddDbContext<BuenaventuraDbContext>(options =>
             {
                 options.UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}");
                 options.UseSnakeCaseNamingConvention();
             }, ServiceLifetime.Scoped);
+
+            // Disable authentication for integration tests
+            services.PostConfigure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
+            {
+                options.Filters.Clear();
+            });
+            
+            // Override authorization to allow anonymous access
+            services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                    .RequireAssertion(_ => true)
+                    .Build();
+            });
 
             // Build the service provider to seed data
             var sp = services.BuildServiceProvider();

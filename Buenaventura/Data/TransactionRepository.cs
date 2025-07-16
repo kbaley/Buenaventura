@@ -36,7 +36,13 @@ namespace Buenaventura.Data
                 .Include(t => t.LeftTransfer)
                 .Include(t => t.RightTransfer)
                 .Include(t => t.LeftTransfer!.RightTransaction)
-                .SingleAsync(t => t.TransactionId == transactionId);
+                .SingleOrDefaultAsync(t => t.TransactionId == transactionId);
+            
+            if (transaction == null)
+            {
+                return; // Transaction doesn't exist, nothing to delete
+            }
+            
             await UpdateInvoiceBalance(transaction.InvoiceId, transactionId);
             context.Transactions.Remove(transaction);
             if (transaction.LeftTransfer != null)

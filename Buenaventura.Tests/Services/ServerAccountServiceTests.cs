@@ -27,7 +27,16 @@ public class ServerAccountServiceTests : IClassFixture<TestDbContextFixture>
     public async Task GetAccounts_ReturnsAccountsWithBalances()
     {
         // Arrange
+        // Clear any existing accounts
+        _fixture.Context.Accounts.RemoveRange(_fixture.Context.Accounts);
+        await _fixture.Context.SaveChangesAsync();
+        
         var accounts = TestDataFactory.AccountFaker.Generate(3);
+        // Ensure all accounts are visible
+        foreach (var account in accounts)
+        {
+            account.IsHidden = false;
+        }
         
         _fixture.Context.Accounts.AddRange(accounts);
         await _fixture.Context.SaveChangesAsync();

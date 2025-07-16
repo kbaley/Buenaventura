@@ -30,6 +30,10 @@ public class AccountsControllerIntegrationTests : IClassFixture<BuenaventuraWebA
         // Assert
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
+        
+        // Log the response content for debugging
+        Console.WriteLine($"Response Content: {content}");
+        
         content.Should().NotBeNullOrEmpty();
         
         var accounts = JsonSerializer.Deserialize<List<AccountWithBalance>>(content, new JsonSerializerOptions
