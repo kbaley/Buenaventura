@@ -130,7 +130,7 @@ public class AccountsControllerIntegrationTests : IClassFixture<BuenaventuraWebA
             AccountId = account.AccountId,
             Vendor = "Test Vendor",
             Description = "Test Transaction",
-            Amount = 100.00m,
+            Credit = 100.00m,
             TransactionDate = DateTime.Now,
             Category = new CategoryModel { CategoryId = category.CategoryId, Name = category.Name },
             TransactionType = TransactionType.REGULAR
@@ -173,22 +173,23 @@ public class AccountsControllerIntegrationTests : IClassFixture<BuenaventuraWebA
             AccountId = account.AccountId,
             Vendor = "Updated Vendor",
             Description = "Updated Description",
-            Amount = 200.00m,
+            Credit = 200.00m,
             TransactionDate = DateTime.Now,
             Category = new CategoryModel { CategoryId = category.CategoryId, Name = category.Name },
-            TransactionType = TransactionType.REGULAR
+            TransactionType = transaction.TransactionType // Keep the same transaction type
         };
         
         var json = JsonSerializer.Serialize(updatedTransaction);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         
         // Act
-        var response = await _client.PutAsync($"/api/accounts/{account.AccountId}/transactions/{transaction.TransactionId}", content);
+        var response = await _client.PutAsync($"/api/transactions/{transaction.TransactionId}", content);
         
         // Assert
         response.EnsureSuccessStatusCode();
         
         // Verify the transaction was updated
+        context.ChangeTracker.Clear(); // Clear the change tracker to get fresh data
         var dbTransaction = await context.Transactions.FindAsync(transaction.TransactionId);
         dbTransaction.Should().NotBeNull();
         dbTransaction!.Vendor.Should().Be("Updated Vendor");
@@ -210,12 +211,13 @@ public class AccountsControllerIntegrationTests : IClassFixture<BuenaventuraWebA
         await context.SaveChangesAsync();
         
         // Act
-        var response = await _client.DeleteAsync($"/api/accounts/{account.AccountId}/transactions/{transaction.TransactionId}");
+        var response = await _client.DeleteAsync($"/api/transactions/{transaction.TransactionId}");
         
         // Assert
         response.EnsureSuccessStatusCode();
         
         // Verify the transaction was deleted
+        context.ChangeTracker.Clear(); // Clear the change tracker to get fresh data
         var deletedTransaction = await context.Transactions.FindAsync(transaction.TransactionId);
         deletedTransaction.Should().BeNull();
     }

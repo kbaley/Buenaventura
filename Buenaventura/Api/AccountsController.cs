@@ -76,9 +76,14 @@ public class AccountsController(
     }
     
     [HttpGet("{id}")]
-    public async Task<AccountWithBalance> GetAccount([FromRoute] Guid id)
+    public async Task<IActionResult> GetAccount([FromRoute] Guid id)
     {
-        return await accountService.GetAccount(id);
+        var account = await accountService.GetAccount(id);
+        if (account.AccountId == Guid.Empty)
+        {
+            return NotFound();
+        }
+        return Ok(account);
     }
     
 
