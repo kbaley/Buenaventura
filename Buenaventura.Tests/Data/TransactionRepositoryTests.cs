@@ -146,7 +146,7 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
-    public async Task Get_NonExistentTransaction_ReturnsNull()
+    public async Task Get_NonExistentTransaction_ReturnsEmptyObject()
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
@@ -155,7 +155,9 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         var result = await _repository.Get(nonExistentId);
         
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.TransactionId.Should().Be(Guid.Empty);
+        result.Description.Should().Be("");
     }
 
     [Fact]
@@ -164,6 +166,16 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         // Arrange
         var transactionDto = TestDataFactory.TransactionForDisplayFaker.Generate();
         transactionDto.TransactionId = Guid.NewGuid();
+        
+        // Ensure the category exists in the database
+        var category = new Category 
+        { 
+            CategoryId = transactionDto.Category.CategoryId!.Value, 
+            Name = transactionDto.Category.Name,
+            Type = transactionDto.Category.CategoryClass
+        };
+        _fixture.Context.Categories.Add(category);
+        await _fixture.Context.SaveChangesAsync();
         
         // Act
         await _repository.Insert(transactionDto);
@@ -182,6 +194,15 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         // Arrange
         var transaction = TestDataFactory.TransactionFaker.Generate();
         _fixture.Context.Transactions.Add(transaction);
+        
+        // Ensure the category exists in the database
+        var category = new Category 
+        { 
+            CategoryId = transaction.CategoryId ?? Guid.NewGuid(), 
+            Name = "Test Category",
+            Type = "Expense"
+        };
+        _fixture.Context.Categories.Add(category);
         await _fixture.Context.SaveChangesAsync();
         
         var updatedTransaction = new TransactionForDisplay
@@ -192,7 +213,7 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
             Description = "Updated Description",
             Amount = 999.99m,
             TransactionDate = DateTime.Now,
-            Category = new CategoryModel { CategoryId = transaction.CategoryId ?? Guid.NewGuid(), Name = "Test Category" },
+            Category = new CategoryModel { CategoryId = category.CategoryId, Name = "Test Category", CategoryClass = "Expense" },
             TransactionType = transaction.TransactionType
         };
         

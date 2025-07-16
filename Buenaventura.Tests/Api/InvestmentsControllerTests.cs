@@ -163,6 +163,18 @@ public class InvestmentsControllerTests : IClassFixture<TestDbContextFixture>
         _fixture.Context.Investments.Add(investment);
         await _fixture.Context.SaveChangesAsync();
         
+        // Setup mock to actually delete the investment
+        _mockInvestmentService.Setup(x => x.DeleteInvestment(investment.InvestmentId))
+            .Callback<Guid>(id => 
+            {
+                var inv = _fixture.Context.Investments.Find(id);
+                if (inv != null)
+                {
+                    _fixture.Context.Investments.Remove(inv);
+                    _fixture.Context.SaveChanges();
+                }
+            });
+        
         // Act
         await _controller.Delete(investment.InvestmentId);
         

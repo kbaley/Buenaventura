@@ -1,6 +1,7 @@
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Services;
+using Buenaventura.Shared;
 using Buenaventura.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -94,10 +95,30 @@ public class TransactionRepositoryPerformanceTests : IClassFixture<TestDbContext
         // Arrange
         var account = TestDataFactory.AccountFaker.Generate();
         _fixture.Context.Accounts.Add(account);
+        
+        // Add some basic categories for the transactions
+        var categories = new List<Category>
+        {
+            new Category { CategoryId = Guid.NewGuid(), Name = "Test Expense", Type = "Expense" },
+            new Category { CategoryId = Guid.NewGuid(), Name = "Test Income", Type = "Income" },
+            new Category { CategoryId = Guid.NewGuid(), Name = "Test Transfer", Type = "Transfer" }
+        };
+        _fixture.Context.Categories.AddRange(categories);
         await _fixture.Context.SaveChangesAsync();
         
         var transactions = TestDataFactory.TransactionForDisplayFaker.Generate(1000);
-        transactions.ForEach(t => t.AccountId = account.AccountId);
+        transactions.ForEach(t => 
+        {
+            t.AccountId = account.AccountId;
+            // Use one of the existing categories
+            var category = categories[Random.Shared.Next(categories.Count)];
+            t.Category = new CategoryModel 
+            { 
+                CategoryId = category.CategoryId, 
+                Name = category.Name,
+                CategoryClass = category.Type
+            };
+        });
         
         // Act
         var stopwatch = Stopwatch.StartNew();

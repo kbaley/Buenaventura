@@ -58,7 +58,7 @@ public class ServerAccountServiceTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
-    public async Task GetAccount_NonExistentAccount_ReturnsNull()
+    public async Task GetAccount_NonExistentAccount_ReturnsEmptyObject()
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
@@ -67,7 +67,9 @@ public class ServerAccountServiceTests : IClassFixture<TestDbContextFixture>
         var result = await _service.GetAccount(nonExistentId);
         
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.AccountId.Should().Be(Guid.Empty);
+        result.Name.Should().Be("");
     }
 
     [Fact]

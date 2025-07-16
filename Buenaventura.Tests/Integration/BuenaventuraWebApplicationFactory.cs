@@ -14,11 +14,12 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
     {
         builder.ConfigureServices(services =>
         {
-            // Remove any existing DbContext configurations
+            // Remove any existing DbContext configurations more thoroughly
             var descriptors = services.Where(d => 
                 d.ServiceType == typeof(DbContextOptions<BuenaventuraDbContext>) ||
                 d.ServiceType == typeof(BuenaventuraDbContext) ||
-                d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>))
+                d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>) ||
+                d.ServiceType == typeof(DbContextOptions))
                 .ToList();
 
             foreach (var descriptor in descriptors)
@@ -26,17 +27,14 @@ public class BuenaventuraWebApplicationFactory<TStartup> : WebApplicationFactory
                 services.Remove(descriptor);
             }
 
-            // Add test database
+            // Add test database with a fresh configuration
             services.AddDbContext<BuenaventuraDbContext>(options =>
             {
                 options.UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}");
                 options.UseSnakeCaseNamingConvention();
-            });
-        });
+            }, ServiceLifetime.Scoped);
 
-        builder.ConfigureServices(services =>
-        {
-            // Build the service provider
+            // Build the service provider to seed data
             var sp = services.BuildServiceProvider();
 
             // Create a scope to obtain a reference to the database context
