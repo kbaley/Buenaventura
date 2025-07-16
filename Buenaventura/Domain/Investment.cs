@@ -30,11 +30,20 @@ public class Investment
     public double GetAnnualizedIrr()
     {
         if (Transactions.Count == 0) return 0.0;
-        var transactionsByDate = Transactions.OrderBy(t => t.Date);
-        var startDate = transactionsByDate.First().Date;
+        
+        // Find the start of the current holding period
+        var transactionsByDate = Transactions.OrderBy(t => t.Date).ToList();
+        var currentHoldingStartDate = FindCurrentHoldingStartDate(transactionsByDate);
+        
+        // Only consider transactions from the current holding period
+        var relevantTransactions = transactionsByDate.Where(t => t.Date >= currentHoldingStartDate).ToList();
+        if (relevantTransactions.Count == 0) return 0.0;
+        
+        var startDate = relevantTransactions.First().Date;
         var payments = new List<double>();
         var days = new List<double>();
-        foreach (var transaction in transactionsByDate)
+        
+        foreach (var transaction in relevantTransactions)
         {
             payments.Add(-Convert.ToDouble(transaction.Shares) * Convert.ToDouble(transaction.Price));
             days.Add((transaction.Date - startDate).Days);
@@ -42,8 +51,9 @@ public class Investment
 
         if (Dividends != null)
         {
-            var dividendsByDate = Dividends.OrderBy(t => t.TransactionDate);
-            foreach (var dividend in dividendsByDate)
+            // Only include dividends from the current holding period
+            var relevantDividends = Dividends.Where(d => d.TransactionDate >= currentHoldingStartDate).OrderBy(t => t.TransactionDate);
+            foreach (var dividend in relevantDividends)
             {
                 payments.Add(Convert.ToDouble(dividend.Amount));
                 days.Add((dividend.TransactionDate - startDate).Days);
@@ -54,6 +64,47 @@ public class Investment
         days.Add((DateTime.Today - startDate).Days);
         var irr = Irr.CalculateIrr(payments.ToArray(), days.ToArray());
         return irr;
+    }
+
+    private DateTime FindCurrentHoldingStartDate(List<InvestmentTransaction> transactionsByDate)
+    {
+        // If we currently have no shares, return the date of the last transaction
+        var currentShares = GetNumberOfShares();
+        if (currentShares == 0)
+        {
+            return transactionsByDate.LastOrDefault()?.Date ?? DateTime.Today;
+        }
+
+        // Work backwards from the most recent transaction to find when we first acquired current holdings
+        var runningShares = 0m;
+        var holdingStartDate = DateTime.Today;
+
+        // Process transactions in reverse chronological order
+        for (int i = transactionsByDate.Count - 1; i >= 0; i--)
+        {
+            var transaction = transactionsByDate[i];
+            runningShares += transaction.Shares;
+            holdingStartDate = transaction.Date;
+
+            // If we've accounted for all current shares, this is our start date
+            if (runningShares >= currentShares)
+            {
+                break;
+            }
+
+            // If we went to zero or negative shares at any point, 
+            // it means we had sold everything and re-entered
+            if (runningShares <= 0)
+            {
+                // The next transaction forward is where current holdings began
+                holdingStartDate = i < transactionsByDate.Count - 1 
+                    ? transactionsByDate[i + 1].Date 
+                    : transaction.Date;
+                break;
+            }
+        }
+
+        return holdingStartDate;
     }
 
     public decimal GetNumberOfShares()
