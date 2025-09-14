@@ -1,0 +1,17 @@
+{
+    "inputs": [],
+    "servers": {
+        "Buenaventura": {
+            "type": "stdio",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "/Users/stimms/code/play/Buenaventura/Buenaventura.MCP/Buenaventura.MCP.csproj"
+            ],
+            "env": {
+                "ConnectionStrings:Buenaventura": "User ID=postgres;Password=password123;Host=localhost;Port=5443;Database=buenaventura;Pooling=true;"
+            }
+        }
+    }
+}

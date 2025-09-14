@@ -17,7 +17,7 @@ namespace Buenaventura.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -627,7 +627,7 @@ namespace Buenaventura.Migrations
                         .HasConstraintName("fk_transactions_accounts_account_id");
 
                     b.HasOne("Buenaventura.Domain.Category", "Category")
-                        .WithMany()
+                        .WithMany("Transactions")
                         .HasForeignKey("CategoryId")
                         .HasConstraintName("fk_transactions_categories_category_id");
 
@@ -670,6 +670,11 @@ namespace Buenaventura.Migrations
                 });
 
             modelBuilder.Entity("Buenaventura.Domain.Account", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Buenaventura.Domain.Category", b =>
                 {
                     b.Navigation("Transactions");
                 });
