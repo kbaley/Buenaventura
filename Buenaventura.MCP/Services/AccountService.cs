@@ -8,7 +8,7 @@ using Dapper;
 
 public class AccountService
 {
-    private readonly string _connectionString = "User ID=postgres;Password=password123;Host=localhost;Port=5443;Database=buenaventura;Pooling=true;";
+    private readonly string _connectionString;
     public AccountService(IOptions<DatabaseConfiguration> dbConfig)
     {
         _connectionString = dbConfig.Value.Buenaventura;

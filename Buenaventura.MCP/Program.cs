@@ -25,6 +25,7 @@ builder.Logging.AddConsole(consoleLogOptions =>
 });
 
 builder.Services.AddSingleton<AccountService>();
+builder.Services.AddSingleton<CustomerService>();
 
 builder.Services.AddMcpServer().WithStdioServerTransport().WithToolsFromAssembly();
 

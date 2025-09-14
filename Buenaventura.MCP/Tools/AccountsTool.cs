@@ -1,29 +1,34 @@
 namespace Buenaventura.MCP.Tools;
 
-using Dapper;
-using Npgsql;
-using ModelContextProtocol.Server;
 using System.ComponentModel;
 using Buenaventura.MCP.Models;
 using Buenaventura.MCP.Services;
-
+using Dapper;
+using ModelContextProtocol.Server;
+using Npgsql;
 
 [McpServerToolType]
 public static class AccountsTool
 {
     [
         McpServerTool(Name = "GetAccounts"),
-        Description("Get a list of accounts and their ids which are used for querying details of the accounts")
+        Description(
+            "Get a list of accounts and their ids which are used for querying details of the accounts"
+        )
     ]
-    public static IEnumerable<Account> GetAccounts(AccountService accountService)
+    public static IEnumerable<AccountName> GetAccounts(AccountService accountService)
     {
         var accounts = accountService.GetAccounts();
-        return accounts;
+        return accounts.Select(x => new AccountName { AccountId = x.AccountId, Name = x.Name });
     }
 
-    [McpServerTool]
-    public static string GetAccountInfo(string accountId)
+    [
+        McpServerTool(Name = "GetAccountDetails"),
+        Description("Get details for a specific account by id")
+    ]
+    public static Account GetAccountInfo(Guid accountId, AccountService accountService)
     {
-        return "Account info";
+        var account = accountService.GetAccounts().Where(x => x.AccountId == accountId);
+        return account.First();
     }
 }
