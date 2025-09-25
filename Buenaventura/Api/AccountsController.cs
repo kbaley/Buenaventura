@@ -15,14 +15,6 @@ public class AccountsController(
     IAccountService accountService)
     : ControllerBase
 {
-    [HttpGet("{id}/transactions/all")]
-    public async Task<TransactionListModel> GetAllTransactions([FromRoute] Guid id, [FromQuery] DateTime start,
-        [FromQuery] DateTime end)
-    {
-        // Get all transactions without pagination for duplicate checking
-        return await accountService.GetAllTransactions(id, start, end); 
-    }
-
     [HttpGet("{id}/transactions/duplicates")]
     public async Task<TransactionListModel> GetPotentialDuplicateTransactions([FromRoute] Guid id)
     {
