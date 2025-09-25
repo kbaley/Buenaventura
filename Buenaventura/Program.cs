@@ -36,14 +36,13 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
     });
-builder.Services.AddAutoMapper(_ => { }, typeof(ServerAccountService));
+builder.Services.AddAutoMapper(cfg => { cfg.LicenseKey = builder.Configuration.GetValue("AutoMapperLicenseKey", ""); },
+    typeof(ServerAccountService));
 var connectionString = builder.Configuration.GetConnectionString("Buenaventura");
 builder.Services.AddDbContext<BuenaventuraDbContext>(options =>
 {
-    options.UseNpgsql(connectionString, npgOptions =>
-    {
-        npgOptions.MigrationsHistoryTable("__ef_migrations_history", "public");
-    });
+    options.UseNpgsql(connectionString,
+        npgOptions => { npgOptions.MigrationsHistoryTable("__ef_migrations_history", "public"); });
     options.UseSnakeCaseNamingConvention();
 });
 

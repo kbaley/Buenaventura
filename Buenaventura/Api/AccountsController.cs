@@ -15,12 +15,6 @@ public class AccountsController(
     IAccountService accountService)
     : ControllerBase
 {
-    [HttpGet("{id}/transactions/duplicates")]
-    public async Task<TransactionListModel> GetPotentialDuplicateTransactions([FromRoute] Guid id)
-    {
-        return await accountService.GetPotentialDuplicateTransactions(id);
-    }
-
     [HttpGet("{id}/transactions/csv")]
     public async Task<IActionResult> DownloadTransactionsCsv([FromRoute] Guid id)
     {
