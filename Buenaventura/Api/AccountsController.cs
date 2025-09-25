@@ -15,18 +15,6 @@ public class AccountsController(
     IAccountService accountService)
     : ControllerBase
 {
-    [HttpGet]
-    public async Task<IEnumerable<AccountWithBalance>> GetAccounts()
-    {
-        return await accountService.GetAccounts();
-    }
-
-    [HttpGet("{id}/transactions")]
-    public async Task<TransactionListModel> GetTransactions([FromRoute] Guid id, [FromQuery] UrlQuery query)
-    {
-        return await accountService.GetTransactions(id, query.Search ?? "", query.Page, query.PageSize);
-    }
-
     [HttpGet("{id}/transactions/all")]
     public async Task<TransactionListModel> GetAllTransactions([FromRoute] Guid id, [FromQuery] DateTime start,
         [FromQuery] DateTime end)

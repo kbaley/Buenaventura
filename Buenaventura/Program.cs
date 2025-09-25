@@ -8,6 +8,7 @@ using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Identity;
 using Buenaventura.Services;
+using FastEndpoints;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddFastEndpoints(o => o.IncludeAbstractValidators = true);
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -84,5 +86,6 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(Buenaventura.Client._Imports).Assembly);
 
 app.MapAdditionalIdentityEndpoints();
+app.UseFastEndpoints(c => c.Serializer.Options.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 app.Run();
