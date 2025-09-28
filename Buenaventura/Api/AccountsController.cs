@@ -85,24 +85,4 @@ public class AccountsController(
 
         return CreatedAtAction("PostAccount", new { id = mappedAccount.AccountId }, model);
     }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteAccount([FromRoute] Guid id)
-    {
-        var account = await context.Accounts.FindAsync(id);
-        if (account == null)
-        {
-            return NotFound();
-        }
-        context.Remove(account);
-        await context.SaveChangesAsync();
-        return Ok(account);
-    }
-    
-    [HttpPost("order")]
-    public async Task<IActionResult> SaveAccountOrder([FromBody] List<OrderedAccount> accountOrders)
-    {
-        await accountService.SaveAccountOrder(accountOrders);
-        return Ok();
-    }
 }
