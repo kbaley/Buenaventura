@@ -130,16 +130,6 @@ public partial class AccountTransactions(
         await ReloadTransactions();
     }
 
-    private async Task<TableData<TransactionForDisplay>> xServerReload(TableState state, CancellationToken token)
-    {
-        transactions = await accountService.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
-        return new TableData<TransactionForDisplay>
-        {
-            TotalItems = transactions.TotalCount,
-            Items = transactions.Items.ToList().Prepend(newTransaction)
-        };
-    }
-
     private async Task HandleKeyDown(KeyboardEventArgs args, TransactionForDisplay context, bool isDateField = false)
     {
         if (args.Key == "Enter")

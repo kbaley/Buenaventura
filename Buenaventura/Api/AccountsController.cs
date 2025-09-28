@@ -15,12 +15,6 @@ public class AccountsController(
     IAccountService accountService)
     : ControllerBase
 {
-    [HttpPost("{id}/transactions")]
-    public async Task CreateTransaction([FromRoute] Guid id, [FromBody] TransactionForDisplay transaction)
-    {
-        await accountService.AddTransaction(id, transaction);
-    }
-    
     [HttpPost("{id}/transactions/bulk")]
     public async Task AddBulkTransactions([FromRoute] Guid id, [FromBody] List<TransactionForDisplay> transactions)
     {

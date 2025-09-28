@@ -1,5 +1,4 @@
 ﻿using Buenaventura.Client.Services;
-using Buenaventura.Data;
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,10 +8,7 @@ namespace Buenaventura.Api;
 [Authorize]
 [Route("api/[controller]")]
 [ApiController]
-public class TransactionsController(
-    BuenaventuraDbContext context,
-    ITransactionRepository transactionRepo,
-    IAccountService accountService)
+public class TransactionsController(IAccountService accountService)
     : ControllerBase
 {
     [HttpDelete("{id}")]
