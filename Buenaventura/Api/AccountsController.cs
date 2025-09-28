@@ -26,17 +26,7 @@ public class AccountsController(
     {
         await accountService.AddBulkTransactions(id, transactions);
     }
-
-    [HttpPut("{id}")]
-    public async Task PutAccount([FromRoute] Guid id, [FromBody] AccountWithBalance account)
-    {
-        if (id != account.AccountId)
-        {
-            throw new Exception("AccountId does not match");
-        }
-        await accountService.UpdateAccount(account);
-    }
-
+    
     [HttpPost]
     public async Task<IActionResult> PostAccount([FromBody] AccountForPosting account)
     {

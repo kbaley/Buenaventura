@@ -63,7 +63,13 @@ public class ClientAccountService(HttpClient httpClient) : ClientService<Account
 
     public async Task UpdateAccount(AccountWithBalance account)
     {
-        await Put(account.AccountId, account);
+        var url = $"api/accounts";
+        var result = await Client.PutAsJsonAsync(url, account);
+        if (result.IsSuccessStatusCode)
+        {
+            return;
+        }
+        throw new Exception(result.ReasonPhrase);
     }
 
     public async Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime start, DateTime end)
