@@ -15,28 +15,6 @@ public class AccountsController(
     IAccountService accountService)
     : ControllerBase
 {
-    [HttpGet("{id}/transactions/csv")]
-    public async Task<IActionResult> DownloadTransactionsCsv([FromRoute] Guid id)
-    {
-        var account = await accountService.GetAccount(id);
-        var transactions = await accountService.GetTransactions(id, "", 0, int.MaxValue);
-        
-        var csvContent = "Date,Vendor,Category,Description,Debit,Credit,Balance\n";
-        foreach (var transaction in transactions.Items)
-        {
-            csvContent += $"{transaction.TransactionDate:MM/dd/yyyy}," +
-                         $"\"{transaction.Vendor?.Replace("\"", "\"\"")}\"," +
-                         $"\"{transaction.Category.Name.Replace("\"", "\"\"")}\"," +
-                         $"\"{transaction.Description?.Replace("\"", "\"\"")}\"," +
-                         $"{transaction.Debit?.ToString() ?? ""}," +
-                         $"{transaction.Credit?.ToString() ?? ""}," +
-                         $"{transaction.RunningTotal}\n";
-        }
-
-        var fileName = $"{account.Name.Replace(" ", "_")}_transactions_{DateTime.Now:yyyy-MM-dd}.csv";
-        return File(System.Text.Encoding.UTF8.GetBytes(csvContent), "text/csv", fileName);
-    }
-    
     [HttpPost("{id}/transactions")]
     public async Task CreateTransaction([FromRoute] Guid id, [FromBody] TransactionForDisplay transaction)
     {
