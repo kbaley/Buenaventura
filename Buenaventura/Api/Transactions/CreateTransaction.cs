@@ -9,7 +9,6 @@ public class CreateTransaction(IAccountService accountService) : Endpoint<Transa
     public override void Configure()
     {
         Post("/api/accounts/{AccountId}/transactions");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(TransactionForDisplay req, CancellationToken ct)

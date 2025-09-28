@@ -11,17 +11,17 @@ namespace Buenaventura.Api;
 public class TransactionsController(IAccountService accountService)
     : ControllerBase
 {
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteTransaction([FromRoute] Guid id)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        await accountService.DeleteTransaction(id);
-        return Ok();
-    }
+    // [HttpDelete("{id}")]
+    // public async Task<IActionResult> DeleteTransaction([FromRoute] Guid id)
+    // {
+    //     if (!ModelState.IsValid)
+    //     {
+    //         return BadRequest(ModelState);
+    //     }
+    //
+    //     await accountService.DeleteTransaction(id);
+    //     return Ok();
+    // }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateTransaction([FromRoute] Guid id,

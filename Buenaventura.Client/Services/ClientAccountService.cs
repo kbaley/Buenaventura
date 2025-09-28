@@ -82,7 +82,7 @@ public class ClientAccountService(HttpClient httpClient) : ClientService<Account
     public async Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions)
     {
         var url = $"api/accounts/{accountId}/transactions/bulk";
-        var response = await httpClient.PostAsJsonAsync(url, transactions);
+        var response = await httpClient.PostAsJsonAsync(url, new { Transactions = transactions });
         return response.IsSuccessStatusCode;
     }
 }
