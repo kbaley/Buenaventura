@@ -10,7 +10,7 @@ internal class GetAllTransactions(IAccountService accountService) : Endpoint<Get
 {
     public override void Configure()
     {
-        Get($"/api/accounts/{{AccountId}}/transactions/all");
+        Get("/api/accounts/{AccountId}/transactions/all");
     }
 
     public override async Task HandleAsync(GetAllTransactionsRequest request, CancellationToken ct)

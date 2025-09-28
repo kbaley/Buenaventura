@@ -60,8 +60,7 @@
 @code {
     [Parameter] public Guid AccountId { get; set; }
     private AccountWithBalance account = new();
-    private readonly List<string> accountTypes =
-        ["Cash", "Bank Account", "Credit Card", "Investment", "Mortgage", "Loan", "Asset"];
+    private readonly List<string> accountTypes = AccountType.GetAccountTypes().ToList();
 
     private readonly List<string> currencies = ["USD", "CAD"];
     private bool success;

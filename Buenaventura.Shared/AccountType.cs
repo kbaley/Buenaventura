@@ -16,11 +16,11 @@ public static class AccountType
         {
             CASH,
             BANK_ACCOUNT,
-            MORTGAGE,
             ASSET,
             LOAN,
             INVESTMENT,
-            CREDIT_CARD
+            CREDIT_CARD,
+            MORTGAGE,
         };
 
         return types;

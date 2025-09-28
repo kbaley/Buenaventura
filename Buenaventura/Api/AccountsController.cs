@@ -26,13 +26,6 @@ public class AccountsController(
     {
         await accountService.AddBulkTransactions(id, transactions);
     }
-    
-    [HttpGet("{id}")]
-    public async Task<AccountWithBalance> GetAccount([FromRoute] Guid id)
-    {
-        return await accountService.GetAccount(id);
-    }
-    
 
     [HttpPut("{id}")]
     public async Task PutAccount([FromRoute] Guid id, [FromBody] AccountWithBalance account)
