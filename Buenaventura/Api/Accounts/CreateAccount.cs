@@ -2,21 +2,19 @@ using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Shared;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using FastEndpoints;
 
 namespace Buenaventura.Api;
 
-[Authorize]
-[Route("api/[controller]")]
-[ApiController]
-public class AccountsController(
-    BuenaventuraDbContext context,
-    IAccountService accountService)
-    : ControllerBase
+public class CreateAccount(IAccountService accountService, BuenaventuraDbContext context) : Endpoint<AccountForPosting, AccountWithTransactions>
 {
-    [HttpPost]
-    public async Task<IActionResult> PostAccount([FromBody] AccountForPosting account)
+    public override void Configure()
+    {
+        Post("/api/accounts");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(AccountForPosting account, CancellationToken ct)
     {
         var mappedAccount = new Account
         {
@@ -59,8 +57,8 @@ public class AccountsController(
             Transactions = new List<TransactionForDisplay>([transaction.ToDto()]),
             CurrentBalance = account.StartingBalance
         };
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(ct);
 
-        return CreatedAtAction("PostAccount", new { id = mappedAccount.AccountId }, model);
+        await SendOkAsync(model, ct);
     }
 }
