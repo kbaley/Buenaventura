@@ -13,6 +13,7 @@ public partial class AccountTransactions(
     AccountSyncService accountSyncService,
     IInvoiceService invoiceService,
     IAccountsApi accountsApi,
+    ITransactionsApi transactionsApi,
     IJSRuntime jsRuntime)
 {
     [Parameter] public Guid AccountId { get; set; }
@@ -192,7 +193,7 @@ public partial class AccountTransactions(
 
         if (transaction == newTransaction)
         {
-            await accountsApi.AddTransaction(AccountId, transaction);
+            await transactionsApi.AddTransaction(AccountId, transaction);
             newTransaction = new TransactionForDisplay
             {
                 TransactionDate = transaction.TransactionDate,
@@ -206,7 +207,7 @@ public partial class AccountTransactions(
 
         editingTransaction = null;
         transactionBackup = null;
-        await accountsApi.UpdateTransaction(transaction);
+        await transactionsApi.UpdateTransaction(transaction);
         await ReloadTransactions();
         await accountSyncService.RefreshAccounts();
     }
@@ -267,7 +268,7 @@ public partial class AccountTransactions(
 
     private async Task DeleteTransaction(TransactionForDisplay context)
     {
-        await accountsApi.DeleteTransaction(context.TransactionId);
+        await transactionsApi.DeleteTransaction(context.TransactionId);
         await ReloadTransactions();
         await accountSyncService.RefreshAccounts();
     }
@@ -339,11 +340,11 @@ public partial class AccountTransactions(
 
         if (showDuplicates)
         {
-            transactions = await accountsApi.GetPotentialDuplicateTransactions(AccountId);
+            transactions = await transactionsApi.GetPotentialDuplicateTransactions(AccountId);
         }
         else
         {
-            transactions = await accountsApi.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
+            transactions = await transactionsApi.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
         }
 
         var gridTransactions = showDuplicates ? transactions.Items : transactions.Items.Prepend(newTransaction);
@@ -371,12 +372,12 @@ public partial class AccountTransactions(
     {
         if (showDuplicates)
         {
-            transactions = await accountsApi.GetPotentialDuplicateTransactions(AccountId);
+            transactions = await transactionsApi.GetPotentialDuplicateTransactions(AccountId);
         }
         else
         {
             // Page is 1-based but API expects 0-based index
-            transactions = await accountsApi.GetTransactions(AccountId, searchString, page - 1, 50);
+            transactions = await transactionsApi.GetTransactions(AccountId, searchString, page - 1, 50);
         }
         StateHasChanged();
     }

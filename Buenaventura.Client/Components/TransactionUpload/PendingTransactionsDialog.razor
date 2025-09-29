@@ -1,5 +1,4 @@
-@using Refit
-@inject IAccountsApi AccountsApi
+@inject ITransactionsApi TransactionsApi
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -147,14 +146,13 @@
 
             try
             {
-                await AccountsApi.AddBulkTransactions(AccountId, new CreateBulkTransactionsRequest(AccountId, transactionsToAdd));
+                await TransactionsApi.AddBulkTransactions(AccountId, new CreateBulkTransactionsRequest(AccountId, transactionsToAdd));
                 Snackbar.Add($"Successfully added {selectedTransactions.Count} transactions", Severity.Success);
                 MudDialog!.Close(DialogResult.Ok(true));
-            } catch (ApiException apiEx)
+            } catch
             {
                 const string errorMessage = "An error occurred while adding transactions.";
                 Snackbar.Add(errorMessage, Severity.Error);
-                return;
             }
             
         }

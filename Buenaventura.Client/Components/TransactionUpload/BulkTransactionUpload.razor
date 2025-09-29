@@ -2,7 +2,7 @@
 @inject IJSRuntime JSRuntime
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
-@inject IAccountsApi AccountsApi
+@inject ITransactionsApi TransactionsApi
 
 <MudButton Variant="Variant.Filled"
            Color="Color.Primary"
@@ -131,7 +131,7 @@
         var start = pendingTransactions.Min(t => t.TransactionDate).AddDays(-7);
         var end = pendingTransactions.Max(t => t.TransactionDate).AddDays(7);
         // Get existing transactions to check for duplicates
-        var existingTransactions = await AccountsApi.GetAllTransactions(AccountId, start, end);
+        var existingTransactions = await TransactionsApi.GetAllTransactions(AccountId, start, end);
 
         foreach (var transaction in pendingTransactions)
         {
