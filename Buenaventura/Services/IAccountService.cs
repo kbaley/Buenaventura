@@ -1,8 +1,9 @@
+using Buenaventura.Client.Services;
 using Buenaventura.Shared;
 
-namespace Buenaventura.Client.Services;
+namespace Buenaventura.Services;
 
-public interface IAccountService : IAppService
+public interface IAccountService : IServerAppService
 {
      Task<IEnumerable<AccountWithBalance>> GetAccounts();
      Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50);

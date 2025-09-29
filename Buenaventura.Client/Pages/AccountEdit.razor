@@ -1,5 +1,4 @@
 @page "/account/edit/{accountId:guid}"
-@inject IAccountService accountService
 @inject IAccountsApi accountsApi
 @inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
@@ -83,7 +82,7 @@
     private async Task SaveAccount()
     {
         if (!success) return;
-        await accountService.UpdateAccount(account);
+        await accountsApi.UpdateAccount(account);
         await accountSyncService.RefreshAccounts();
         StateHasChanged();
         navigationManager.NavigateTo("/accounts");

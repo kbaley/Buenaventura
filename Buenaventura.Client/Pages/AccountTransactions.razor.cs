@@ -8,7 +8,6 @@ using MudBlazor;
 namespace Buenaventura.Client.Pages;
 
 public partial class AccountTransactions(
-    IAccountService accountService,
     ICategoryService categoryService,
     IVendorService vendorService,
     AccountSyncService accountSyncService,
@@ -193,7 +192,7 @@ public partial class AccountTransactions(
 
         if (transaction == newTransaction)
         {
-            await accountService.AddTransaction(AccountId, transaction);
+            await accountsApi.AddTransaction(AccountId, transaction);
             newTransaction = new TransactionForDisplay
             {
                 TransactionDate = transaction.TransactionDate,
@@ -268,7 +267,7 @@ public partial class AccountTransactions(
 
     private async Task DeleteTransaction(TransactionForDisplay context)
     {
-        await accountService.DeleteTransaction(context.TransactionId);
+        await accountsApi.DeleteTransaction(context.TransactionId);
         await ReloadTransactions();
         await accountSyncService.RefreshAccounts();
     }
@@ -340,7 +339,7 @@ public partial class AccountTransactions(
 
         if (showDuplicates)
         {
-            transactions = await accountService.GetPotentialDuplicateTransactions(AccountId);
+            transactions = await accountsApi.GetPotentialDuplicateTransactions(AccountId);
         }
         else
         {
@@ -372,7 +371,7 @@ public partial class AccountTransactions(
     {
         if (showDuplicates)
         {
-            transactions = await accountService.GetPotentialDuplicateTransactions(AccountId);
+            transactions = await accountsApi.GetPotentialDuplicateTransactions(AccountId);
         }
         else
         {

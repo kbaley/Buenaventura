@@ -1,6 +1,5 @@
 @page "/accounts"
 @using Color = MudBlazor.Color
-@inject IAccountService accountService
 @inject AccountSyncService accountSyncService
 @inject IAccountsApi accountsApi
 @inject NavigationManager NavigationManager
@@ -118,7 +117,7 @@
             AccountId = a.AccountId, 
             DisplayOrder = a.DisplayOrder
         }).ToList();
-        await accountService.SaveAccountOrder(accountOrders);
+        await accountsApi.SaveAccountOrder(accountOrders);
         await accountSyncService.RefreshAccounts();
         NavigationManager.NavigateTo("/");
     }

@@ -1,4 +1,5 @@
-@inject IAccountService AccountService
+@using Refit
+@inject IAccountsApi AccountsApi
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -143,19 +144,19 @@
                 }
                 transactionsToAdd.Add(transactionToSync);
             }
-            
-            // Add the transactions
-            var result = await AccountService.AddBulkTransactions(AccountId, transactionsToAdd);
-            
-            if (result)
+
+            try
             {
+                await AccountsApi.AddBulkTransactions(AccountId, new CreateBulkTransactionsRequest(AccountId, transactionsToAdd));
                 Snackbar.Add($"Successfully added {selectedTransactions.Count} transactions", Severity.Success);
-                MudDialog.Close(DialogResult.Ok(true));
-            }
-            else
+                MudDialog!.Close(DialogResult.Ok(true));
+            } catch (ApiException apiEx)
             {
-                Snackbar.Add("Failed to add transactions", Severity.Error);
+                const string errorMessage = "An error occurred while adding transactions.";
+                Snackbar.Add(errorMessage, Severity.Error);
+                return;
             }
+            
         }
         catch (Exception ex)
         {

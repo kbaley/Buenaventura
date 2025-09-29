@@ -1,10 +1,9 @@
 using Buenaventura.Client.Services;
 using Buenaventura.Shared;
 using FastEndpoints;
+using IAccountService = Buenaventura.Services.IAccountService;
 
 namespace Buenaventura.Api;
-
-public record CreateBulkTransactionsRequest(Guid AccountId, List<TransactionForDisplay> Transactions);
 
 public class CreateBulkTransactions(IAccountService accountService) : Endpoint<CreateBulkTransactionsRequest>
 {

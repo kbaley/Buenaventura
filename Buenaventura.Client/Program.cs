@@ -52,7 +52,7 @@ foreach (var service in builder.Services)
     Console.WriteLine(service.ServiceKey);
 }
 builder.Services.Scan(scan => scan
-    .FromAssemblyOf<ClientAccountService>()
+    .FromAssemblyOf<ClientAdminService>()
     .AddClasses(classes => classes.AssignableTo<IAppService>())
     .AsImplementedInterfaces()
     .WithScopedLifetime());
