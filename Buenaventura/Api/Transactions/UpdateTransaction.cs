@@ -9,7 +9,7 @@ public class UpdateTransaction(IAccountService accountService) : Endpoint<Transa
     
     public override void Configure()
     {
-        Put("/api/transactions/{TransactionId}");
+        Put("/api/transactions");
     }
 
     public override async Task HandleAsync(TransactionForDisplay req, CancellationToken ct)

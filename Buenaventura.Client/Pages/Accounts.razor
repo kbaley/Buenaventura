@@ -2,6 +2,7 @@
 @using Color = MudBlazor.Color
 @inject IAccountService accountService
 @inject AccountSyncService accountSyncService
+@inject IAccountsApi accountsApi
 @inject NavigationManager NavigationManager
 
 @attribute [Authorize]
@@ -63,7 +64,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        accounts = (await accountService.GetAccounts())
+        accounts = (await accountsApi.GetAccounts())
             .OrderBy(a => a.DisplayOrder)
             .ToList();
     }

@@ -13,6 +13,7 @@ public partial class AccountTransactions(
     IVendorService vendorService,
     AccountSyncService accountSyncService,
     IInvoiceService invoiceService,
+    IAccountsApi accountsApi,
     IJSRuntime jsRuntime)
 {
     [Parameter] public Guid AccountId { get; set; }
@@ -206,7 +207,7 @@ public partial class AccountTransactions(
 
         editingTransaction = null;
         transactionBackup = null;
-        await accountService.UpdateTransaction(transaction);
+        await accountsApi.UpdateTransaction(transaction);
         await ReloadTransactions();
         await accountSyncService.RefreshAccounts();
     }
@@ -306,7 +307,7 @@ public partial class AccountTransactions(
     {
         
         loading = true;
-        Account = await accountService.GetAccount(AccountId);
+        Account = await accountsApi.GetAccount(AccountId);
         searchString = string.Empty;
         if (reloadTransactions)
         {
@@ -343,7 +344,7 @@ public partial class AccountTransactions(
         }
         else
         {
-            transactions = await accountService.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
+            transactions = await accountsApi.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
         }
 
         var gridTransactions = showDuplicates ? transactions.Items : transactions.Items.Prepend(newTransaction);
@@ -376,7 +377,7 @@ public partial class AccountTransactions(
         else
         {
             // Page is 1-based but API expects 0-based index
-            transactions = await accountService.GetTransactions(AccountId, searchString, page - 1, 50);
+            transactions = await accountsApi.GetTransactions(AccountId, searchString, page - 1, 50);
         }
         StateHasChanged();
     }

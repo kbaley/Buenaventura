@@ -1,5 +1,6 @@
 @page "/account/edit/{accountId:guid}"
 @inject IAccountService accountService
+@inject IAccountsApi accountsApi
 @inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
 
@@ -69,7 +70,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        account = await accountService.GetAccount(AccountId);
+        account = await accountsApi.GetAccount(AccountId);
         await base.OnInitializedAsync();
         
         // Use StateHasChanged and InvokeAsync to ensure the UI is updated

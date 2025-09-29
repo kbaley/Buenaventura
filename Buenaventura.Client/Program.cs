@@ -1,9 +1,11 @@
 using ApexCharts;
 using Blazored.LocalStorage;
+using Buenaventura.Client;
 using Buenaventura.Client.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
+using Refit;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -40,6 +42,10 @@ builder.Services.AddApexCharts(options =>
         },
     };
 });
+
+// Register Refit clients using the existing HttpClient so auth cookies from Login flow automatically
+var baseAddress = builder.HostEnvironment.BaseAddress;
+builder.Services.AddRefit<IAccountsApi>(baseAddress);
 
 foreach (var service in builder.Services)
 {

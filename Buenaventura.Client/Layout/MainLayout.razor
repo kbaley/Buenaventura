@@ -4,7 +4,7 @@
 @inject IJSRuntime JS
 @inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
-@inject IAccountService accountService
+@inject IAccountsApi accountsApi
 @inject ICategoryService categoryService
 @inject IApexChartService apexChartService
 
@@ -113,7 +113,7 @@
 
     private async Task OnAccountsUpdated()
     {
-        accounts = await accountService.GetAccounts();
+        accounts = await accountsApi.GetAccounts();
         categories = await categoryService.GetCategories();
         StateHasChanged();
     }
@@ -128,7 +128,7 @@
             LayoutProperties = new LayoutProperties()
         };
         await base.OnInitializedAsync();
-        accounts = await accountService.GetAccounts();
+        accounts = await accountsApi.GetAccounts();
         categories = await categoryService.GetCategories();
         accountSyncService.OnAccountsUpdated += OnAccountsUpdated;
 

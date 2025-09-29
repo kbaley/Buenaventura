@@ -7,23 +7,23 @@ public class ClientAccountService(HttpClient httpClient) : ClientService<Account
 {
     public async Task<IEnumerable<AccountWithBalance>> GetAccounts()
     {
-        return await GetAll();
+        throw new NotImplementedException();
     }
 
     public async Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50)
     {
-        var url = $"{accountId}/transactions?search={search}&page={page}&pageSize={pageSize}";
-        return await GetItem<TransactionListModel>(url);
+        throw new NotImplementedException();
     }
 
     public async Task<AccountWithBalance> GetAccount(Guid id)
     {
-        return await Get(id);
+        throw new NotImplementedException();
     }
 
     public async Task UpdateTransaction(TransactionForDisplay transaction)
     {
-        var url = $"api/transactions/{transaction.TransactionId}";
+        // throw new NotImplementedException();
+        var url = $"api/transactions";
         var result = await httpClient.PutAsJsonAsync(url, transaction);
         if (result.IsSuccessStatusCode)
         {
