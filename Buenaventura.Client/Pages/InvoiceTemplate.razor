@@ -1,5 +1,5 @@
 @page "/invoicetemplate"
-@inject IInvoiceService InvoiceService
+@inject IInvoicesApi InvoicesApi
 @inject ISnackbar Snackbar
 
 @attribute [Authorize]
@@ -68,7 +68,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Template = await InvoiceService.GetInvoiceTemplate();
+        Template = await InvoicesApi.GetInvoiceTemplate();
     }
 
     private async Task SaveTemplate()
@@ -76,7 +76,7 @@
         try
         {
             IsSaving = true;
-            await InvoiceService.SaveInvoiceTemplate(Template);
+            await InvoicesApi.SaveInvoiceTemplate(new InvoiceTemplateModel { Template = Template });
             Snackbar.Add("Template saved successfully", Severity.Success);
         }
         catch (Exception ex)

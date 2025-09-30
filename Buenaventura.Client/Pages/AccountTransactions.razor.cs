@@ -9,9 +9,9 @@ namespace Buenaventura.Client.Pages;
 
 public partial class AccountTransactions(
     ICategoryService categoryService,
-    IVendorService vendorService,
+    IVendorsApi vendorsApi,
     AccountSyncService accountSyncService,
-    IInvoiceService invoiceService,
+    IInvoicesApi invoicesApi,
     IAccountsApi accountsApi,
     ITransactionsApi transactionsApi,
     IJSRuntime jsRuntime)
@@ -41,7 +41,7 @@ public partial class AccountTransactions(
         await base.OnInitializedAsync();
 
         masterCategoryList = (await categoryService.GetCategories()).ToList();
-        var invoices = (await invoiceService.GetInvoices())
+        var invoices = (await invoicesApi.GetInvoices())
             .Where(i => i.Balance > 0)
             .ToList();
         foreach (var invoice in invoices)
@@ -56,7 +56,7 @@ public partial class AccountTransactions(
         }
 
         categories = masterCategoryList.ToList();
-        vendors = await vendorService.GetVendors();
+        vendors = await vendorsApi.GetVendors();
     }
 
     private TransactionForDisplay newTransaction { get; set; } = new()

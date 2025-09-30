@@ -1,5 +1,5 @@
 @page "/Invoices"
-@inject IInvoiceService invoiceService
+@inject IInvoicesApi invoicesApi
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 @inject IDialogService DialogService
@@ -117,7 +117,7 @@ else
     private async Task LoadInvoices()
     {
         loading = true;
-        invoices = await invoiceService.GetInvoices();
+        invoices = await invoicesApi.GetInvoices();
         loading = false;
         StateHasChanged();
     }
@@ -155,7 +155,7 @@ else
         var result = await dialog.Result;
         if (!result!.Canceled)
         {
-            await invoiceService.DeleteInvoice(invoice.InvoiceId);
+            await invoicesApi.DeleteInvoice(invoice.InvoiceId);
             await LoadInvoices();
         }
     }
@@ -178,7 +178,7 @@ else
         var result = await dialog.Result;
         if (!result!.Canceled)
         {
-            await invoiceService.EmailInvoice(invoice.InvoiceId);
+            await invoicesApi.EmailInvoice(invoice.InvoiceId);
             Snackbar.Add($"Email sent to {invoice.CustomerEmail} for invoice {invoice.InvoiceNumber}", Severity.Success);
             await LoadInvoices();
         }

@@ -9,6 +9,7 @@ using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using IInvoiceService = Buenaventura.Services.IInvoiceService;
 using Invoice = Buenaventura.Domain.Invoice;
 
 namespace Buenaventura.Api;
@@ -22,18 +23,6 @@ public class InvoicesController(
     BuenaventuraDbContext context,
     IMapper mapper) : ControllerBase
 {
-    [HttpGet]
-    public async Task<IEnumerable<InvoiceModel>> GetInvoices()
-    {
-        return await invoiceService.GetInvoices();
-    }
-
-    [HttpGet("nextinvoicenumber")]
-    public async Task<int> GetNextInvoiceNumber()
-    {
-        return await invoiceService.GetNextInvoiceNumber();
-    }
-
     [HttpPut("{id}")]
     public async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] InvoiceForPosting invoice)
     {

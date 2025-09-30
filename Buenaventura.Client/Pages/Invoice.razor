@@ -1,6 +1,6 @@
 @page "/invoice/new"
 @inject NavigationManager NavigationManager
-@inject IInvoiceService invoiceService
+@inject IInvoicesApi invoicesApi
 @inject ICustomerService customerService
 
 @attribute [Authorize]
@@ -123,7 +123,7 @@
     protected override async Task OnInitializedAsync()
     {
         customers = (await customerService.GetCustomers()).ToList();
-        invoiceNumber = await invoiceService.GetNextInvoiceNumber();
+        invoiceNumber = await invoicesApi.GetNextInvoiceNumber();
     }
 
     private void AddLineItem()
@@ -158,7 +158,7 @@
             CustomerId = selectedCustomer.CustomerId,
             LineItems = lineItems
         };
-        await invoiceService.CreateInvoice(invoice);
+        await invoicesApi.CreateInvoice(invoice);
         invoiceNumber++;
         NavigationManager.NavigateTo("/invoices");
     }

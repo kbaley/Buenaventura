@@ -2,6 +2,7 @@
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using IVendorService = Buenaventura.Services.IVendorService;
 
 namespace Buenaventura.Api;
 

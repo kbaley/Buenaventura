@@ -1,12 +1,10 @@
 using Buenaventura.Shared;
 
-namespace Buenaventura.Client.Services;
+namespace Buenaventura.Services;
 
-public interface IInvoiceService : IAppService
+public interface IInvoiceService : IServerAppService
 {
     Task<IEnumerable<InvoiceModel>> GetInvoices();
-    Task DeleteInvoice(Guid invoiceId);
-    
     Task<int> GetNextInvoiceNumber();
     Task CreateInvoice(InvoiceModel invoice);
     Task<string> GetInvoiceTemplate();
