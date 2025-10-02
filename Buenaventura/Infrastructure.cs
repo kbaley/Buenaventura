@@ -43,12 +43,12 @@ public static class Infrastructure
     public static IServiceCollection AddBuenaventuraServices(this IServiceCollection services)
     {
         services.Scan(scan => scan
-            .FromAssemblyOf<ServerAccountService>()
+            .FromAssemblyOf<AccountService>()
             .AddClasses(classes => classes.AssignableTo<IServerAppService>())
             .AsImplementedInterfaces()
             .WithScopedLifetime());
         services.Scan(scan => scan
-            .FromAssemblyOf<ServerAccountService>()
+            .FromAssemblyOf<AccountService>()
             .AddClasses(classes => classes.AssignableTo<IAppService>())
             .AsImplementedInterfaces()
             .WithScopedLifetime());

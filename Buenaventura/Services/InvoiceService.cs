@@ -1,4 +1,3 @@
-using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Shared;
@@ -8,7 +7,17 @@ using System.Globalization;
 
 namespace Buenaventura.Services;
 
-public class ServerInvoiceService(
+public interface IInvoiceService : IServerAppService
+{
+    Task<IEnumerable<InvoiceModel>> GetInvoices();
+    Task<int> GetNextInvoiceNumber();
+    Task CreateInvoice(InvoiceModel invoice);
+    Task<string> GetInvoiceTemplate();
+    Task SaveInvoiceTemplate(string template);
+    Task EmailInvoice(Guid invoiceId);
+}
+
+public class InvoiceService(
     BuenaventuraDbContext context,
     IInvoiceGenerator invoiceGenerator,
     IResend resend

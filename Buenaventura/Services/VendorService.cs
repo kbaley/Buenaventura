@@ -5,7 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public class ServerVendorService(
+public interface IVendorService : IServerAppService
+{
+    public Task<IEnumerable<VendorModel>> GetVendors();
+}
+
+public class VendorService(
     BuenaventuraDbContext context
 ) : IVendorService
 {

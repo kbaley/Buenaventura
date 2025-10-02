@@ -37,7 +37,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
     });
 builder.Services.AddAutoMapper(cfg => { cfg.LicenseKey = builder.Configuration.GetValue("AutoMapperLicenseKey", ""); },
-    typeof(ServerAccountService));
+    typeof(AccountService));
 var connectionString = builder.Configuration.GetConnectionString("Buenaventura");
 builder.Services.AddDbContext<BuenaventuraDbContext>(options =>
 {
