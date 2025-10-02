@@ -7,7 +7,7 @@ using MudBlazor;
 namespace Buenaventura.Client.Pages;
 
 public partial class Investments(
-    IInvestmentService investmentService,
+    IInvestmentsApi investmentsApi,
     NavigationManager navigationManager,
     AccountSyncService accountSyncService,
     IDialogService dialogService
@@ -25,7 +25,7 @@ public partial class Investments(
 
     private async Task LoadInvestments()
     {
-        var investmentList = await investmentService.GetInvestments();
+        var investmentList = await investmentsApi.GetInvestments();
         investments = investmentList.Investments;
         portfolioIrr = investmentList.PortfolioIrr;
     }
@@ -61,7 +61,7 @@ Do this only for test databases or if you are absolutely sure you want to delete
             result = await dialog.Result;
             if (!result!.Canceled)
             {
-                await investmentService.DeleteInvestment(investment.InvestmentId);
+                await investmentsApi.DeleteInvestment(investment.InvestmentId);
                 await LoadInvestments();
             }
         }
@@ -81,7 +81,7 @@ Do this only for test databases or if you are absolutely sure you want to delete
         if (!result!.Canceled)
         {
             var transaction = (BuySellModel)result.Data!;
-            await investmentService.BuySell(transaction);
+            await investmentsApi.BuySell(transaction);
             await accountSyncService.RefreshAccounts();
             await LoadInvestments();
         }
@@ -100,7 +100,7 @@ Do this only for test databases or if you are absolutely sure you want to delete
         if (!result!.Canceled)
         {
             var model = (RecordDividendModel)result.Data!;
-            await investmentService.RecordDividend(investment.InvestmentId, model);
+            await investmentsApi.RecordDividend(investment.InvestmentId, model);
             await accountSyncService.RefreshAccounts();
             await LoadInvestments();
         }
@@ -108,7 +108,7 @@ Do this only for test databases or if you are absolutely sure you want to delete
 
     private async Task UpdatePrices()
     {
-        var investmentList = await investmentService.UpdateCurrentPrices();
+        var investmentList = await investmentsApi.UpdateCurrentPrices();
         investments = investmentList.Investments;
         portfolioIrr = investmentList.PortfolioIrr;
         StateHasChanged();
@@ -116,7 +116,7 @@ Do this only for test databases or if you are absolutely sure you want to delete
 
     private async Task SyncPortfolioValue()
     {
-        await investmentService.MakeCorrectingEntry();
+        await investmentsApi.MakeCorrectingEntry();
         await accountSyncService.RefreshAccounts();
     }
 

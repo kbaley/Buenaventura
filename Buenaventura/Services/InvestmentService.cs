@@ -1,14 +1,25 @@
 using Buenaventura.Api;
-using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 
 namespace Buenaventura.Services;
 
-public class ServerInvestmentService(
+public interface IInvestmentService : IServerAppService
+{
+    Task<InvestmentListModel> GetInvestments();
+    Task<InvestmentListModel> UpdateCurrentPrices();
+    
+    // Makes required entry in the investments account to match the total of the portfolio
+    Task MakeCorrectingEntry();
+    Task DeleteInvestment(Guid investmentId);
+    Task AddInvestment(AddInvestmentModel investmentModel);
+    Task BuySell(BuySellModel buySellModel);
+    Task RecordDividend(Guid investmentId, RecordDividendModel model);
+}
+
+public class InvestmentService(
     BuenaventuraDbContext context,
     IInvestmentPriceParser priceParser,
     IInvestmentTransactionGenerator transactionGenerator,

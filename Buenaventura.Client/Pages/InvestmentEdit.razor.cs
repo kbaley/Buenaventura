@@ -6,7 +6,7 @@ namespace Buenaventura.Client.Pages;
 
 public partial class InvestmentEdit(
     IInvestmentCategoryService categoryService,
-    IInvestmentService investmentService,
+    IInvestmentsApi investmentsApi,
     AccountSyncService accountSyncService,
     NavigationManager navigationManager
     ) : ComponentBase
@@ -46,7 +46,7 @@ public partial class InvestmentEdit(
     private async Task Save()
     {
         // Save functionality will be implemented later
-        await investmentService.AddInvestment(investment);
+        await investmentsApi.AddInvestment(investment);
         await accountSyncService.RefreshAccounts();
         navigationManager.NavigateTo("/Investments");
     }
