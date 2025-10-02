@@ -1,7 +1,5 @@
 @page "/categories"
-@using Buenaventura.Client.Services
-@using Buenaventura.Shared
-@inject ICategoryService categoryService
+@inject ICategoriesApi categoriesApi
 @inject IDialogService dialogService
 @inject NavigationManager navigationManager
 
@@ -61,7 +59,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        categories = await categoryService.GetCategories();
+        categories = await categoriesApi.GetCategories();
     }
 
     private void EditCategory(CategoryModel category)
@@ -82,8 +80,8 @@ else
         var result = await dialog.Result;
         if (!result!.Canceled)
         {
-            await categoryService.DeleteCategory(category.CategoryId!.Value);
-            categories = await categoryService.GetCategories();
+            await categoriesApi.DeleteCategory(category.CategoryId!.Value);
+            categories = await categoriesApi.GetCategories();
             StateHasChanged();
         }
     }

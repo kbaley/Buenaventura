@@ -2,6 +2,7 @@
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ICategoryService = Buenaventura.Services.ICategoryService;
 
 namespace Buenaventura.Api;
 
@@ -28,13 +29,9 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return await categoryService.GetCategory(id);
     }
 
-    [HttpPut("{id}")]
-    public async Task PutCategory([FromRoute] Guid id, [FromBody] CategoryModel categoryModel)
+    [HttpPut]
+    public async Task PutCategory([FromBody] CategoryModel categoryModel)
     {
-        if (id != categoryModel.CategoryId)
-        {
-            throw new Exception("CategoryId does not match");
-        }
         await categoryService.UpdateCategory(categoryModel);
     }
 

@@ -1,6 +1,5 @@
 @page "/category/{categoryId:guid}"
-@using Buenaventura.Shared
-@inject ICategoryService categoryService
+@inject ICategoriesApi categoriesApi
 @inject NavigationManager navigationManager
 
 <MudGrid>
@@ -29,7 +28,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await categoryService.GetCategory(CategoryId);
+        var result = await categoriesApi.GetCategory(CategoryId);
         if (result != null)
         {
             category = result;
@@ -38,7 +37,7 @@
 
     private async Task SaveCategory()
     {
-        await categoryService.UpdateCategory(category);
+        await categoriesApi.UpdateCategory(category);
         navigationManager.NavigateTo("/categories");
     }
 

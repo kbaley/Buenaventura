@@ -1,5 +1,5 @@
 @page "/scramble"
-@inject ICategoryService categoryService
+@inject ICategoriesApi categoriesApi
 @inject AccountSyncService accountSyncService
 @inject NavigationManager navigationManager
 @inject IAdminService adminService
@@ -69,7 +69,7 @@ else
             return;
         }
 
-        categories = (await categoryService.GetCategories()).ToList();
+        categories = (await categoriesApi.GetCategories()).ToList();
     }
 
     private async Task ScrambleDatabase()

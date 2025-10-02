@@ -8,7 +8,7 @@ using MudBlazor;
 namespace Buenaventura.Client.Pages;
 
 public partial class AccountTransactions(
-    ICategoryService categoryService,
+    ICategoriesApi categoriesApi,
     IVendorsApi vendorsApi,
     AccountSyncService accountSyncService,
     IInvoicesApi invoicesApi,
@@ -40,7 +40,7 @@ public partial class AccountTransactions(
     {
         await base.OnInitializedAsync();
 
-        masterCategoryList = (await categoryService.GetCategories()).ToList();
+        masterCategoryList = (await categoriesApi.GetCategories()).ToList();
         var invoices = (await invoicesApi.GetInvoices())
             .Where(i => i.Balance > 0)
             .ToList();

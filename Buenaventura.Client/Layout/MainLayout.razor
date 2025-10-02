@@ -5,7 +5,7 @@
 @inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
 @inject IAccountsApi accountsApi
-@inject ICategoryService categoryService
+@inject ICategoriesApi categoriesApi
 @inject IApexChartService apexChartService
 
 <PageTitle>Buenaventura Personal Finance Manager</PageTitle>
@@ -114,7 +114,7 @@
     private async Task OnAccountsUpdated()
     {
         accounts = await accountsApi.GetAccounts();
-        categories = await categoryService.GetCategories();
+        categories = await categoriesApi.GetCategories();
         StateHasChanged();
     }
 
@@ -129,7 +129,7 @@
         };
         await base.OnInitializedAsync();
         accounts = await accountsApi.GetAccounts();
-        categories = await categoryService.GetCategories();
+        categories = await categoriesApi.GetCategories();
         accountSyncService.OnAccountsUpdated += OnAccountsUpdated;
 
         currentUrl = navigationManager.ToBaseRelativePath(navigationManager.Uri);

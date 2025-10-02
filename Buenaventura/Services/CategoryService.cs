@@ -5,7 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public class ServerCategoryService(
+public interface ICategoryService : IServerAppService
+{
+    Task<IEnumerable<CategoryModel>> GetCategories();
+    Task DeleteCategory(Guid id);
+    Task UpdateCategory(CategoryModel categoryModel);
+    Task<CategoryModel> GetCategory(Guid id);
+}
+
+public class CategoryService(
     BuenaventuraDbContext context
 ) : ICategoryService
 {
