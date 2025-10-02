@@ -4,6 +4,7 @@ using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace Buenaventura.Services;
 
@@ -11,7 +12,8 @@ public class ServerInvestmentService(
     BuenaventuraDbContext context,
     IInvestmentPriceParser priceParser,
     IInvestmentTransactionGenerator transactionGenerator,
-    ITransactionRepository transactionRepo
+    ITransactionRepository transactionRepo,
+    ICurrencyService currencyService
 ) : IInvestmentService
 {
     public async Task<InvestmentListModel> GetInvestments()
@@ -75,14 +77,18 @@ public class ServerInvestmentService(
     {
         var investments = context.Investments
             .Include(i => i.Transactions);
-        var currencyController = new CurrenciesController(context);
-        var currency = currencyController.GetExchangeRateFor("CAD").GetAwaiter().GetResult();
+
         var investmentsTotal = investments
-            .Where(i => i.Currency == "CAD").ToList()
-            .Sum(i => i.GetCurrentValue() / currency);
-        investmentsTotal += investments
             .Where(i => i.Currency == "USD").ToList()
             .Sum(i => i.GetCurrentValue());
+        if (investments
+            .Any(i => i.Currency == "CAD" && i.Transactions.Sum(t => t.Shares) > 0))
+        {
+            var exchangeRate = await currencyService.GetExchangeRateFor("CAD");
+            investmentsTotal += investments
+                .Where(i => i.Currency == "CAD").ToList()
+                .Sum(i => i.GetCurrentValue() / exchangeRate);
+        }
         var investmentAccount = context.Accounts.FirstOrDefault(a => a.AccountType == "Investment");
         if (investmentAccount == null)
             return;
