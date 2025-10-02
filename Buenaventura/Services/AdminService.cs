@@ -1,11 +1,15 @@
-using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public class ServerAdminService(
+public interface IAdminService : IServerAppService
+{
+    Task ScrambleDatabase(ScrambleModel model);
+}
+
+public class AdminService(
     BuenaventuraDbContext context
     ): IAdminService
 {

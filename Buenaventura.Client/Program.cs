@@ -48,13 +48,14 @@ builder.Services.AddRefit<ITransactionsApi>(baseAddress);
 builder.Services.AddRefit<IVendorsApi>(baseAddress);
 builder.Services.AddRefit<IInvoicesApi>(baseAddress);
 builder.Services.AddRefit<ICategoriesApi>(baseAddress);
+builder.Services.AddRefit<IAdminApi>(baseAddress);
 
 foreach (var service in builder.Services)
 {
     Console.WriteLine(service.ServiceKey);
 }
 builder.Services.Scan(scan => scan
-    .FromAssemblyOf<ClientAdminService>()
+    .FromAssemblyOf<ClientDashboardService>()
     .AddClasses(classes => classes.AssignableTo<IAppService>())
     .AsImplementedInterfaces()
     .WithScopedLifetime());

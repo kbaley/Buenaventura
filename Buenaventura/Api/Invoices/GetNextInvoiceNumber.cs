@@ -1,4 +1,3 @@
-using Buenaventura.Client.Services;
 using FastEndpoints;
 using IInvoiceService = Buenaventura.Services.IInvoiceService;
 

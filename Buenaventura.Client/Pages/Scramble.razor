@@ -2,7 +2,7 @@
 @inject ICategoriesApi categoriesApi
 @inject AccountSyncService accountSyncService
 @inject NavigationManager navigationManager
-@inject IAdminService adminService
+@inject IAdminApi adminApi
 
 @attribute [Authorize]
 
@@ -90,7 +90,7 @@ else
             DeleteBeforeDate = deleteBeforeDate.Value,
             Categories = categories
         };
-        await adminService.ScrambleDatabase(model);
+        await adminApi.ScrambleDatabase(model);
         await accountSyncService.RefreshAccounts();
         navigationManager.NavigateTo("/");
     }

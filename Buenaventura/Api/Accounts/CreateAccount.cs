@@ -1,18 +1,15 @@
-using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Shared;
 using FastEndpoints;
-using IAccountService = Buenaventura.Services.IAccountService;
 
 namespace Buenaventura.Api;
 
-public class CreateAccount(IAccountService accountService, BuenaventuraDbContext context) : Endpoint<AccountForPosting, AccountWithTransactions>
+public class CreateAccount(BuenaventuraDbContext context) : Endpoint<AccountForPosting, AccountWithTransactions>
 {
     public override void Configure()
     {
         Post("/api/accounts");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(AccountForPosting account, CancellationToken ct)
