@@ -1,6 +1,6 @@
 @page "/customer/{CustomerId:guid}"
 @page "/customer/new"
-@inject ICustomerService customerService
+@inject ICustomersApi customersApi
 @inject NavigationManager navigationManager
 @inject ISnackbar snackbar
 
@@ -73,7 +73,7 @@
     {
         if (!IsNew)
         {
-            Customer = await customerService.GetCustomer(CustomerId);
+            Customer = await customersApi.GetCustomer(CustomerId);
         }
     }
     
@@ -85,12 +85,12 @@
         {
             if (IsNew)
             {
-                await customerService.AddCustomer(Customer);
+                await customersApi.AddCustomer(Customer);
                 snackbar.Add("Customer created successfully", Severity.Success);
             }
             else
             {
-                await customerService.UpdateCustomer(Customer);
+                await customersApi.UpdateCustomer(Customer);
                 snackbar.Add("Customer updated successfully", Severity.Success);
             }
             navigationManager.NavigateTo("/customers");

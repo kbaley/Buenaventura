@@ -6,6 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
+public interface ICustomerService : IServerAppService
+{
+    Task<IEnumerable<CustomerModel>> GetCustomers(); 
+    Task<CustomerModel> GetCustomer(Guid customerId);
+    Task DeleteCustomer(Guid customerId);
+    Task UpdateCustomer(CustomerModel customerModel);
+    Task AddCustomer(CustomerModel customerModel);
+}
+
 public class ServerCustomerService(
     BuenaventuraDbContext context
 ) : ICustomerService

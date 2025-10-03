@@ -1,5 +1,5 @@
 @page "/customers"
-@inject ICustomerService customerService
+@inject ICustomersApi CustomersApi
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 
@@ -56,7 +56,7 @@ else
 
     private async Task LoadCustomers()
     {
-        customers = await customerService.GetCustomers();
+        customers = await CustomersApi.GetCustomers();
         StateHasChanged();
     }
 
@@ -78,7 +78,7 @@ else
         var result = await dialog.Result;
         if (!result!.Canceled)
         {
-            await customerService.DeleteCustomer(customer.CustomerId);
+            await CustomersApi.DeleteCustomer(customer.CustomerId);
             await LoadCustomers();
         }
     }
