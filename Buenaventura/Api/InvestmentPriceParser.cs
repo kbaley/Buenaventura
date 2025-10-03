@@ -1,9 +1,15 @@
 using Buenaventura.Data;
+using Buenaventura.Services;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Buenaventura.Api;
+
+public interface IInvestmentPriceParser : IServerAppService
+{
+    Task UpdatePricesFor(BuenaventuraDbContext context);
+}
 
 public class InvestmentPriceParser(IInvestmentRetriever investmentRetriever) : IInvestmentPriceParser
 {
