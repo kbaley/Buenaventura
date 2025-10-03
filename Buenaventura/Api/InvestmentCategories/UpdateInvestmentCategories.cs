@@ -1,29 +1,21 @@
-﻿using AutoMapper;
-using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
-using Buenaventura.Shared;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Api;
 
-[Authorize]
-[Route("api/[controller]")]
-[ApiController]
-public class InvestmentCategoriesController(BuenaventuraDbContext context, IMapper mapper,
-    IInvestmentCategoryService investmentCategoryService) : ControllerBase
+public class UpdateInvestmentCategories(BuenaventuraDbContext context, AutoMapper.IMapper mapper)
+    : Endpoint<IEnumerable<InvestmentCategoryForUpdate>, IEnumerable<InvestmentCategory>>
 {
-    [HttpGet]
-    public async Task<IEnumerable<InvestmentCategoryModel>> GetCategories()
+    public override void Configure()
     {
-        return await investmentCategoryService.GetCategories();
+        Post("/api/investmentcategories");
     }
 
-    [HttpPost]
-    public async Task<IActionResult> UpdateCategories([FromBody] InvestmentCategoryForUpdate[] categories)
+    public override async Task HandleAsync(IEnumerable<InvestmentCategoryForUpdate> req, CancellationToken ct)
     {
+        var categories = req.ToArray();
         // Update any investments that refer to a deleted category to remove the reference to the category
         foreach (var investment in context.Investments)
         {
@@ -48,13 +40,12 @@ public class InvestmentCategoriesController(BuenaventuraDbContext context, IMapp
                     await context.InvestmentCategories.RemoveByIdAsync(category.InvestmentCategoryId);
                     break;
                 case "added":
-                    await context.InvestmentCategories.AddAsync(mappedCategory);
+                    await context.InvestmentCategories.AddAsync(mappedCategory, ct);
                     break;
 
             }
         }
-        await context.SaveChangesAsync();
-
-        return Ok(context.InvestmentCategories);
+        await context.SaveChangesAsync(ct);
+        await SendOkAsync(context.InvestmentCategories.ToArray(), ct);
     }
 }
