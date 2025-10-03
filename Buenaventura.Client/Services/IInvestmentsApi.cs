@@ -20,6 +20,6 @@ public interface IInvestmentsApi
     Task AddInvestment(AddInvestmentModel investmentModel);
     [Post("/api/investments/buysell")]
     Task BuySell(BuySellModel buySellModel);
-    [Post("/api/investments/{investmentId}/dividends")]
-    Task RecordDividend(Guid investmentId, RecordDividendModel model);
+    [Post("/api/investments/dividends")]
+    Task RecordDividend(RecordDividendModel model);
 }

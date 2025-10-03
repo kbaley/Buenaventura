@@ -100,7 +100,8 @@ Do this only for test databases or if you are absolutely sure you want to delete
         if (!result!.Canceled)
         {
             var model = (RecordDividendModel)result.Data!;
-            await investmentsApi.RecordDividend(investment.InvestmentId, model);
+            model.InvestmentId = investment.InvestmentId;
+            await investmentsApi.RecordDividend(model);
             await accountSyncService.RefreshAccounts();
             await LoadInvestments();
         }
