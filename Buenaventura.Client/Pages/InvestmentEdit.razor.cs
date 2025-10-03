@@ -5,7 +5,7 @@ using Buenaventura.Shared;
 namespace Buenaventura.Client.Pages;
 
 public partial class InvestmentEdit(
-    IInvestmentCategoryService categoryService,
+    IInvestmentCategoriesApi categoriesApi,
     IInvestmentsApi investmentsApi,
     AccountSyncService accountSyncService,
     NavigationManager navigationManager
@@ -22,7 +22,7 @@ public partial class InvestmentEdit(
 
     protected override async Task OnInitializedAsync()
     {
-        categories = await categoryService.GetCategories();
+        categories = await categoriesApi.GetCategories();
     }
 
     private void CalculateTotal()

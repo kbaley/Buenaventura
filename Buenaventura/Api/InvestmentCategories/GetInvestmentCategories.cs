@@ -1,4 +1,4 @@
-using Buenaventura.Client.Services;
+using Buenaventura.Services;
 using Buenaventura.Shared;
 using FastEndpoints;
 
