@@ -4,7 +4,7 @@ using Buenaventura.Shared;
 
 namespace Buenaventura.Data
 {
-    public interface ITransactionRepository : IServerAppService
+    public interface ITransactionRepository : IAppService
     {
         Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50);
         Task Insert(TransactionForDisplay transaction);

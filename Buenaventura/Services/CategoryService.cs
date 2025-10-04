@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public interface ICategoryService : IServerAppService
+public interface ICategoryService : IAppService
 {
     Task<IEnumerable<CategoryModel>> GetCategories();
     Task DeleteCategory(Guid id);

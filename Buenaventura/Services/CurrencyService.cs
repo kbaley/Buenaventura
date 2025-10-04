@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace Buenaventura.Services;
 
-public interface ICurrencyService : IServerAppService
+public interface ICurrencyService : IAppService
 {
     Task<decimal> GetExchangeRateFor(string symbol, CancellationToken ct = default);
 }

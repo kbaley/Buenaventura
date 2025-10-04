@@ -2,7 +2,7 @@ using System.Globalization;
 using Buenaventura.Data;
 using Buenaventura.Shared;
 
-namespace Buenaventura.Api;
+namespace Buenaventura.Services;
 
 public class TransactionParser(BuenaventuraDbContext context)
 {

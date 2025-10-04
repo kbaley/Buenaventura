@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public interface IVendorService : IServerAppService
+public interface IVendorService : IAppService
 {
     public Task<IEnumerable<VendorModel>> GetVendors();
 }

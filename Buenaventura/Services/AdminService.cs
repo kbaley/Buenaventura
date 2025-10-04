@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public interface IAdminService : IServerAppService
+public interface IAdminService : IAppService
 {
     Task ScrambleDatabase(ScrambleModel model);
 }

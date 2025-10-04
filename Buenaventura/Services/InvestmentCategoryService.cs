@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public interface IInvestmentCategoryService : IServerAppService
+public interface IInvestmentCategoryService : IAppService
 {
     Task<IEnumerable<InvestmentCategoryModel>> GetCategories();
 }

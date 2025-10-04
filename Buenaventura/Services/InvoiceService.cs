@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace Buenaventura.Services;
 
-public interface IInvoiceService : IServerAppService
+public interface IInvoiceService : IAppService
 {
     Task<IEnumerable<InvoiceModel>> GetInvoices();
     Task<int> GetNextInvoiceNumber();

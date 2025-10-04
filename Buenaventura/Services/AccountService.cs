@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public interface IAccountService : IServerAppService
+public interface IAccountService : IAppService
 {
     Task<IEnumerable<AccountWithBalance>> GetAccounts();
     Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50);

@@ -44,11 +44,6 @@ public static class Infrastructure
     {
         services.Scan(scan => scan
             .FromAssemblyOf<AccountService>()
-            .AddClasses(classes => classes.AssignableTo<IServerAppService>())
-            .AsImplementedInterfaces()
-            .WithScopedLifetime());
-        services.Scan(scan => scan
-            .FromAssemblyOf<AccountService>()
             .AddClasses(classes => classes.AssignableTo<IAppService>())
             .AsImplementedInterfaces()
             .WithScopedLifetime());

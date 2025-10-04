@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public interface IInvoiceGenerator : IServerAppService
+public interface IInvoiceGenerator : IAppService
 {
     Task<string> GenerateHtml(Guid invoiceId);
     Task<byte[]> GeneratePdf(Guid invoiceId);

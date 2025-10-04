@@ -52,16 +52,17 @@ builder.Services.AddRefit<IAdminApi>(baseAddress);
 builder.Services.AddRefit<IInvestmentsApi>(baseAddress);
 builder.Services.AddRefit<ICustomersApi>(baseAddress);
 builder.Services.AddRefit<IInvestmentCategoriesApi>(baseAddress);
+builder.Services.AddRefit<IDashboardApi>(baseAddress);
 
 foreach (var service in builder.Services)
 {
     Console.WriteLine(service.ServiceKey);
 }
-builder.Services.Scan(scan => scan
-    .FromAssemblyOf<ClientDashboardService>()
-    .AddClasses(classes => classes.AssignableTo<IAppService>())
-    .AsImplementedInterfaces()
-    .WithScopedLifetime());
+// builder.Services.Scan(scan => scan
+//     .FromAssemblyOf<ClientDashboardService>()
+//     .AddClasses(classes => classes.AssignableTo<IAppService>())
+//     .AsImplementedInterfaces()
+//     .WithScopedLifetime());
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthenticationStateDeserialization();
 builder.Services

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public interface IInvestmentTransactionGenerator : IServerAppService
+public interface IInvestmentTransactionGenerator : IAppService
 {
 
      Task CreateInvestmentTransaction(AddInvestmentModel model, Investment investment,

@@ -1,72 +1,47 @@
-﻿using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
-using Buenaventura.Shared;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Api;
 
-[Authorize]
-[Route("api/[controller]/[action]")]
-[ApiController]
-public class ReportsController(
-    BuenaventuraDbContext context, 
-    IReportRepository reportRepo) : ControllerBase
+internal class GetDashboardStats(
+    BuenaventuraDbContext context,
+    IReportRepository reportRepo)
+    : EndpointWithoutRequest<object>
 {
-    [HttpGet]
-    public IActionResult Investment([FromQuery] ReportQuery query )
+    public override void Configure()
     {
-        var report = new List<dynamic>();
-
-        var date = query.EndDate;
-        var numItems = DateTime.Today.Month + 1;
-        if (query.SelectedYear != DateTime.Today.Year) {
-            numItems = 13;
-        }
-        for (var i = 0; i < numItems; i++) {
-            report.Add(new {date, total=reportRepo.GetInvestmentTotalFor(date)});
-            date = date.FirstDayOfMonth().AddMinutes(-1);
-        }
-
-        return Ok(new { report, year = query.SelectedYear});
+        Get("/api/dashboard/getdashboardstats");
     }
 
-    [HttpGet]
-    public IEnumerable<Transaction> ExpensesForCategory(Guid categoryId, DateTime month) {
-        var start = new DateTime(month.Year, month.Month, 1);
-        var end = start.AddMonths(1);
-        var expenses = context.Transactions
-            .Include(t => t.Account)
-            .Where(t => t.CategoryId == categoryId
-                        && t.TransactionDate >= start && t.TransactionDate < end);
-        return expenses.ToList();
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetDashboardStats()
+    public override async Task HandleAsync(CancellationToken ct)
     {
         var numMonths = 3;
         var gainLossCategory = await context.GetOrCreateCategory("Gain/loss on investments");
         var end = DateTime.Today.LastDayOfMonth();
         var start = end.AddMonths(0 - numMonths).FirstDayOfMonth();
         var investmentGains = await reportRepo.GetMonthlyTotalsForCategory(gainLossCategory.CategoryId, start, end);
+
         var accountBalances = await context.Accounts
             .Include(a => a.Transactions)
-            .Select(a => new {
+            .Select(a => new
+            {
                 a.AccountType,
                 Total = a.Transactions.Sum(t => t.Amount)
-            }).ToListAsync();
+            }).ToListAsync(ct);
+
         var netWorthBreakdown = accountBalances
             .Where(a => a.Total != 0)
             .GroupBy(a => a.AccountType, a => a.Total)
-            .Select(g => new {
+            .Select(g => new
+            {
                 AccountType = g.Key,
                 Total = g.Sum()
             })
             .OrderByDescending(a => a.Total)
             .ToList();
+
         var liquidAssetsBalance = context.Accounts
             .Where(a => a.AccountType == "Bank Account" || a.AccountType == "Cash")
             .Sum(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
@@ -79,7 +54,9 @@ public class ReportsController(
         var netWorthLastMonth = context.Transactions
             .Where(t => t.TransactionDate < firstdayOfMonth)
             .Sum(t => t.AmountInBaseCurrency);
-        var report = new {
+
+        var report = new
+        {
             liquidAssetsBalance,
             creditCardBalance,
             netWorth,
@@ -87,11 +64,7 @@ public class ReportsController(
             investmentGains,
             netWorthBreakdown
         };
-        return Ok(report);
-    }
-}
 
-public class NameAndId {
-    public Guid Id { get; set; }
-    public string Name { get; set; } = "";
+        await SendOkAsync(report, ct);
+    }
 }

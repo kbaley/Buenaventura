@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Services;
 
-public interface IInvestmentService : IServerAppService
+public interface IInvestmentService : IAppService
 {
     Task<InvestmentListModel> GetInvestments();
     Task<InvestmentListModel> UpdateCurrentPrices();
