@@ -1,5 +1,6 @@
 ﻿using Buenaventura.Client.Services;
 using Buenaventura.Data;
+using Buenaventura.Domain;
 using Buenaventura.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
