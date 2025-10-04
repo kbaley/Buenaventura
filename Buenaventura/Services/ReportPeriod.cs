@@ -1,4 +1,5 @@
 using Buenaventura.Api;
+using Buenaventura.Domain;
 
 namespace Buenaventura.Services;
 
