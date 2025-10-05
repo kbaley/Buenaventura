@@ -24,7 +24,7 @@ public class Investment
         var totalPaid = Transactions.Sum(t => t.Shares * t.Price);
         var dividends = Dividends.Sum(d => d.Amount);
         var currentValue = GetCurrentValue();
-        return (currentValue + dividends - totalPaid) / currentValue;
+        return currentValue == 0 ? 0m : (currentValue + dividends - totalPaid) / currentValue;
     }
 
     public double GetAnnualizedIrr()

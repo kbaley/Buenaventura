@@ -15,7 +15,7 @@ public interface ICustomerService : IAppService
     Task AddCustomer(CustomerModel customerModel);
 }
 
-public class ServerCustomerService(
+public class CustomerService(
     BuenaventuraDbContext context
 ) : ICustomerService
 {

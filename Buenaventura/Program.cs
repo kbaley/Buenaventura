@@ -88,3 +88,5 @@ app.MapAdditionalIdentityEndpoints();
 app.UseFastEndpoints(c => c.Serializer.Options.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 app.Run();
+
+public partial class Program { }
