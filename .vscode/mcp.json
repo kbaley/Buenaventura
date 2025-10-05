@@ -2,7 +2,7 @@
     "inputs": [],
     "servers": {
         "Buenaventura": {
-            "type": "stdio",
+            "type": "https",
             "command": "dotnet",
             "args": [
                 "run",

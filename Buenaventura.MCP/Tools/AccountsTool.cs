@@ -31,4 +31,17 @@ public static class AccountsTool
         var account = accountService.GetAccounts().Where(x => x.AccountId == accountId);
         return account.First();
     }
+
+    [
+        McpServerTool(Name = "GetAccountBalance"),
+        Description("Get the balance for a specific account by id")
+    ]
+    public static AccountBalance GetAccountBalance(
+        Guid accountId,
+        AccountService accountService
+    )
+    {
+        var balance = accountService.GetAccountBalance(accountId);
+        return balance;
+    }
 }
