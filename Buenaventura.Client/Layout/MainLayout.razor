@@ -44,6 +44,15 @@
                     <MudIcon Icon="@Icons.Material.Filled.Assessment"/>
                 </MudButton>
 
+                <!-- Retirement link -->
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="retirement" Class="d-none d-sm-flex">
+                    <MudIcon Icon="@Icons.Material.Filled.QuestionAnswer" Class="me-1"/>
+                    <span>Retirement</span>
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="retirement" Class="d-flex d-sm-none">
+                    <MudIcon Icon="@Icons.Material.Filled.QuestionAnswer"/>
+                </MudButton>
+
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2"/>
                 <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit">

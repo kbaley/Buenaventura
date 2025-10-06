@@ -48,6 +48,9 @@ public static class Infrastructure
             .AsImplementedInterfaces()
             .WithScopedLifetime());
         services.AddSingleton<AccountSyncService>();
+        // Retirement advisor: options and service registration
+        services.AddOptions<Services.Retirement.AzureOpenAIOptions>();
+        services.AddScoped<Services.Retirement.IRetirementAdvisorService, Services.Retirement.RetirementAdvisorService>();
         return services;
     }
 }

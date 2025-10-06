@@ -57,6 +57,10 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// Bind Azure OpenAI options from configuration
+builder.Services.Configure<Buenaventura.Services.Retirement.AzureOpenAIOptions>(
+    builder.Configuration.GetSection("AzureOpenAI"));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

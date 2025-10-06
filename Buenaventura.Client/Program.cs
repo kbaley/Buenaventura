@@ -53,6 +53,7 @@ builder.Services.AddRefit<IInvestmentsApi>(baseAddress);
 builder.Services.AddRefit<ICustomersApi>(baseAddress);
 builder.Services.AddRefit<IInvestmentCategoriesApi>(baseAddress);
 builder.Services.AddRefit<IDashboardApi>(baseAddress);
+builder.Services.AddRefit<IRetirementApi>(baseAddress);
 
 foreach (var service in builder.Services)
 {

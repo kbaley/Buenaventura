@@ -1,0 +1,110 @@
+@page "/retirement"
+@using Buenaventura.Shared.Retirement
+@inject IRetirementApi retirementApi
+
+@attribute [Authorize]
+
+<PageTitle>Retirement Assistant - Buenaventura</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudPaper Elevation="2" Class="pa-4">
+        <MudText Typo="Typo.h5" Class="mb-3">Retirement Assistant</MudText>
+        <MudText Typo="Typo.body2" Class="mb-4">
+            Ask a retirement-related question. We'll generate an answer based on your data.
+        </MudText>
+
+        <MudTextField @bind-Value="question"
+                      Label="Your question"
+                      Variant="Variant.Outlined"
+                      Lines="8"
+                      Placeholder="e.g., When can I retire if I want $80k/year in today's dollars?"
+                      FullWidth="true"
+                      Disabled="@isLoading"
+                      Class="mb-3" />
+
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Send"
+                       Disabled="@isLoading || string.IsNullOrWhiteSpace(question)"
+                       OnClick="Ask">
+                @(isLoading ? "Asking..." : "Ask")
+            </MudButton>
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Default"
+                       Disabled="@isLoading && response is null && string.IsNullOrWhiteSpace(error)"
+                       OnClick="Clear">
+                Clear
+            </MudButton>
+        </MudStack>
+
+        @if (!string.IsNullOrWhiteSpace(error))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-3">
+                @error
+            </MudAlert>
+        }
+
+        @if (response is not null)
+        {
+            <MudDivider Class="my-4"/>
+            <MudText Typo="Typo.h6" Class="mb-2">Answer</MudText>
+            <MudPaper Elevation="1" Class="pa-3">
+                <MudText>@response.Answer</MudText>
+            </MudPaper>
+
+            @if (!string.IsNullOrWhiteSpace(response.Reasoning))
+            {
+                <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1" Color="Color.Secondary">Reasoning</MudText>
+                <MudPaper Elevation="1" Class="pa-3">
+                    <MudText Color="Color.Secondary">@response.Reasoning</MudText>
+                </MudPaper>
+            }
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string question = string.Empty;
+    private RetirementQueryResponse? response;
+    private bool isLoading;
+    private string? error;
+
+    private async Task Ask()
+    {
+        error = null;
+        response = null;
+        if (string.IsNullOrWhiteSpace(question))
+        {
+            return;
+        }
+
+        isLoading = true;
+        try
+        {
+            response = await retirementApi.Ask(new RetirementQueryRequest
+            {
+                Question = question.Trim()
+            });
+        }
+        catch (Refit.ApiException apiEx)
+        {
+            error = $"Request failed: {(int)apiEx.StatusCode} {apiEx.Content ?? apiEx.Message}";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void Clear()
+    {
+        question = string.Empty;
+        response = null;
+        error = null;
+    }
+}
