@@ -6,7 +6,7 @@ namespace Buenaventura.Api;
 
 public class UpdateTransaction(IAccountService accountService) : Endpoint<TransactionForDisplay>
 {
-    
+
     public override void Configure()
     {
         Put("/api/transactions");

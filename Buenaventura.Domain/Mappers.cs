@@ -4,6 +4,9 @@ using Buenaventura.Shared;
 
 namespace Buenaventura;
 
+/// <summary>
+/// Yeah, this is a class of manual mapping methods, you wanna make something of it?
+/// </summary>
 public static class Mappers
 {
     public static TransactionForDisplay ToDto(this Transaction transaction)

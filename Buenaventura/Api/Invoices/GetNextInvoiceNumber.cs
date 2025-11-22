@@ -5,7 +5,7 @@ namespace Buenaventura.Api.Invoices;
 
 public class GetNextInvoiceNumber(IInvoiceService invoiceService) : EndpointWithoutRequest<int>
 {
-    
+
     public override void Configure()
     {
         Get("/api/invoices/nextinvoicenumber");

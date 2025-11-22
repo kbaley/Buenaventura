@@ -13,7 +13,7 @@ internal record HashPasswordResponse(string HashedPassword);
 /// </summary>
 internal class HashPassword(BuenaventuraDbContext context) : Endpoint<HashPasswordRequest, HashPasswordResponse>
 {
-    
+
     public override void Configure()
     {
         Post("/api/auth/hashpassword");

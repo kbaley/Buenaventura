@@ -17,7 +17,7 @@ internal class DownloadTransactionsCsv(IAccountService accountService) : Endpoin
     {
         var account = await accountService.GetAccount(request.AccountId);
         var transactions = await accountService.GetTransactions(request.AccountId, "", 0, int.MaxValue);
-        
+
         var csvContent = "Date,Vendor,Category,Description,Debit,Credit,Balance\n";
         foreach (var transaction in transactions.Items)
         {

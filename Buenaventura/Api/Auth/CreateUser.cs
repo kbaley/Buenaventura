@@ -12,7 +12,7 @@ public class CreateUser(BuenaventuraDbContext context) : EndpointWithoutRequest
         Post("/api/auth/CreateUser");
         AllowAnonymous();
     }
-    
+
     public override async Task HandleAsync(CancellationToken ct)
     {
         // Quick and dirty way to create a new user; uncomment to implement
@@ -37,5 +37,5 @@ public class CreateUser(BuenaventuraDbContext context) : EndpointWithoutRequest
         // await context.SaveChangesAsync(ct);
         await SendOkAsync(ct);
     }
-    
+
 }

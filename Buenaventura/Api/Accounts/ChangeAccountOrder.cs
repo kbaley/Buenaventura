@@ -4,7 +4,7 @@ using IAccountService = Buenaventura.Services.IAccountService;
 
 namespace Buenaventura.Api;
 
-public class ChangeAccountOrder(IAccountService accountService) : Endpoint<List<OrderedAccount>> 
+public class ChangeAccountOrder(IAccountService accountService) : Endpoint<List<OrderedAccount>>
 {
     public override void Configure()
     {
