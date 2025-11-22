@@ -7,7 +7,6 @@ using Buenaventura.Components.Account;
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Identity;
-using Buenaventura.Services;
 using FastEndpoints;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -36,8 +35,6 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
     });
-builder.Services.AddAutoMapper(cfg => { cfg.LicenseKey = builder.Configuration.GetValue("AutoMapperLicenseKey", ""); },
-    typeof(AccountService));
 var connectionString = builder.Configuration.GetConnectionString("Buenaventura");
 builder.Services.AddDbContext<BuenaventuraDbContext>(options =>
 {

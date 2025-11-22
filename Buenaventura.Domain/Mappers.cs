@@ -161,4 +161,14 @@ public static class Mappers
             SourceAccountName = investmentTransaction.Transaction?.Account?.Name ?? ""
         };
     }
+    
+    public static InvestmentCategory ToInvestmentCategory(this InvestmentCategoryForUpdate dto)
+    {
+        return new InvestmentCategory
+        {
+            InvestmentCategoryId = dto.InvestmentCategoryId,
+            Name = dto.Name,
+            Percentage = dto.Percentage,
+        };
+    }
 }

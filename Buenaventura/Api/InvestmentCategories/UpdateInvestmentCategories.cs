@@ -1,11 +1,12 @@
 using Buenaventura.Data;
 using Buenaventura.Domain;
+using Buenaventura.Dtos;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Api;
 
-public class UpdateInvestmentCategories(BuenaventuraDbContext context, AutoMapper.IMapper mapper)
+public class UpdateInvestmentCategories(BuenaventuraDbContext context)
     : Endpoint<IEnumerable<InvestmentCategoryForUpdate>, IEnumerable<InvestmentCategory>>
 {
     public override void Configure()
@@ -30,7 +31,7 @@ public class UpdateInvestmentCategories(BuenaventuraDbContext context, AutoMappe
         // now update the categories
         foreach (var category in categories)
         {
-            var mappedCategory = mapper.Map<InvestmentCategory>(category);
+            var mappedCategory = category.ToInvestmentCategory();
             switch (category.Status.ToLower())
             {
                 case "updated":

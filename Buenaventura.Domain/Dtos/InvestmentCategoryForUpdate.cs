@@ -1,4 +1,4 @@
-namespace Buenaventura.Data;
+namespace Buenaventura.Dtos;
 
 public class InvestmentCategoryForUpdate
 {
