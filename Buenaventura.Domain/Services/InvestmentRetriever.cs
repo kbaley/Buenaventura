@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+
 namespace Buenaventura.Services;
 
 public interface IInvestmentRetriever : IAppService
@@ -22,7 +24,7 @@ public class InvestmentRetriever(IConfiguration config) : IInvestmentRetriever
             RequestUri = new Uri("https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/v2" + requestUri)
         };
         request.Headers.Add("x-rapidapi-host", "apidojo-yahoo-finance-v1.p.rapidapi.com");
-        request.Headers.Add("x-rapidapi-key", config.GetValue<string>("RapidApiKey"));
+        request.Headers.Add("x-rapidapi-key", config["RapidApiKey"]);
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
         var stringResult = await response.Content.ReadAsStringAsync();

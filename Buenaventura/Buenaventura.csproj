@@ -29,6 +29,7 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.*" />
     <ProjectReference Include="..\Buenaventura.Client\Buenaventura.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.*" />
+    <ProjectReference Include="..\Buenaventura.Domain\Buenaventura.Domain.csproj" />
     <ProjectReference Include="..\Buenaventura.Shared\Buenaventura.Shared.csproj" />
   </ItemGroup>
 
@@ -52,11 +53,6 @@
     <_ContentIncludedByDefault Remove="Components\Account\Shared\ManageNavMenu.razor" />
     <_ContentIncludedByDefault Remove="Components\Account\Shared\ShowRecoveryCodes.razor" />
     <_ContentIncludedByDefault Remove="Components\Account\Shared\StatusMessage.razor" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>

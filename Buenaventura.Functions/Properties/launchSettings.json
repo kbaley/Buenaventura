@@ -3,7 +3,10 @@
     "Buenaventura.Functions": {
       "commandName": "Project",
       "commandLineArgs": "--port 7023",
-      "launchBrowser": false
+      "launchBrowser": false,
+      "environmentVariables": {
+        "AZURE_FUNCTIONS_ENVIRONMENT": "Development"
+      }
     }
   }
 }

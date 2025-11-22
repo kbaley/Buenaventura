@@ -1,6 +1,7 @@
 using Buenaventura.Shared;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Buenaventura.Data
 {

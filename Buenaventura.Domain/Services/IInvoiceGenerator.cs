@@ -1,6 +1,7 @@
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Buenaventura.Services;
 
@@ -60,7 +61,7 @@ public class InvoiceGenerator(
 
     public async Task<byte[]> GeneratePdf(Guid invoiceId)
     {
-        var apiKey = configuration.GetValue<string>("Html2PdfRocketKey") ?? string.Empty;
+        var apiKey = configuration["Html2PdfRocketKey"] ?? string.Empty;
 
         using var client = new HttpClient();
         var parms = new Dictionary<string, string>();

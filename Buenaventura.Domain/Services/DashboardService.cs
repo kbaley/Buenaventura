@@ -1,5 +1,3 @@
-using Buenaventura.Api;
-using Buenaventura.Client.Services;
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Shared;

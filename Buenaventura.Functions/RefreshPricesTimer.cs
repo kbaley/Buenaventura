@@ -1,27 +1,32 @@
-using System;
+using Buenaventura.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
 namespace Buenaventura.Functions;
 
-public class RefreshPricesTimer
+public class RefreshPricesTimer(ILogger<RefreshPricesTimer> logger, IInvestmentService investmentService)
 {
-    private readonly ILogger<RefreshPricesTimer> _logger;
-
-    public RefreshPricesTimer(ILogger<RefreshPricesTimer> logger)
-    {
-        _logger = logger;
-    }
-
     [Function("RefreshPricesTimer")]
-    public void Run([TimerTrigger("0 */5 * * * *", RunOnStartup = true)] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 45 14 * * 1-5", RunOnStartup = true)] TimerInfo myTimer)
     {
-        _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+        logger.LogInformation("C# Timer trigger function executed at: {Time}", DateTime.Now);
 
         if (myTimer.ScheduleStatus is not null)
         {
-            _logger.LogInformation($"Next timer schedule at: {myTimer.ScheduleStatus.Next}");
-            
+            logger.LogInformation("Next timer schedule at: {NextTime}", myTimer.ScheduleStatus.Next);
+        }
+
+        try
+        {
+            logger.LogInformation("Starting price update...");
+            var result = await investmentService.UpdateCurrentPrices();
+            var count = result.Investments.Count();
+            logger.LogInformation("Price update completed. Updated {Count} investments.", count);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error updating prices");
+            throw;
         }
     }
 }
