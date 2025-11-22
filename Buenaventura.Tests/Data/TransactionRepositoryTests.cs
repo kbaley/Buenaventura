@@ -213,6 +213,8 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         var transaction = TestDataFactory.TransactionFaker.Generate();
         transaction.AccountId = account.AccountId;
         transaction.CategoryId = category.CategoryId;
+        // This is just for regular transactions; others have different rules
+        transaction.TransactionType = TransactionType.REGULAR;
         _fixture.Context.Transactions.Add(transaction);
         await _fixture.Context.SaveChangesAsync();
 

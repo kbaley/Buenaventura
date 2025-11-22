@@ -8,7 +8,7 @@ namespace Buenaventura.Api;
 
 internal record GetInvestmentRequest(Guid InvestmentId);
 
-internal class GetInvestment(BuenaventuraDbContext context, AutoMapper.IMapper mapper)
+internal class GetInvestment(BuenaventuraDbContext context)
     : Endpoint<GetInvestmentRequest, InvestmentDetailDto>
 {
     public override void Configure()
@@ -31,7 +31,7 @@ internal class GetInvestment(BuenaventuraDbContext context, AutoMapper.IMapper m
 
         await context.Entry(investment).Collection(i => i.Transactions).LoadAsync(ct);
         var dividends = GetDividendDtosFrom(investment).ToList();
-        var mappedInvestment = mapper.Map<InvestmentDetailDto>(investment);
+        var mappedInvestment = investment.ToDto();
         mappedInvestment.Transactions = mappedInvestment.Transactions.OrderBy(t => t.Date);
         mappedInvestment.TotalPaid = decimal.Round(investment.Transactions.Sum(t => t.Shares * t.Price), 2);
         mappedInvestment.CurrentValue = decimal.Round(mappedInvestment.LastPrice * mappedInvestment.Shares, 2);

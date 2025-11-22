@@ -1,5 +1,4 @@
 using Buenaventura.Data;
-using Buenaventura.Domain;
 using Buenaventura.Dtos;
 using Buenaventura.Shared;
 using FastEndpoints;
@@ -7,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Api;
 
-internal class PutInvestment(BuenaventuraDbContext context, AutoMapper.IMapper mapper)
+internal class PutInvestment(BuenaventuraDbContext context)
     : Endpoint<InvestmentForUpdateDto, InvestmentModel>
 {
     public override void Configure()
@@ -22,7 +21,7 @@ internal class PutInvestment(BuenaventuraDbContext context, AutoMapper.IMapper m
         var lastPrice = investmentFromDb!.LastPrice;
         var lastPriceRetrievalDate = investmentFromDb.LastPriceRetrievalDate;
 
-        var investmentMapped = mapper.Map<Investment>(req);
+        var investmentMapped = req.ToInvestment();
         investmentMapped.LastPrice = lastPrice;
         investmentMapped.LastPriceRetrievalDate = lastPriceRetrievalDate;
         context.Entry(investmentMapped).State = EntityState.Modified;
@@ -34,7 +33,7 @@ internal class PutInvestment(BuenaventuraDbContext context, AutoMapper.IMapper m
         await context.SaveChangesAsync(ct);
         await context.Entry(investmentMapped).ReloadAsync(ct);
         await context.Entry(investmentMapped).Collection(i => i.Transactions).LoadAsync(ct);
-        var returnInvestment = mapper.Map<InvestmentModel>(investmentMapped);
+        var returnInvestment = investmentMapped.ToModel();
         await SendOkAsync(returnInvestment, ct);
     }
 }

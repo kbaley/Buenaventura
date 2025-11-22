@@ -1,13 +1,11 @@
 using Buenaventura.Data;
-using Buenaventura.Domain;
 using Buenaventura.Dtos;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Invoice = Buenaventura.Domain.Invoice;
 
 namespace Buenaventura.Api.Invoices;
 
-public class PutInvoice(BuenaventuraDbContext context, AutoMapper.IMapper mapper) : Endpoint<InvoiceForPosting, InvoiceForPosting>
+public class PutInvoice(BuenaventuraDbContext context) : Endpoint<InvoiceForPosting, InvoiceForPosting>
 {
     public override void Configure()
     {
@@ -20,12 +18,12 @@ public class PutInvoice(BuenaventuraDbContext context, AutoMapper.IMapper mapper
 
         var newBalance = req.GetLineItemTotal() - context.Transactions.GetPaymentsFor(id);
         req.Balance = newBalance;
-        var invoiceMapped = mapper.Map<Invoice>(req);
+        var invoiceMapped = req.ToInvoice();
         context.Entry(invoiceMapped).State = EntityState.Modified;
 
         foreach (var item in req.LineItems)
         {
-            var mappedLineItem = mapper.Map<InvoiceLineItem>(item);
+            var mappedLineItem = item.ToLineItem();
             switch (item.Status.ToLower())
             {
                 case "deleted":
@@ -42,7 +40,7 @@ public class PutInvoice(BuenaventuraDbContext context, AutoMapper.IMapper mapper
 
         await context.SaveChangesAsync(ct);
         await context.Entry(invoiceMapped).Reference("Customer").LoadAsync(ct);
-        var response = mapper.Map<InvoiceForPosting>(invoiceMapped);
+        var response = invoiceMapped.ToDto();
 
         await SendOkAsync(response, ct);
     }
