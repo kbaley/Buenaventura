@@ -40,7 +40,7 @@ public class InvestmentService(
                 TotalSharesBought = i.Transactions.Where(t => t.Shares > 0).Sum(t => t.Shares),
                 LastPrice = i.LastPrice,
                 // Don't divide by number of shares yet in case it's zero; we'll do this later
-                AveragePrice = i.Transactions.Where(t => t.Shares > 0).Sum(t => t.Shares * t.Price),
+                AveragePrice = i.Transactions.Where(t => t.Shares > 0).Sum(t => Math.Round(t.Shares * t.Price, 4)),
                 Currency = i.Currency,
                 DontRetrievePrices = i.DontRetrievePrices,
                 AnnualizedIrr = i.GetAnnualizedIrr(),
