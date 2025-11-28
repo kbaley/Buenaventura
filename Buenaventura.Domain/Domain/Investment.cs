@@ -30,13 +30,13 @@ public class Investment
     public double GetAnnualizedIrr()
     {
         if (Transactions.Count == 0) return 0.0;
-        var transactionsByDate = Transactions.OrderBy(t => t.Date);
+        var transactionsByDate = Transactions.OrderBy(t => t.Date).ToList();
         var startDate = transactionsByDate.First().Date;
         var payments = new List<double>();
         var days = new List<double>();
         foreach (var transaction in transactionsByDate)
         {
-            payments.Add(-Convert.ToDouble(transaction.Shares) * Convert.ToDouble(transaction.Price));
+            payments.Add(Math.Round(-Convert.ToDouble(transaction.Shares) * Convert.ToDouble(transaction.Price), 4));
             days.Add((transaction.Date - startDate).Days);
         }
 
@@ -53,6 +53,15 @@ public class Investment
         payments.Add(Convert.ToDouble(GetCurrentValue()));
         days.Add((DateTime.Today - startDate).Days);
         var irr = Irr.CalculateIrr(payments.ToArray(), days.ToArray());
+        if (double.IsPositiveInfinity(irr))
+        {
+            irr = 1_000_000;
+        }
+
+        if (double.IsNegativeInfinity(irr))
+        {
+            irr = -1_000_000;
+        }
         return irr;
     }
 
