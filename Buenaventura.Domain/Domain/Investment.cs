@@ -62,6 +62,11 @@ public class Investment
         {
             irr = -1_000_000;
         }
+
+        if (double.IsNaN(irr))
+        {
+            irr = 0;
+        }
         return irr;
     }
 
