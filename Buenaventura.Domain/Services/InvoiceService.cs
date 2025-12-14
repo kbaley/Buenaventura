@@ -75,17 +75,19 @@ public class InvoiceService(
             Date = invoiceModel.Date,
             CustomerId = invoiceModel.CustomerId,
             Balance = invoiceModel.Balance,
-            LineItems = invoiceModel.LineItems.Select(i => new InvoiceLineItem
-            {
-                InvoiceId = invoiceModel.InvoiceId,
-                Description = i.Description,
-                UnitAmount = i.UnitPrice,
-                Quantity = i.Quantity,
-                CategoryId = i.Category?.CategoryId,
-                InvoiceLineItemId = Guid.NewGuid(),
-                
-            }).ToList()
         };
+        
+        // Add line items with proper navigation property
+        invoice.LineItems = invoiceModel.LineItems.Select(i => new InvoiceLineItem
+        {
+            InvoiceLineItemId = Guid.NewGuid(),
+            Invoice = invoice,
+            Description = i.Description,
+            UnitAmount = i.UnitPrice,
+            Quantity = i.Quantity,
+            CategoryId = i.Category?.CategoryId,
+        }).ToList();
+        
         context.Invoices.Add(invoice);
         await context.SaveChangesAsync();
     }
@@ -201,7 +203,9 @@ public class InvoiceService(
 
     public async Task UpdateInvoice(InvoiceModel invoiceModel)
     {
-        var invoice = await context.Invoices.FindAsync(invoiceModel.InvoiceId);
+        var invoice = await context.Invoices
+            .Include(i => i.LineItems)
+            .FirstOrDefaultAsync(i => i.InvoiceId == invoiceModel.InvoiceId);
         if (invoice == null)
         {
             throw new Exception("Invoice not found");
@@ -209,7 +213,31 @@ public class InvoiceService(
         invoice.InvoiceNumber = invoiceModel.InvoiceNumber;
         invoice.Date = invoiceModel.Date;
         invoice.CustomerId = invoiceModel.CustomerId;
-        invoice.Balance = invoiceModel.LineItems.Sum(i => i.UnitPrice * i.Quantity);
+        var amountPaid = invoice.LineItems.Sum(li => li.UnitAmount * li.Quantity) - invoice.Balance;
+        var balance = 0m;
+        
+        // Clear existing line items properly
+        invoice.LineItems.Clear();
+
+        // Add new line items from the model
+        foreach (var i in invoiceModel.LineItems)
+        {
+            var lineItem = new InvoiceLineItem
+            {
+                InvoiceLineItemId = Guid.NewGuid(),
+                InvoiceId = invoice.InvoiceId,
+                Invoice = invoice,
+                Description = i.Description,
+                UnitAmount = i.UnitPrice,
+                Quantity = i.Quantity,
+                CategoryId = i.Category?.CategoryId
+            };
+            context.InvoiceLineItems.Add(lineItem);
+            balance += lineItem.UnitAmount * lineItem.Quantity;
+        }
+
+        invoice.Balance = balance - amountPaid;
+        context.Invoices.Update(invoice);
         await context.SaveChangesAsync();
     }
 }

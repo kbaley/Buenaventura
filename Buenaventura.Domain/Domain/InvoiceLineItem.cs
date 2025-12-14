@@ -8,7 +8,7 @@ public class InvoiceLineItem
 {
     [Key] public Guid InvoiceLineItemId { get; set; }
 
-    [Required] public Invoice Invoice { get; set; } = new();
+    [Required] public Invoice Invoice { get; set; } = null!;
     public Guid InvoiceId { get; set; }
 
     public decimal Quantity { get; set; }

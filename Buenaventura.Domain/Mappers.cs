@@ -68,65 +68,6 @@ public static class Mappers
             Price = investment.LastPrice
         };
     }
-    
-    public static Invoice ToInvoice(this InvoiceForPosting dto)
-    {
-        return new Invoice
-        {
-            Date = dto.Date,
-            Balance = dto.Balance,
-            CustomerId = dto.CustomerId,
-            InvoiceId = dto.InvoiceId,
-            InvoiceNumber = dto.InvoiceNumber,
-            LastSentToCustomer = dto.LastSentToCustomer,
-            LineItems = dto.LineItems.Select(i => i.ToLineItem()).ToList(),
-        };
-    }
-    
-    public static InvoiceLineItem ToLineItem(this InvoiceLineItemsForPosting dto)
-    {
-        return new InvoiceLineItem
-        {
-            CategoryId = dto.CategoryId,
-            InvoiceId = dto.InvoiceId,
-            Description = dto.Description,
-            InvoiceLineItemId = dto.InvoiceLineItemId,
-            Quantity = dto.Quantity,
-            UnitAmount = dto.UnitAmount,
-        };
-    }
-    
-    public static InvoiceForPosting ToDto(this Invoice invoice)
-    {
-        return new InvoiceForPosting
-        {
-            Date = invoice.Date,
-            Balance = invoice.Balance,
-            CustomerId = invoice.CustomerId,
-            InvoiceId = invoice.InvoiceId,
-            InvoiceNumber = invoice.InvoiceNumber,
-            LastSentToCustomer = invoice.LastSentToCustomer?.DateTime,
-            LineItems = invoice.LineItems.Select(i => i.ToDto()).ToList(),
-            CustomerName = invoice.Customer?.Name ?? "",
-            CustomerStreetAddress = invoice.Customer?.StreetAddress ?? "",
-            CustomerCity = invoice.Customer?.City ?? "",
-            CustomerRegion = invoice.Customer?.Region ?? "",
-            CustomerEmail = invoice.Customer?.Email ?? ""
-        };
-    }
-    
-    private static InvoiceLineItemsForPosting ToDto(this InvoiceLineItem dto)
-    {
-        return new InvoiceLineItemsForPosting
-        {
-            CategoryId = dto.CategoryId ?? Guid.Empty,
-            InvoiceId = dto.InvoiceId,
-            Description = dto.Description,
-            InvoiceLineItemId = dto.InvoiceLineItemId,
-            Quantity = dto.Quantity,
-            UnitAmount = dto.UnitAmount,
-        };
-    }
 
     public static InvestmentDetailDto ToDto(this Investment investment)
     {

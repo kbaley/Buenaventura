@@ -15,7 +15,7 @@ public class Invoice
     [Required] public Customer Customer { get; set; }
     public Guid CustomerId { get; set; }
 
-    public virtual ICollection<InvoiceLineItem> LineItems { get; set; }
+    public virtual ICollection<InvoiceLineItem> LineItems { get; set; } = [];
     public decimal Balance { get; set; }
 
     public bool IsPaidInFull { get; set; }
