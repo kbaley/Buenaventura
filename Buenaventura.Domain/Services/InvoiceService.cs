@@ -15,6 +15,8 @@ public interface IInvoiceService : IAppService
     Task<string> GetInvoiceTemplate();
     Task SaveInvoiceTemplate(string template);
     Task EmailInvoice(Guid invoiceId);
+    Task<InvoiceModel> GetInvoice(Guid invoiceId);
+    Task UpdateInvoice(InvoiceModel invoiceModel);
 }
 
 public class InvoiceService(
@@ -161,6 +163,53 @@ public class InvoiceService(
         // Update the LastSentToCustomer field
         invoice.LastSentToCustomer = DateTime.UtcNow;
         context.Invoices.Update(invoice);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task<InvoiceModel> GetInvoice(Guid invoiceId)
+    {
+        var invoice = await context.FindInvoiceEager(invoiceId);
+        if (invoice == null)
+        {
+            throw new Exception("Invoice not found");
+        }
+
+        return new InvoiceModel
+        {
+            InvoiceId = invoice.InvoiceId,
+            InvoiceNumber = invoice.InvoiceNumber,
+            CustomerName = invoice.Customer.Name,
+            CustomerEmail = invoice.Customer.Email,
+            Balance = invoice.Balance,
+            CustomerId = invoice.CustomerId,
+            Date = invoice.Date,
+            LastSentToCustomer = invoice.LastSentToCustomer,
+            Total = invoice.LineItems.Sum(li => li.Amount),
+            LineItems = invoice.LineItems.Select(i => new InvoiceLineItemModel
+            {
+                Description = i.Description,
+                UnitPrice = i.UnitAmount,
+                Quantity = i.Quantity,
+                Category = i.CategoryId != null ? new CategoryModel
+                {
+                    CategoryId = i.Category?.CategoryId,
+                    Name = i.Category?.Name ?? ""
+                } : null
+            }).ToList()
+        };
+    }
+
+    public async Task UpdateInvoice(InvoiceModel invoiceModel)
+    {
+        var invoice = await context.Invoices.FindAsync(invoiceModel.InvoiceId);
+        if (invoice == null)
+        {
+            throw new Exception("Invoice not found");
+        }
+        invoice.InvoiceNumber = invoiceModel.InvoiceNumber;
+        invoice.Date = invoiceModel.Date;
+        invoice.CustomerId = invoiceModel.CustomerId;
+        invoice.Balance = invoiceModel.LineItems.Sum(i => i.UnitPrice * i.Quantity);
         await context.SaveChangesAsync();
     }
 }

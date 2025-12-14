@@ -1,3 +1,4 @@
+@page "/invoice/{InvoiceId:guid}"
 @page "/invoice/new"
 @inject NavigationManager NavigationManager
 @inject IInvoicesApi invoicesApi
@@ -111,12 +112,14 @@
 </style>
 
 @code {
+    [Parameter] public Guid InvoiceId { get; set; }
     private int invoiceNumber;
     private DateTime? invoiceDate = DateTime.Today;
     private CustomerModel? selectedCustomer;
     private List<CustomerModel> customers = new();
     [CascadingParameter] private IEnumerable<CategoryModel> categories { get; set; } = [];
     private List<InvoiceLineItemModel> lineItems = new() { new InvoiceLineItemModel()};
+    private bool IsNew => InvoiceId == Guid.Empty;
 
     private decimal invoiceTotal => lineItems.Sum(item => item.UnitPrice * item.Quantity);
 
@@ -124,6 +127,14 @@
     {
         customers = (await customersApi.GetCustomers()).ToList();
         invoiceNumber = await invoicesApi.GetNextInvoiceNumber();
+        if (!IsNew)
+        {
+            var invoiceModel = await invoicesApi.GetInvoice(InvoiceId);
+            invoiceNumber = int.Parse(invoiceModel.InvoiceNumber);
+            invoiceDate = invoiceModel.Date;
+            selectedCustomer = customers.FirstOrDefault(c => c.CustomerId == invoiceModel.CustomerId);
+            lineItems = invoiceModel.LineItems.ToList();
+        }
     }
 
     private void AddLineItem()
@@ -158,8 +169,16 @@
             CustomerId = selectedCustomer.CustomerId,
             LineItems = lineItems
         };
-        await invoicesApi.CreateInvoice(invoice);
-        invoiceNumber++;
+        if (IsNew)
+        {
+            await invoicesApi.CreateInvoice(invoice);
+            invoiceNumber++;
+        }
+        else
+        {
+            invoice.InvoiceId = InvoiceId;
+            await invoicesApi.UpdateInvoice(invoice);
+        }
         NavigationManager.NavigateTo("/invoices");
     }
 

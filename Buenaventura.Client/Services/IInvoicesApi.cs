@@ -16,6 +16,9 @@ public interface IInvoicesApi
     [Post("/api/invoices")]
     Task CreateInvoice(InvoiceModel invoice);
     
+    [Put("/api/invoices")]
+    Task UpdateInvoice(InvoiceModel invoice);
+    
     [Get("/api/invoices/invoicetemplate")]
     Task<string> GetInvoiceTemplate();
     
@@ -24,4 +27,7 @@ public interface IInvoicesApi
     
     [Post("/api/invoices/{invoiceId}/email")]
     Task EmailInvoice(Guid invoiceId);
+    
+    [Get("/api/invoices/{invoiceId}")]
+    Task<InvoiceModel> GetInvoice(Guid invoiceId);
 }

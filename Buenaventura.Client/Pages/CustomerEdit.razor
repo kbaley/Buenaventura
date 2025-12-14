@@ -61,8 +61,7 @@
 </MudContainer>
 
 @code {
-    [Parameter]
-    public Guid CustomerId { get; set; }
+    [Parameter] public Guid CustomerId { get; set; }
     
     private bool IsNew => CustomerId == Guid.Empty;
     private CustomerModel Customer { get; set; } = new();

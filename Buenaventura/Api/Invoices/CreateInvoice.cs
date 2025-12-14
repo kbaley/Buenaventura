@@ -1,6 +1,6 @@
 using Buenaventura.Shared;
 using FastEndpoints;
-using IInvoiceService = Buenaventura.Services.IInvoiceService;
+using Buenaventura.Services;
 
 namespace Buenaventura.Api.Invoices;
 
