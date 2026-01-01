@@ -12,5 +12,6 @@ namespace Buenaventura.Data
         Task Delete(Guid transactionId);
         Task<TransactionForDisplay> Get(Guid transactionId);
         Task<TransactionListModel> GetInDateRange(Guid accountId, DateTime start, DateTime end);
+        Task<TransactionListModel> GetByCategory(Guid categoryId, int page, int pageSize);
     }
 }

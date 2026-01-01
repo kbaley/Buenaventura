@@ -10,10 +10,12 @@ public interface ICategoryService : IAppService
     Task DeleteCategory(Guid id);
     Task UpdateCategory(CategoryModel categoryModel);
     Task<CategoryModel> GetCategory(Guid id);
+    Task<TransactionListModel> GetTransactions(Guid categoryId, int page, int pageSize);
 }
 
 public class CategoryService(
-    BuenaventuraDbContext context
+    BuenaventuraDbContext context,
+    ITransactionRepository transactionRepo
 ) : ICategoryService
 {
     public async Task<IEnumerable<CategoryModel>> GetCategories()
@@ -69,5 +71,10 @@ public class CategoryService(
             CategoryClass = category.Type,
             IncludeInReports = category.IncludeInReports
         };
+    }
+
+    public async Task<TransactionListModel> GetTransactions(Guid categoryId, int page, int pageSize)
+    {
+        return await transactionRepo.GetByCategory(categoryId, page, pageSize);
     }
 }

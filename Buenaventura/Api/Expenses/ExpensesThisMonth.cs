@@ -8,7 +8,7 @@ internal class ExpensesThisMonth(IDashboardService dashboardService)
 {
     public override void Configure()
     {
-        Get("/api/dashboard/expensesthismonth");
+        Get("/api/expenses/thismonth");
     }
 
     public override async Task HandleAsync(CancellationToken ct)

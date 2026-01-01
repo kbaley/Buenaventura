@@ -285,6 +285,41 @@ namespace Buenaventura.Data
             return model;
         }
 
+        public async Task<TransactionListModel> GetByCategory(Guid categoryId, int page, int pageSize)
+        {
+            var transactionList = await context.Transactions
+                .Include(t => t.LeftTransfer)
+                .Include(t => t.LeftTransfer!.RightTransaction)
+                .Include(t => t.LeftTransfer!.RightTransaction!.Account)
+                .Include(t => t.Category)
+                .Include(t => t.Account)
+                .Where(t => t.CategoryId == categoryId)
+                .OrderByDescending(t => t.TransactionDate)
+                .ThenByDescending(t => t.EnteredDate)
+                .ThenBy(t => t.TransactionId)
+                .Skip(pageSize * page).Take(pageSize)
+                .ToListAsync();
+            var transactions = transactionList
+                .Where(t => t != null)
+                .Select(t => t.ToDto())
+                .ToList();
+
+            var totalTransactionCount = await context.Transactions
+                .CountAsync(t => t.CategoryId == categoryId);
+            transactions.ForEach(t => {
+                t.SetDebitAndCredit();
+                t.RunningTotal = 0m;
+            });
+
+            var model = new TransactionListModel
+            {
+                Items = transactions,
+                StartingBalance = 0m,
+                TotalCount = totalTransactionCount
+            };
+            return model;
+        }
+
         public async Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50)
         {
             var transactionList = await context.Transactions

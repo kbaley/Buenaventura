@@ -1,7 +1,9 @@
+using Buenaventura.Data;
 using Buenaventura.Services;
 using Buenaventura.Shared;
 using Buenaventura.Tests.Helpers;
 using FluentAssertions;
+using Moq;
 using Xunit;
 
 namespace Buenaventura.Tests.Services;
@@ -14,7 +16,8 @@ public class CategoryServiceTests : IClassFixture<TestDbContextFixture>
     public CategoryServiceTests(TestDbContextFixture fixture)
     {
         _fixture = fixture;
-        _service = new CategoryService(_fixture.Context);
+        var mockTransactionRepo = new Mock<ITransactionRepository>();
+        _service = new CategoryService(_fixture.Context, mockTransactionRepo.Object);
     }
 
     [Fact]

@@ -9,7 +9,7 @@ internal class ExpenseTotalsByMonth(IDashboardService dashboardService)
 {
     public override void Configure()
     {
-        Get("/api/dashboard/expensetotalsbymonth");
+        Get("/api/expenses/totalsbymonth");
     }
 
     public override async Task HandleAsync(CancellationToken ct)

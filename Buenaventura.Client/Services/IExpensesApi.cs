@@ -10,19 +10,19 @@ public interface IExpensesApi
     ///
     /// Each data point is a tuple of (category name, total amount)
     /// </summary>
-    [Get("/api/dashboard/expenses")]
+    [Get("/api/expenses")]
     Task<IEnumerable<ReportDataPoint>> GetExpenseCategoryBreakdown();
     
-    [Get("/api/dashboard/expenseaverages")]
+    [Get("/api/expenses/averages")]
     Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData();
     
     /// <summary>
     /// Get a breakdown of expense totals by category and month for the last 12 months
     /// </summary>
-    [Get("/api/dashboard/expensetotalsbymonth")]
+    [Get("/api/expenses/totalsbymonth")]
     Task<CategoryTotals> GetExpenseTotalsByMonth();
     
-    [Get("/api/dashboard/expensesthismonth")]
+    [Get("/api/expenses/thismonth")]
     Task<decimal> GetThisMonthExpenses();
 
     [Get("/api/expenses/category/{categoryId}")]
