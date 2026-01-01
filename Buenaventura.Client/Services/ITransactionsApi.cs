@@ -23,6 +23,9 @@ public interface ITransactionsApi
     [Get("/api/accounts/{accountId}/transactions/all?start={start}&end={end}")]
     Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime start, DateTime end);
     
+    [Get("/api/expenses/category/{categoryId}/transactions?page={page}&pageSize={pageSize}")]
+    Task<TransactionListModel> GetTransactionsByCategory(Guid categoryId, int page = 0, int pageSize = 50);
+    
     [Post("/api/accounts/{accountId}/transactions/bulk")]
     Task AddBulkTransactions(Guid accountId, CreateBulkTransactionsRequest request);
 }

@@ -2,6 +2,8 @@
 @using Buenaventura.Client.Components.DashboardCharts
 @using ApexCharts
 @inject IDashboardApi DashboardApi
+@inject IExpensesApi ExpensesApi
+@inject ITransactionsApi TransactionsApi
 @inject ICategoriesApi CategoriesApi
 
 <MudText Typo="Typo.h4" GutterBottom="true">@category.Name</MudText>
@@ -82,7 +84,7 @@
     <MudItem xs="12">
         <MudPaper Elevation="1" Class="pa-4">
             <MudText Typo="Typo.h6" GutterBottom="true">Transactions</MudText>
-            <MudTable Items="@transactions" Dense="true" Hover="true" Bordered="true" Striped="true" RowsPerPage="10">
+            <MudTable ServerData="LoadTransactions" Dense="true" Hover="true" Bordered="true" Striped="true" RowsPerPage="10" @ref="table">
                 <HeaderContent>
                     <MudTh>Date</MudTh>
                     <MudTh>Vendor</MudTh>
@@ -115,15 +117,13 @@
     private List<ReportDataPoint> previousTwelveMonthsData = [];
     private List<ReportDataPoint> comparisonData = [];
     private List<ReportDataPoint> vendorData = [];
-    private List<TransactionForDisplay> transactions = [];
+    private MudTable<TransactionForDisplay> table;
 
     private readonly ApexChartOptions<ReportDataPoint> comparisonChartOptions = Buenaventura.Client.Services.ChartOptions.GetDefaultOptions<ReportDataPoint>();
     private readonly ApexChartOptions<ReportDataPoint> vendorChartOptions = Buenaventura.Client.Services.ChartOptions.GetDefaultOptions<ReportDataPoint>();
 
     protected override async Task OnInitializedAsync()
     {
-        // In a real app, we'd fetch data from the API
-        // For now, populate with dummy data
         await LoadData();
     }
 
@@ -131,71 +131,26 @@
     {
         isLoading = true;
         
-        // Simulate API delay
-        await Task.Delay(500);
-
-        // Dummy Category info
-        category = new CategoryModel
-        {
-            CategoryId = CategoryId,
-            Name = "Household Goods", // In real app, fetch by CategoryId
-        };
-
-        // Dummy spending summary
-        thisMonthSpending = 450.75m;
-        lastMonthSpending = 520.30m;
-
-        // Dummy 12 month data
-        var now = DateTime.Today;
-        for (int i = 11; i >= 0; i--)
-        {
-            var date = now.AddMonths(-i);
-            var label = date.ToString("MMM");
-            lastTwelveMonthsData.Add(new ReportDataPoint
-            {
-                Label = label,
-                Value = 300 + (decimal)new Random().NextDouble() * 500
-            });
-            
-            previousTwelveMonthsData.Add(new ReportDataPoint
-            {
-                Label = label,
-                Value = 250 + (decimal)new Random().NextDouble() * 450
-            });
-        }
-
-        // Dummy comparison data (Daily Average)
-        comparisonData = new List<ReportDataPoint>
-        {
-            new() { Label = "Last 30 Days", Value = 15.02m },
-            new() { Label = "Last 90 Days", Value = 12.45m },
-            new() { Label = "Last 360 Days", Value = 14.10m }
-        };
-
-        // Dummy vendor data
-        vendorData = new List<ReportDataPoint>
-        {
-            new() { Label = "Amazon", Value = 1200.50m },
-            new() { Label = "Walmart", Value = 850.20m },
-            new() { Label = "Target", Value = 430.15m },
-            new() { Label = "Local Grocery", Value = 310.00m },
-            new() { Label = "Other", Value = 150.00m }
-        };
-
-        // Dummy transactions
-        for (int i = 0; i < 50; i++)
-        {
-            transactions.Add(new TransactionForDisplay
-            {
-                TransactionId = Guid.NewGuid(),
-                TransactionDate = DateTime.Today.AddDays(-i),
-                Vendor = i % 3 == 0 ? "Amazon" : (i % 3 == 1 ? "Walmart" : "Target"),
-                Description = $"Purchase {i}",
-                AccountName = "Main Checking",
-                Amount = (decimal)new Random().NextDouble() * 100
-            });
-        }
+        var data = await ExpensesApi.GetExpenseCategoryPageData(CategoryId);
+        
+        category = data.Category;
+        thisMonthSpending = data.ThisMonthSpending;
+        lastMonthSpending = data.LastMonthSpending;
+        lastTwelveMonthsData = data.LastTwelveMonthsData;
+        previousTwelveMonthsData = data.PreviousTwelveMonthsData;
+        comparisonData = data.ComparisonData;
+        vendorData = data.VendorData;
 
         isLoading = false;
+    }
+
+    private async Task<TableData<TransactionForDisplay>> LoadTransactions(TableState state, CancellationToken token)
+    {
+        var result = await TransactionsApi.GetTransactionsByCategory(CategoryId, state.Page, state.PageSize);
+        return new TableData<TransactionForDisplay>
+        {
+            TotalItems = result.TotalCount,
+            Items = result.Items
+        };
     }
 }

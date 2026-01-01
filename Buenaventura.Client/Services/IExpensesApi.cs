@@ -24,4 +24,7 @@ public interface IExpensesApi
     
     [Get("/api/dashboard/expensesthismonth")]
     Task<decimal> GetThisMonthExpenses();
+
+    [Get("/api/expenses/category/{categoryId}")]
+    Task<ExpenseCategoryPageData> GetExpenseCategoryPageData(Guid categoryId);
 }
