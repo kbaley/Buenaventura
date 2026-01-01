@@ -1,6 +1,6 @@
 @page "/expense-analysis"
 @using Buenaventura.Client.Components.DashboardCharts
-@inject IDashboardApi dashboardApi
+@inject IExpensesApi expensesApi
 
 @attribute [Authorize]
 
@@ -112,10 +112,10 @@
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
-        var expenseBreakdownTask = dashboardApi.GetExpenseTotalsByMonth();
-        var expensesTask = dashboardApi.GetThisMonthExpenses();
-        var expenseTask = dashboardApi.GetExpenseCategoryBreakdown();
-        var expenseAveragesTask = dashboardApi.GetExpenseAveragesData();
+        var expenseBreakdownTask = expensesApi.GetExpenseTotalsByMonth();
+        var expensesTask = expensesApi.GetThisMonthExpenses();
+        var expenseTask = expensesApi.GetExpenseCategoryBreakdown();
+        var expenseAveragesTask = expensesApi.GetExpenseAveragesData();
         await Task.WhenAll(
             expensesTask,
             expenseTask,

@@ -1,22 +1,201 @@
 @page "/expense-analysis/{categoryId:guid}"
+@using Buenaventura.Client.Components.DashboardCharts
+@using ApexCharts
 @inject IDashboardApi DashboardApi
+@inject ICategoriesApi CategoriesApi
 
-<MudText Typo="Typo.h4" GutterBottom="true">@Category.CategoryName</MudText>
+<MudText Typo="Typo.h4" GutterBottom="true">@category.Name</MudText>
+
+<MudGrid>
+    <!-- Spending Summary Cards -->
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6">Spending This Month</MudText>
+            <MudText Typo="Typo.h4" Color="MudBlazor.Color.Primary">@thisMonthSpending.ToString("C0")</MudText>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6">Spending Last Month</MudText>
+            <MudText Typo="Typo.h4" Color="MudBlazor.Color.Secondary">@lastMonthSpending.ToString("C0")</MudText>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Spending Over Last 12 Months -->
+    <MudItem xs="12">
+        <LineChart
+            IsLoading="isLoading"
+            ChartData="@lastTwelveMonthsData"
+            ComparisonData="@previousTwelveMonthsData"
+            SeriesName="Current Period"
+            ComparisonSeriesName="Previous Period"
+            Title="Spending Over Last 12 Months"
+            Height="350"
+        />
+    </MudItem>
+
+    <!-- Comparison Chart -->
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4" Height="400px">
+            <MudText Typo="Typo.h6" GutterBottom="true">Spending Comparison (Daily Average)</MudText>
+            @if (isLoading)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" />
+            }
+            else
+            {
+                <ApexChart TItem="ReportDataPoint" Title="Daily Average Spending" Height="300" Options="comparisonChartOptions">
+                    <ApexPointSeries TItem="ReportDataPoint"
+                                     Items="comparisonData"
+                                     Name="Average Spending"
+                                     XValue="@(e => e.Label)"
+                                     YValue="@(e => e.Value)"
+                                     SeriesType="SeriesType.Bar" />
+                </ApexChart>
+            }
+        </MudPaper>
+    </MudItem>
+
+    <!-- Spending by Vendor (Additional useful chart) -->
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="1" Class="pa-4" Height="400px">
+            <MudText Typo="Typo.h6" GutterBottom="true">Top Vendors</MudText>
+            @if (isLoading)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" />
+            }
+            else
+            {
+                <ApexChart TItem="ReportDataPoint" Title="Spending by Vendor" Height="300" Options="vendorChartOptions">
+                    <ApexPointSeries TItem="ReportDataPoint"
+                                     Items="vendorData"
+                                     Name="Spending"
+                                     XValue="@(e => e.Label)"
+                                     YValue="@(e => e.Value)"
+                                     SeriesType="SeriesType.Donut" />
+                </ApexChart>
+            }
+        </MudPaper>
+    </MudItem>
+
+    <!-- Transaction List -->
+    <MudItem xs="12">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Transactions</MudText>
+            <MudTable Items="@transactions" Dense="true" Hover="true" Bordered="true" Striped="true" RowsPerPage="10">
+                <HeaderContent>
+                    <MudTh>Date</MudTh>
+                    <MudTh>Vendor</MudTh>
+                    <MudTh>Description</MudTh>
+                    <MudTh>Account</MudTh>
+                    <MudTh Style="text-align:right">Amount</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Date">@context.TransactionDate.ToShortDateString()</MudTd>
+                    <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                    <MudTd DataLabel="Description">@context.Description</MudTd>
+                    <MudTd DataLabel="Account">@context.AccountName</MudTd>
+                    <MudTd DataLabel="Amount" Style="text-align:right">@context.Amount.ToString("C2")</MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
-    
     [Parameter] public Guid CategoryId { get; set; }
-    private CategoryTotal Category { get; set; } = new();
-    
-    //TODO:
-    //  - Chart of spending on category for last twelve months
-    //  - Spending this month
-    //  - Comparison of 30 day spending: last 30 days, previous 90 days, previous 360 days
-    //  - Transaction list
-    
+    private CategoryModel category = new();
+    private bool isLoading = true;
+    private decimal thisMonthSpending;
+    private decimal lastMonthSpending;
+    private List<ReportDataPoint> lastTwelveMonthsData = [];
+    private List<ReportDataPoint> previousTwelveMonthsData = [];
+    private List<ReportDataPoint> comparisonData = [];
+    private List<ReportDataPoint> vendorData = [];
+    private List<TransactionForDisplay> transactions = [];
+
+    private readonly ApexChartOptions<ReportDataPoint> comparisonChartOptions = Buenaventura.Client.Services.ChartOptions.GetDefaultOptions<ReportDataPoint>();
+    private readonly ApexChartOptions<ReportDataPoint> vendorChartOptions = Buenaventura.Client.Services.ChartOptions.GetDefaultOptions<ReportDataPoint>();
+
     protected override async Task OnInitializedAsync()
     {
-        // Category = await DashboardService.GetCategoryTotal(CategoryId);
-        // var expenseBreakdownTask = DashboardService.GetExpenseTotalsByMonth();
+        // In a real app, we'd fetch data from the API
+        // For now, populate with dummy data
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        
+        // Simulate API delay
+        await Task.Delay(500);
+
+        // Dummy Category info
+        category = new CategoryModel
+        {
+            CategoryId = CategoryId,
+            Name = "Household Goods", // In real app, fetch by CategoryId
+        };
+
+        // Dummy spending summary
+        thisMonthSpending = 450.75m;
+        lastMonthSpending = 520.30m;
+
+        // Dummy 12 month data
+        var now = DateTime.Today;
+        for (int i = 11; i >= 0; i--)
+        {
+            var date = now.AddMonths(-i);
+            var label = date.ToString("MMM");
+            lastTwelveMonthsData.Add(new ReportDataPoint
+            {
+                Label = label,
+                Value = 300 + (decimal)new Random().NextDouble() * 500
+            });
+            
+            previousTwelveMonthsData.Add(new ReportDataPoint
+            {
+                Label = label,
+                Value = 250 + (decimal)new Random().NextDouble() * 450
+            });
+        }
+
+        // Dummy comparison data (Daily Average)
+        comparisonData = new List<ReportDataPoint>
+        {
+            new() { Label = "Last 30 Days", Value = 15.02m },
+            new() { Label = "Last 90 Days", Value = 12.45m },
+            new() { Label = "Last 360 Days", Value = 14.10m }
+        };
+
+        // Dummy vendor data
+        vendorData = new List<ReportDataPoint>
+        {
+            new() { Label = "Amazon", Value = 1200.50m },
+            new() { Label = "Walmart", Value = 850.20m },
+            new() { Label = "Target", Value = 430.15m },
+            new() { Label = "Local Grocery", Value = 310.00m },
+            new() { Label = "Other", Value = 150.00m }
+        };
+
+        // Dummy transactions
+        for (int i = 0; i < 50; i++)
+        {
+            transactions.Add(new TransactionForDisplay
+            {
+                TransactionId = Guid.NewGuid(),
+                TransactionDate = DateTime.Today.AddDays(-i),
+                Vendor = i % 3 == 0 ? "Amazon" : (i % 3 == 1 ? "Walmart" : "Target"),
+                Description = $"Purchase {i}",
+                AccountName = "Main Checking",
+                Amount = (decimal)new Random().NextDouble() * 100
+            });
+        }
+
+        isLoading = false;
     }
 }

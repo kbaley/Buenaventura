@@ -3,7 +3,7 @@ using Buenaventura.Shared;
 
 namespace Buenaventura.Client.Pages;
 
-public partial class Dashboard(IDashboardApi dashboardApi)
+public partial class Dashboard(IDashboardApi dashboardApi, IExpensesApi expensesApi)
 {
     private decimal creditCardBalance;
     private decimal liquidAssetBalance;
@@ -20,15 +20,15 @@ public partial class Dashboard(IDashboardApi dashboardApi)
     {
         isLoading = true;
 
-        var expensesTask = dashboardApi.GetThisMonthExpenses();
+        var expensesTask = expensesApi.GetThisMonthExpenses();
         var creditCardTask = dashboardApi.GetCreditCardBalance();
         var liquidAssetTask = dashboardApi.GetLiquidAssetBalance();
         var incomeExpenseTask = dashboardApi.GetIncomeExpenseData();
         var netWorthTask = dashboardApi.GetNetWorthData();
         var investmentTask = dashboardApi.GetInvestmentData();
-        var expenseTask = dashboardApi.GetExpenseCategoryBreakdown();
+        var expenseTask = expensesApi.GetExpenseCategoryBreakdown();
         var assetTask = dashboardApi.GetAssetClassData();
-        var expenseAveragesTask = dashboardApi.GetExpenseAveragesData();
+        var expenseAveragesTask = expensesApi.GetExpenseAveragesData();
 
         await Task.WhenAll(
             expensesTask,

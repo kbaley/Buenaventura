@@ -28,10 +28,20 @@
             <ApexPointSeries
                 TItem="ReportDataPoint"
                 Items="ChartData"
-                Name="Value"
+                Name="@SeriesName"
                 XValue="@(e => e.Label)"
                 YValue="@(e => e.Value)"
                 SeriesType="SeriesType.Line"/>
+            @if (ComparisonData.Any())
+            {
+                <ApexPointSeries
+                    TItem="ReportDataPoint"
+                    Items="ComparisonData"
+                    Name="@ComparisonSeriesName"
+                    XValue="@(e => e.Label)"
+                    YValue="@(e => e.Value)"
+                    SeriesType="SeriesType.Line"/>
+            }
             @if (TrendLine.Any())
             {
                 <ApexPointSeries
@@ -50,8 +60,11 @@
 
     [Parameter] public bool IsLoading { get; set; } = true;
     [Parameter] public IEnumerable<ReportDataPoint> ChartData { get; set; } = [];
+    [Parameter] public IEnumerable<ReportDataPoint> ComparisonData { get; set; } = [];
     [Parameter] public IEnumerable<ReportDataPoint> TrendLine { get; set; } = [];
     [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string SeriesName { get; set; } = "Value";
+    [Parameter] public string ComparisonSeriesName { get; set; } = "Previous Period";
     [Parameter] public int Height { get; set; } = 300;
 
     private string paperHeight => $"{Height}px";
