@@ -1,7 +1,6 @@
 using Buenaventura.Services;
 using Buenaventura.Shared;
 using FastEndpoints;
-using IAccountService = Buenaventura.Services.IAccountService;
 
 namespace Buenaventura.Api;
 
