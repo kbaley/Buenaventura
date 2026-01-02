@@ -1,7 +1,6 @@
 @page "/expense-analysis/{categoryId:guid}"
 @using Buenaventura.Client.Components.DashboardCharts
 @using ApexCharts
-@inject IDashboardApi DashboardApi
 @inject IExpensesApi ExpensesApi
 @inject ITransactionsApi TransactionsApi
 
@@ -38,14 +37,13 @@
     <!-- Comparison Chart -->
     <MudItem xs="12" md="6">
         <MudPaper Elevation="1" Class="pa-4" Height="400px">
-            <MudText Typo="Typo.h6" GutterBottom="true">Spending Comparison (Daily Average)</MudText>
             @if (isLoading)
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" />
             }
             else
             {
-                <ApexChart TItem="ReportDataPoint" Title="Daily Average Spending" Height="300" Options="comparisonChartOptions">
+                <ApexChart TItem="ReportDataPoint" Title="30 Day Average Spending" Height="300" Options="comparisonChartOptions">
                     <ApexPointSeries TItem="ReportDataPoint"
                                      Items="comparisonData"
                                      Name="Average Spending"
@@ -60,7 +58,6 @@
     <!-- Spending by Vendor (Additional useful chart) -->
     <MudItem xs="12" md="6">
         <MudPaper Elevation="1" Class="pa-4" Height="400px">
-            <MudText Typo="Typo.h6" GutterBottom="true">Top Vendors</MudText>
             @if (isLoading)
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" />
@@ -83,7 +80,7 @@
     <MudItem xs="12">
         <MudPaper Elevation="1" Class="pa-4">
             <MudText Typo="Typo.h6" GutterBottom="true">Transactions</MudText>
-            <MudTable ServerData="LoadTransactions" Dense="true" Hover="true" Bordered="true" Striped="true" RowsPerPage="10" @ref="table">
+            <MudTable ServerData="LoadTransactions" Dense="true" Hover="true" Bordered="true" Striped="true" RowsPerPage="10">
                 <HeaderContent>
                     <MudTh>Date</MudTh>
                     <MudTh>Vendor</MudTh>
@@ -116,7 +113,6 @@
     private List<ReportDataPoint> previousTwelveMonthsData = [];
     private List<ReportDataPoint> comparisonData = [];
     private List<ReportDataPoint> vendorData = [];
-    private MudTable<TransactionForDisplay> table;
 
     private readonly List<BreadcrumbItem> _breadcrumbs =
     [

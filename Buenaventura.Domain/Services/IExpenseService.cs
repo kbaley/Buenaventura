@@ -14,7 +14,7 @@ public interface IExpenseService : IAppService
     /// Each data point is a tuple of (category name, total amount)
     /// </summary>
     Task<IEnumerable<ReportDataPoint>> GetExpenseCategoryBreakdown();
-    Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData();
+    Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData(Guid? categoryId = null);
     /// <summary>
     /// Get a breakdown of expense totals by category and month for the last 12 months
     /// </summary>
@@ -93,7 +93,7 @@ public class ExpenseService(
         return report;
     }
 
-    public async Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData()
+    public async Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData(Guid? categoryId = null)
     {
         // Retrieve expense totals for the last 12 months, grouped by month for the
         // expenses tied to categories where Category.IncludeInReport = true
@@ -103,7 +103,7 @@ public class ExpenseService(
         var last360Days = now.AddDays(-360);
         var results = await context.Categories
             .Include(c => c.Transactions)
-            .Where(c => c.IncludeInReports)
+            .Where(c => (categoryId.HasValue ? c.CategoryId == categoryId : c.IncludeInReports))
             .Select(c => new ExpenseAveragesDataPoint
             {
                 Category = c.Name,
