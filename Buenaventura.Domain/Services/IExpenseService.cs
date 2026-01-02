@@ -104,7 +104,11 @@ public class ExpenseService(
         var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End);
         var report = expenseData.Expenses
             .Select(category => new ReportDataPoint
-            { Label = category.CategoryName, Value = category.Total }).ToList();
+            {
+                Id = category.CategoryId,
+                Label = category.CategoryName,
+                Value = category.Total
+            }).ToList();
 
         var otherCategory = new ReportDataPoint
         {

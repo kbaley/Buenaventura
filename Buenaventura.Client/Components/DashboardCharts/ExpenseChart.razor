@@ -1,5 +1,6 @@
 @using ApexCharts
 @using ChartOptions = Buenaventura.Client.Services.ChartOptions
+@inject NavigationManager NavigationManager
 @if (IsLoading)
 {
     <MudGrid>
@@ -22,6 +23,7 @@ else
                Title="Expense Breakdown by Category (last 12 months)"
                Height="300"
                 Options="@chartOptions"
+               OnDataPointSelection="OnDataPointSelection"
     >
         <ApexPointSeries
             TItem="ReportDataPoint"
@@ -39,4 +41,12 @@ else
 
     [Parameter] public bool IsLoading { get; set; } = true;
     [Parameter] public IEnumerable<ReportDataPoint> expenseData { get; set; } = [];
+
+    private void OnDataPointSelection(SelectedData<ReportDataPoint> selectedData)
+    {
+        if (selectedData.DataPoint?.Items?.FirstOrDefault()?.Id != null)
+        {
+            NavigationManager.NavigateTo($"/expense-analysis/{selectedData.DataPoint.Items.First().Id}");
+        }
+    }
 }
