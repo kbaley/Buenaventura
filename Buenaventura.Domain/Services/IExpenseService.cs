@@ -19,6 +19,10 @@ public interface IExpenseService : IAppService
     /// Get a breakdown of expense totals by category and month for the last 12 months
     /// </summary>
     Task<CategoryTotals> GetExpenseTotalsByMonth();
+    /// <summary>
+    /// Get a breakdown of expense totals for a category by month for the last 24 months
+    /// </summary>
+    Task<List<MonthlyAmount>> GetExpenseTotalsByMonth(Guid categoryId);
 
     Task<decimal> GetLastMonthExpenses(Guid? categoryId = null);
 }
@@ -49,6 +53,25 @@ public class ExpenseService(
         var period = ReportPeriod.GetLast12Months();
         var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End);
         return expenseData;
+    }
+
+    public async Task<List<MonthlyAmount>> GetExpenseTotalsByMonth(Guid categoryId)
+    {
+        var period = ReportPeriod.GetLast24Months();
+        var expenses = (await reportRepo.GetMonthlyAmountsByCategory(categoryId, period.Start, period.End))
+            .ToList();
+        var testDate = period.Start;
+        while (testDate < period.End)
+        {
+            if (!expenses.Any(e => e.Year == testDate.Year && e.Month == testDate.Month))
+            {
+                expenses.Add(new MonthlyAmount(testDate.Year, testDate.Month, 0.0M));
+            }
+            testDate = testDate.AddMonths(1);
+        }
+        expenses = expenses.OrderBy(e => e.Date).ToList();
+        
+        return expenses;
     }
 
     public async Task<decimal> GetLastMonthExpenses(Guid? categoryId = null)

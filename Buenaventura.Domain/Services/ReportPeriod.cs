@@ -25,6 +25,22 @@ public class ReportPeriod
     }
     
     /// <summary>
+    /// Get the 24-month period ending the first day of next month
+    /// </summary>
+    /// <returns></returns>
+    public static ReportPeriod GetLast24Months()
+    {
+        var today = DateTime.Today;
+        var end = today.FirstDayOfMonth().AddMonths(1);
+        var start = today.AddMonths(-23).FirstDayOfMonth();
+        return new ReportPeriod
+        {
+            Start = start,
+            End = end
+        };
+    }
+    
+    /// <summary>
     /// Get the 12-month period ending the first day of this month
     /// </summary>
     /// <returns></returns>

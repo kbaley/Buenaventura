@@ -29,10 +29,21 @@ internal class GetExpenseCategoryPageData(IExpenseService expenseService, ICateg
                 new ReportDataPoint{ Value = averages.Last360DaysAverage, Label = "Last 360 Days"}
             ]);
         }
+
+        var monthlyData = await expenseService.GetExpenseTotalsByMonth(req.CategoryId);
+        var cutoff = DateTime.Today.AddMonths(-11);
         data.ThisMonthSpending = -monthExpenses;
         data.LastMonthSpending = -lastMonth;
         data.Category = await categoryService.GetCategory(req.CategoryId);
         data.ComparisonData = comparison;
+        data.LastTwelveMonthsData = monthlyData
+            .Where(x => x.Date >= cutoff)
+            .Select(x => new ReportDataPoint { Label = x.Date.ToString("MMM yyyy"), Value = x.Amount })
+            .ToList();
+        data.PreviousTwelveMonthsData = monthlyData
+            .Where(x => x.Date < cutoff)
+            .Select(x => new ReportDataPoint { Label = x.Date.ToString("MMM yyyy"), Value = x.Amount })
+            .ToList();
         await SendOkAsync(data, ct);
     }
 }

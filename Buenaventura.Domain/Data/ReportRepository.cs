@@ -74,6 +74,20 @@ namespace Buenaventura.Data
             return Math.Round(usTotal + (cadTotal / exchangeRate), 2);
         }
 
+        public async Task<IEnumerable<MonthlyAmount>> GetMonthlyAmountsByCategory(Guid categoryId, DateTime start,
+            DateTime end)
+        {
+            using var conn = Connection;
+            var sql = "SELECT 0 - sum(amount_in_base_currency) as amount, EXTRACT(MONTH from t.transaction_date)::int as month, EXTRACT(YEAR from t.transaction_date)::int as year FROM transactions t " +
+                      "WHERE transaction_date > @start and transaction_date <= @end " +
+                      "AND t.category_id = '" + categoryId + "' " +
+                      "GROUP BY EXTRACT(MONTH from t.transaction_date), EXTRACT(YEAR from t.transaction_date)";
+            var data = await conn.QueryAsync(sql, new { start, end });
+            var results = data.Select(e => new MonthlyAmount(e.year, e.month, e.amount)).ToList();
+
+            return results;
+        }
+
         public async Task<IEnumerable<CategoryTotal>> GetTransactionsByCategoryType(string categoryType, DateTime start, DateTime end)
         {
             var amountPrefix = "";
