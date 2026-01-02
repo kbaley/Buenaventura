@@ -25,6 +25,11 @@ public interface IExpenseService : IAppService
     Task<List<MonthlyAmount>> GetExpenseTotalsByMonth(Guid categoryId);
 
     Task<decimal> GetLastMonthExpenses(Guid? categoryId = null);
+    
+    /// <summary>
+    /// Get spending by vendor for a specific category over the last 12 months
+    /// </summary>
+    Task<List<ReportDataPoint>> GetVendorSpendingByCategory(Guid categoryId);
 }
 
 public class ExpenseService(
@@ -141,6 +146,50 @@ public class ExpenseService(
                     .Sum(t => -t.AmountInBaseCurrency) / 12
             }).ToListAsync();
         return results;
+    }
+
+    public async Task<List<ReportDataPoint>> GetVendorSpendingByCategory(Guid categoryId)
+    {
+        var startDate = DateTime.Today.AddYears(-1);
+        
+        // Get vendor spending for the category over the last year
+        var vendorSpending = await context.Transactions
+            .Where(t => t.CategoryId == categoryId 
+                        && t.TransactionDate >= startDate 
+                        && !string.IsNullOrEmpty(t.Vendor))
+            .GroupBy(t => t.Vendor)
+            .Select(g => new ReportDataPoint
+            {
+                Label = g.Key!,
+                Value = -g.Sum(t => t.AmountInBaseCurrency)
+            })
+            .OrderByDescending(v => v.Value)
+            .ToListAsync();
+
+        if (!vendorSpending.Any())
+        {
+            return [];
+        }
+
+        // Calculate total spending
+        var totalSpending = vendorSpending.Sum(v => v.Value);
+        
+        // Group vendors with less than 2% into "Other"
+        var threshold = totalSpending * 0.02m;
+        var mainVendors = vendorSpending.Where(v => v.Value >= threshold).ToList();
+        var smallVendors = vendorSpending.Where(v => v.Value < threshold).ToList();
+        
+        if (smallVendors.Any())
+        {
+            var otherTotal = smallVendors.Sum(v => v.Value);
+            mainVendors.Add(new ReportDataPoint
+            {
+                Label = "Other",
+                Value = otherTotal
+            });
+        }
+        
+        return mainVendors;
     }
 
     private async Task<CategoryTotals> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end)
