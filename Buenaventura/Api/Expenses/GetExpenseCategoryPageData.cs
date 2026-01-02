@@ -6,7 +6,7 @@ namespace Buenaventura.Api;
 
 internal sealed record GetExpenseCategoryPageDataRequest(Guid CategoryId);
 
-internal class GetExpenseCategoryPageData(IDashboardService dashboardService)
+internal class GetExpenseCategoryPageData(IExpenseService expenseService)
     : Endpoint<GetExpenseCategoryPageDataRequest, ExpenseCategoryPageData>
 {
     public override void Configure()
@@ -16,7 +16,11 @@ internal class GetExpenseCategoryPageData(IDashboardService dashboardService)
 
     public override async Task HandleAsync(GetExpenseCategoryPageDataRequest req, CancellationToken ct)
     {
+        var monthExpenses = await expenseService.GetThisMonthExpenses(req.CategoryId);
+        var lastMonth = await expenseService.GetLastMonthExpenses(req.CategoryId);
         var data = new ExpenseCategoryPageData();
+        data.ThisMonthSpending = -monthExpenses;
+        data.LastMonthSpending = -lastMonth;
         await SendOkAsync(data, ct);
     }
 }

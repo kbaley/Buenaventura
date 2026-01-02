@@ -3,7 +3,7 @@ using FastEndpoints;
 
 namespace Buenaventura.Api;
 
-internal class ExpensesThisMonth(IDashboardService dashboardService)
+internal class ExpensesThisMonth(IExpenseService expenseService)
     : EndpointWithoutRequest<decimal>
 {
     public override void Configure()
@@ -13,7 +13,7 @@ internal class ExpensesThisMonth(IDashboardService dashboardService)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var total = await dashboardService.GetThisMonthExpenses();
+        var total = await expenseService.GetThisMonthExpenses();
         await SendOkAsync(total, ct);
     }
 }

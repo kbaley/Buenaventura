@@ -4,7 +4,7 @@ using FastEndpoints;
 
 namespace Buenaventura.Api;
 
-internal class ExpenseAverages(IDashboardService dashboardService)
+internal class ExpenseAverages(IExpenseService expenseService)
     : EndpointWithoutRequest<IEnumerable<ExpenseAveragesDataPoint>>
 {
     public override void Configure()
@@ -14,7 +14,7 @@ internal class ExpenseAverages(IDashboardService dashboardService)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var data = await dashboardService.GetExpenseAveragesData();
+        var data = await expenseService.GetExpenseAveragesData();
         await SendOkAsync(data, ct);
     }
 }
