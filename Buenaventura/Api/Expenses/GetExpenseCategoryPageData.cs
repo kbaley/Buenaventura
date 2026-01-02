@@ -31,7 +31,7 @@ internal class GetExpenseCategoryPageData(IExpenseService expenseService, ICateg
         }
 
         var monthlyData = await expenseService.GetExpenseTotalsByMonth(req.CategoryId);
-        var cutoff = DateTime.Today.AddMonths(-11);
+        var cutoff = DateTime.Today.AddMonths(-12);
         data.ThisMonthSpending = -monthExpenses;
         data.LastMonthSpending = -lastMonth;
         data.Category = await categoryService.GetCategory(req.CategoryId);
