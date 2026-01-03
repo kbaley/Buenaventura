@@ -55,7 +55,7 @@
         </MudPaper>
     </MudItem>
 
-    <!-- Spending by Vendor (Additional useful chart) -->
+    <!-- Spending by Vendor -->
     <MudItem xs="12" md="6">
         <MudPaper Elevation="1" Class="pa-4" Height="400px">
             @if (isLoading)
@@ -64,7 +64,7 @@
             }
             else
             {
-                <ApexChart TItem="ReportDataPoint" Title="Spending by Vendor" Height="300" Options="vendorChartOptions">
+                <ApexChart TItem="ReportDataPoint" Title="Spending by Vendor (last 12 months)" Height="300" Options="vendorChartOptions">
                     <ApexPointSeries TItem="ReportDataPoint"
                                      Items="vendorData"
                                      Name="Spending"
