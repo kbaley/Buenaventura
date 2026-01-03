@@ -27,4 +27,7 @@ public interface IExpensesApi
 
     [Get("/api/expenses/category/{categoryId}")]
     Task<ExpenseCategoryPageData> GetExpenseCategoryPageData(Guid categoryId);
+
+    [Get("/api/expenses/vendors")]
+    Task<List<ReportDataPoint>> GetVendorData();
 }

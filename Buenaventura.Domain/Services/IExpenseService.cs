@@ -29,7 +29,7 @@ public interface IExpenseService : IAppService
     /// <summary>
     /// Get spending by vendor for a specific category over the last 12 months
     /// </summary>
-    Task<List<ReportDataPoint>> GetVendorSpendingByCategory(Guid categoryId);
+    Task<List<ReportDataPoint>> GetVendorSpending(Guid? categoryId = null);
 }
 
 public class ExpenseService(
@@ -152,13 +152,13 @@ public class ExpenseService(
         return results;
     }
 
-    public async Task<List<ReportDataPoint>> GetVendorSpendingByCategory(Guid categoryId)
+    public async Task<List<ReportDataPoint>> GetVendorSpending(Guid? categoryId = null)
     {
         var startDate = DateTime.Today.AddYears(-1);
         
-        // Get vendor spending for the category over the last year
+        // Get vendor spending for the last year
         var vendorSpending = await context.Transactions
-            .Where(t => t.CategoryId == categoryId 
+            .Where(t => (categoryId == null || t.CategoryId == categoryId)
                         && t.TransactionDate >= startDate 
                         && !string.IsNullOrEmpty(t.Vendor))
             .GroupBy(t => t.Vendor)

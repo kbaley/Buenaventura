@@ -1,5 +1,7 @@
 @page "/expense-analysis"
+@using ApexCharts
 @using Buenaventura.Client.Components.DashboardCharts
+@using Color = MudBlazor.Color
 @inject IExpensesApi expensesApi
 
 @attribute [Authorize]
@@ -37,7 +39,7 @@
     </MudItem>
 
     <!-- Expense Breakdown by Category -->
-    <MudItem xs="12" md="6">
+    <MudItem xs="12" md="4">
         <MudPaper Elevation="1" Class="pa-4" Height="335px">
             <ExpenseChart
                 IsLoading="@isLoading"
@@ -47,12 +49,33 @@
     </MudItem>
 
     <!-- Expense Averages -->
-    <MudItem xs="12" md="6">
+    <MudItem xs="12" md="4">
         <MudPaper Elevation="1" Class="pa-4" Height="335px">
             <ExpenseAveragesChart
                 IsLoading="isLoading"
                 ExpenseData="@expenseAveragesData"
             />
+        </MudPaper>
+    </MudItem>
+
+    <!-- Spending by Vendor -->
+    <MudItem xs="12" md="4">
+        <MudPaper Elevation="1" Class="pa-4" Height="335px">
+            @if (isLoading)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="280px" />
+            }
+            else
+            {
+                <ApexChart TItem="ReportDataPoint" Title="Spending by Vendor (last 12 months)" Height="300" Options="vendorChartOptions">
+                    <ApexPointSeries TItem="ReportDataPoint"
+                                     Items="vendorData"
+                                     Name="Spending"
+                                     XValue="@(e => e.Label)"
+                                     YValue="@(e => e.Value)"
+                                     SeriesType="SeriesType.Donut" />
+                </ApexChart>
+            }
         </MudPaper>
     </MudItem>
 
@@ -107,7 +130,9 @@
     private List<DateTime> lastTwelveMonths = [];
     private List<CategoryTotal> categoryMonthlyData = [];
     private List<decimal> monthlyTotals = [];
-    private decimal grandTotal = 0;
+    private decimal grandTotal;
+    private List<ReportDataPoint> vendorData = [];
+    private readonly ApexChartOptions<ReportDataPoint> vendorChartOptions = Services.ChartOptions.GetDefaultOptions<ReportDataPoint>();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -116,16 +141,19 @@
         var expensesTask = expensesApi.GetThisMonthExpenses();
         var expenseTask = expensesApi.GetExpenseCategoryBreakdown();
         var expenseAveragesTask = expensesApi.GetExpenseAveragesData();
+        var vendorDataTask = expensesApi.GetVendorData();
         await Task.WhenAll(
             expensesTask,
             expenseTask,
             expenseAveragesTask,
-            expenseBreakdownTask
+            expenseBreakdownTask,
+            vendorDataTask
         );
 
         expensesThisMonth = -(await expensesTask);
         expenseData = await expenseTask;
         expenseAveragesData = await expenseAveragesTask;
+        vendorData = await vendorDataTask;
         var expenseBreakdown = await expenseBreakdownTask;
 
         StateHasChanged();
