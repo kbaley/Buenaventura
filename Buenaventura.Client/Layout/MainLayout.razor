@@ -40,14 +40,12 @@
                     <MudIcon Icon="@Icons.Material.Filled.Receipt"/>
                 </MudButton>
 
-                <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="reports" Class="d-flex d-sm-none">
-                    <MudIcon Icon="@Icons.Material.Filled.Assessment"/>
-                </MudButton>
 
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2"/>
                 <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit">
                     <MudMenuItem Icon="@Icons.Material.Filled.Category" IconColor="Color.Primary" Label="Categories" Href="categories"/>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Assessment" IconColor="Color.Primary" Label="Reports" Href="reports"/>
                     <MudMenuItem Icon="@Icons.Material.Filled.People" IconColor="Color.Primary" Label="Customers" Href="customers"/>
                     <MudMenuItem Icon="@Icons.Material.Filled.Description" IconColor="Color.Primary" Label="Invoice Template" Href="invoicetemplate"/>
                     <MudMenuItem Icon="@Icons.Material.Filled.Sort" IconColor="Color.Primary" Label="Accounts" Href="accounts"/>
