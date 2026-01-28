@@ -16,6 +16,7 @@ public interface IAccountService : IAppService
     Task<TransactionListModel> GetPotentialDuplicateTransactions(Guid accountId);
     Task UpdateAccount(AccountWithBalance account);
     Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime startDate, DateTime endDate);
+    Task<TransactionListModel> GetAllTransactions(DateTime startDate, DateTime endDate);
     Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions);
 }
 
@@ -171,6 +172,34 @@ public class AccountService(
     public async Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime start, DateTime end)
     {
         return await transactionRepo.GetInDateRange(accountId, start, end);
+    }
+
+    public async Task<TransactionListModel> GetAllTransactions(DateTime start, DateTime end)
+    {
+        var transactionList = await context.Transactions
+            .Include(t => t.LeftTransfer)
+            .Include(t => t.LeftTransfer!.RightTransaction)
+            .Include(t => t.LeftTransfer!.RightTransaction!.Account)
+            .Include(t => t.Category)
+            .Include(t => t.Account)
+            .Where(t => t.TransactionDate >= start && t.TransactionDate <= end)
+            .OrderByDescending(t => t.TransactionDate)
+            .ThenByDescending(t => t.EnteredDate)
+            .ThenBy(t => t.TransactionId)
+            .ToListAsync();
+        
+        var transactions = transactionList
+            .Where(t => t != null)
+            .Select(t => t.ToDto())
+            .ToList();
+        
+        transactions.ForEach(t => t.SetDebitAndCredit());
+
+        return new TransactionListModel
+        {
+            Items = transactions,
+            TotalCount = transactions.Count,
+        };
     }
 
     public async Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions)

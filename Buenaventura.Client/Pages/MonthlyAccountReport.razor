@@ -1,0 +1,116 @@
+@page "/reports/monthly-transactions"
+@using Buenaventura.Client.Services
+@using Buenaventura.Shared
+@inject ITransactionsApi TransactionsApi
+@attribute [Authorize]
+
+<MudText Typo="Typo.h4" GutterBottom="true">Monthly Transactions by Account</MudText>
+
+<MudPaper Elevation="1" Class="pa-4 mb-4">
+    <div class="d-flex align-center">
+        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousMonth" />
+        <MudText Typo="Typo.h6" Class="mx-4">@currentMonth.ToString("MMMM yyyy")</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextMonth" />
+        <MudSpacer />
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="GoToCurrentMonth">Current Month</MudButton>
+    </div>
+</MudPaper>
+
+@if (loading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+else if (groupedTransactions == null || !groupedTransactions.Any())
+{
+    <MudAlert Severity="Severity.Info">No transactions found for this month.</MudAlert>
+}
+else
+{
+    @foreach (var accountGroup in groupedTransactions)
+    {
+        <MudCard Elevation="2" Class="mb-6">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">@accountGroup.Key</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2 mr-4">
+                        Total: <span style="font-weight: bold; color: @(accountGroup.Value.Sum(t => t.Amount) >= 0 ? "green" : "red")">
+                            @accountGroup.Value.Sum(t => t.Amount).ToString("C2")
+                        </span>
+                    </MudText>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent Class="pa-0">
+                <MudTable Items="accountGroup.Value" Hover="true" Dense="true" Striped="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh>Date</MudTh>
+                        <MudTh>Vendor</MudTh>
+                        <MudTh>Category</MudTh>
+                        <MudTh>Description</MudTh>
+                        <MudTh Style="text-align: right">Amount</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
+                        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                        <MudTd DataLabel="Category">@context.Category.Name</MudTd>
+                        <MudTd DataLabel="Description">@context.Description</MudTd>
+                        <MudTd DataLabel="Amount" Style="text-align: right">
+                            <span style="color: @(context.Amount >= 0 ? "inherit" : "red")">
+                                @context.Amount.ToString("N2")
+                            </span>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudCardContent>
+        </MudCard>
+    }
+}
+
+@code {
+    private DateTime currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+    private bool loading = true;
+    private Dictionary<string, List<TransactionForDisplay>> groupedTransactions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        loading = true;
+        try
+        {
+            var start = currentMonth;
+            var end = currentMonth.AddMonths(1).AddDays(-1);
+            var result = await TransactionsApi.GetAllTransactions(start, end);
+            
+            groupedTransactions = result.Items
+                .GroupBy(t => t.AccountName ?? "Unknown Account")
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(t => t.TransactionDate).ToList());
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task PreviousMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+        await LoadData();
+    }
+
+    private async Task NextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+        await LoadData();
+    }
+
+    private async Task GoToCurrentMonth()
+    {
+        currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        await LoadData();
+    }
+}

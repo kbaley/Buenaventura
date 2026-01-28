@@ -23,6 +23,9 @@ public interface ITransactionsApi
     [Get("/api/accounts/{accountId}/transactions/all?start={start}&end={end}")]
     Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime start, DateTime end);
     
+    [Get("/api/transactions/all?start={start}&end={end}")]
+    Task<TransactionListModel> GetAllTransactions(DateTime start, DateTime end);
+    
     [Get("/api/categories/{categoryId}/transactions?page={page}&pageSize={pageSize}")]
     Task<TransactionListModel> GetTransactionsByCategory(Guid categoryId, int page = 0, int pageSize = 50);
     
