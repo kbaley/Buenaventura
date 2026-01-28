@@ -249,7 +249,6 @@ namespace Buenaventura.Data
                 .Where(t => t.AccountId == accountId
                             && t.TransactionDate >= start
                             && t.TransactionDate <= end
-                            && (t.Category != null && t.Category.IncludeInReports)
                     )
                 .OrderByDescending(t => t.TransactionDate)
                 .ThenByDescending(t => t.EnteredDate)
