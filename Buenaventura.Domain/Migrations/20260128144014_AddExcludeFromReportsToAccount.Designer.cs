@@ -3,6 +3,7 @@ using System;
 using Buenaventura.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Buenaventura.Migrations
 {
     [DbContext(typeof(BuenaventuraDbContext))]
-    partial class BuenaventuraDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260128144014_AddExcludeFromReportsToAccount")]
+    partial class AddExcludeFromReportsToAccount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,10 +85,6 @@ namespace Buenaventura.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("category_id");
-
-                    b.Property<bool>("ExcludeFromTransactionReport")
-                        .HasColumnType("boolean")
-                        .HasColumnName("exclude_from_transaction_report");
 
                     b.Property<bool>("IncludeInReports")
                         .HasColumnType("boolean")

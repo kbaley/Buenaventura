@@ -14,6 +14,7 @@ public class Account
     [NotMapped] public decimal CurrentBalance { get; set; }
 
     [DefaultValue(false)] public bool IsHidden { get; set; }
+    [DefaultValue(false)] public bool ExcludeFromReports { get; set; }
 
     [Required] [DefaultValue("USD")] public string Currency { get; set; }
 

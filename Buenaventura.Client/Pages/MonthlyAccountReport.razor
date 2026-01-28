@@ -68,7 +68,7 @@ else
 }
 
 @code {
-    private DateTime currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+    private DateTime currentMonth = new(DateTime.Today.Year, DateTime.Today.Month, 1);
     private bool loading = true;
     private Dictionary<string, List<TransactionForDisplay>> groupedTransactions = new();
 

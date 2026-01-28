@@ -42,6 +42,7 @@ namespace Buenaventura.Shared
         public decimal? MortgagePayment { get; set; }
         public string MortgageType { get; set; } = "";
         public bool IsHidden { get; set; }
+        public bool ExcludeFromReports { get; set; }
         public int DisplayOrder { get; set; }
         public decimal CurrentBalance { get; set; }
         public decimal CurrentBalanceInUsd { get; set; }

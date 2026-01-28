@@ -30,3 +30,17 @@ traces
 
 To trigger the function manually, navigate to it in Azure Explorer in Rider. Right-click on the function and select
 "Trigger Function with Http Client".
+
+### EF migrations
+
+To add a new migration, use the following command in the terminal from the root folder:
+
+```
+dotnet ef migrations add <MigrationName> --project Buenaventura.Domain/Buenaventura.Domain.csproj --startup-project Buenaventura/Buenaventura.csproj
+```
+
+To update the database:
+
+```
+dotnet ef database update --project Buenaventura.Domain/Buenaventura.Domain.csproj --startup-project Buenaventura/Buenaventura.csproj
+```

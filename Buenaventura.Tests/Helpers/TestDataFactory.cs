@@ -91,6 +91,7 @@ public static class TestDataFactory
         .RuleFor(c => c.Name, f => f.Commerce.Department())
         .RuleFor(c => c.CategoryClass, f => f.PickRandom("Expense", "Income", "Transfer"))
         .RuleFor(c => c.IncludeInReports, f => f.Random.Bool())
+        .RuleFor(c => c.ExcludeFromTransactionReports, f => f.Random.Bool())
         .RuleFor(c => c.TimesUsed, f => f.Random.Int(0, 100));
 
     public static Faker<CustomerModel> CustomerModelFaker => new Faker<CustomerModel>()

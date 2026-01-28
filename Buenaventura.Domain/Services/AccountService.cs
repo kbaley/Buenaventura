@@ -42,6 +42,7 @@ public class AccountService(
                 MortgageType = a.MortgageType,
                 DisplayOrder = a.DisplayOrder,
                 IsHidden = a.IsHidden,
+                ExcludeFromReports = a.ExcludeFromReports,
                 CurrentBalance = a.Transactions.Sum(t => t.Amount),
                 CurrentBalanceInUsd = a.Currency == "CAD"
                     ? Math.Round(a.Transactions.Sum(t => t.Amount) / exchangeRate, 2)
@@ -77,6 +78,7 @@ public class AccountService(
             MortgageType = account.MortgageType,
             DisplayOrder = account.DisplayOrder,
             IsHidden = account.IsHidden,
+            ExcludeFromReports =  account.ExcludeFromReports,
             CurrentBalance = account.Transactions.Sum(t => t.Amount),
             CurrentBalanceInUsd = account.Currency == "CAD"
                 ? Math.Round(account.Transactions.Sum(t => t.Amount) / exchangeRate, 2)
@@ -166,11 +168,22 @@ public class AccountService(
         dbAccount.Vendor = account.Vendor;
         dbAccount.AccountType = account.AccountType;
         dbAccount.IsHidden = account.IsHidden;
+        dbAccount.ExcludeFromReports = account.ExcludeFromReports;
         await context.SaveChangesAsync();
     }
 
     public async Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime start, DateTime end)
     {
+        var account = await context.Accounts.SingleOrDefaultAsync(t => t.AccountId == accountId);
+        if (account == null || account.IsHidden || account.ExcludeFromReports)
+        {
+            return new TransactionListModel
+            {
+                Items = new List<TransactionForDisplay>(),
+                TotalCount = 0,
+            };
+        }
+
         return await transactionRepo.GetInDateRange(accountId, start, end);
     }
 
@@ -182,7 +195,11 @@ public class AccountService(
             .Include(t => t.LeftTransfer!.RightTransaction!.Account)
             .Include(t => t.Category)
             .Include(t => t.Account)
-            .Where(t => t.TransactionDate >= start && t.TransactionDate <= end)
+            .Where(t => 
+                t.TransactionDate >= start && t.TransactionDate <= end
+                                           && (t.Account == null || !t.Account.ExcludeFromReports)
+                                           && (t.Category == null || !t.Category.ExcludeFromTransactionReport)
+                )
             .OrderByDescending(t => t.TransactionDate)
             .ThenByDescending(t => t.EnteredDate)
             .ThenBy(t => t.TransactionId)

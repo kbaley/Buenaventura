@@ -14,4 +14,5 @@ public class CategoryModel
     public Guid? TransferAccountId { get; set; }
     public int TimesUsed { get; set; }
     public bool IncludeInReports { get; set; }
+    public bool ExcludeFromTransactionReports { get; set; }
 }

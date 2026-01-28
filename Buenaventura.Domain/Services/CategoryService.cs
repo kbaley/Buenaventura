@@ -31,7 +31,8 @@ public class CategoryService(
                     Type = CategoryType.REGULAR,
                     TimesUsed = transaction.Count(),
                     CategoryClass = category.Type,
-                    IncludeInReports = category.IncludeInReports
+                    IncludeInReports = category.IncludeInReports,
+                    ExcludeFromTransactionReports = category.ExcludeFromTransactionReport
                 })
             .OrderByDescending(c => c.TimesUsed)
             .ToListAsync();
@@ -52,6 +53,7 @@ public class CategoryService(
             throw new Exception("Category not found");
         }
         category.IncludeInReports = categoryModel.IncludeInReports;
+        category.ExcludeFromTransactionReport = categoryModel.ExcludeFromTransactionReports;
         category.Name = categoryModel.Name;
         category.Type = categoryModel.CategoryClass;
         await context.SaveChangesAsync();
@@ -69,7 +71,8 @@ public class CategoryService(
             CategoryId = category.CategoryId,
             Name = category.Name,
             CategoryClass = category.Type,
-            IncludeInReports = category.IncludeInReports
+            IncludeInReports = category.IncludeInReports,
+            ExcludeFromTransactionReports = category.ExcludeFromTransactionReport
         };
     }
 

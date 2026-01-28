@@ -32,8 +32,11 @@
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12" md="12">
+                <MudItem xs="3" md="3">
                     <MudCheckBox T="bool" Label="Hidden" @bind-Value="account.IsHidden"/>
+                </MudItem>
+                <MudItem xs="9" md="9">
+                    <MudCheckBox T="bool" Label="Exclude from transaction report" @bind-Value="account.ExcludeFromReports"/>
                 </MudItem>
                 <MudItem xs="12" md="12">
 
