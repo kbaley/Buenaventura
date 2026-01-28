@@ -2,6 +2,7 @@
 @using Buenaventura.Client.Services
 @using Buenaventura.Shared
 @inject ITransactionsApi TransactionsApi
+@inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
 <MudText Typo="Typo.h4" GutterBottom="true">Monthly Transactions by Account</MudText>
@@ -12,7 +13,8 @@
         <MudText Typo="Typo.h6" Class="mx-4">@currentMonth.ToString("MMMM yyyy")</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextMonth" />
         <MudSpacer />
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="GoToCurrentMonth">Current Month</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="GoToCurrentMonth" Class="mr-2">Current Month</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PictureAsPdf" OnClick="PrintAsPdf" Disabled="@loading">Print as PDF</MudButton>
     </div>
 </MudPaper>
 
@@ -26,7 +28,9 @@ else if (groupedTransactions == null || !groupedTransactions.Any())
 }
 else
 {
-    @foreach (var accountGroup in groupedTransactions)
+    <div id="printable-report">
+        <MudText Typo="Typo.h5" Class="mb-4 d-none d-print-block">Monthly Transactions - @currentMonth.ToString("MMMM yyyy")</MudText>
+        @foreach (var accountGroup in groupedTransactions)
     {
         <MudCard Elevation="2" Class="mb-6">
             <MudCardHeader>
@@ -65,6 +69,7 @@ else
             </MudCardContent>
         </MudCard>
     }
+    </div>
 }
 
 @code {
@@ -112,5 +117,10 @@ else
     {
         currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
         await LoadData();
+    }
+
+    private async Task PrintAsPdf()
+    {
+        await JSRuntime.InvokeVoidAsync("printHelper.printElement", "printable-report");
     }
 }
