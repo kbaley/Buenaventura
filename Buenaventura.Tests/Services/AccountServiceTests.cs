@@ -92,7 +92,7 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
             TotalCount = 0
         };
 
-        _mockTransactionRepo.Setup(r => r.GetByAccount(accountId, "", 0, 50))
+        _mockTransactionRepo.Setup(r => r.GetByAccount(accountId, "", 0, 50, false))
             .ReturnsAsync(expectedResult);
 
         // Act
@@ -100,7 +100,7 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
 
         // Assert
         result.Should().Be(expectedResult);
-        _mockTransactionRepo.Verify(r => r.GetByAccount(accountId, "", 0, 50), Times.Once);
+        _mockTransactionRepo.Verify(r => r.GetByAccount(accountId, "", 0, 50, false), Times.Once);
     }
 
     [Fact]

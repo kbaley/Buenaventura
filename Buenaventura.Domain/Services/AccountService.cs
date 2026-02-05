@@ -7,7 +7,8 @@ namespace Buenaventura.Services;
 public interface IAccountService : IAppService
 {
     Task<IEnumerable<AccountWithBalance>> GetAccounts();
-    Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50);
+    Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50,
+        bool isRestricted = false);
     Task<AccountWithBalance> GetAccount(Guid id);
     Task UpdateTransaction(TransactionForDisplay transaction);
     Task AddTransaction(Guid accountId, TransactionForDisplay transaction);
@@ -52,9 +53,9 @@ public class AccountService(
     }
 
     public async Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0,
-        int pageSize = 50)
+        int pageSize = 50, bool isRestricted = false)
     {
-        return await transactionRepo.GetByAccount(accountId, search, page, pageSize);
+        return await transactionRepo.GetByAccount(accountId, search, page, pageSize, isRestricted);
     }
 
     public async Task<AccountWithBalance> GetAccount(Guid id)

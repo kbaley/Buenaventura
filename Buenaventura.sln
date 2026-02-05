@@ -21,6 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buenaventura.Domain", "Buen
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{3CCB8D4C-C342-461D-A079-CB450EAB953B}"
 	ProjectSection(SolutionItems) = preProject
+		.junie\guidelines.md = .junie\guidelines.md
 		README.md = README.md
 	EndProjectSection
 EndProject

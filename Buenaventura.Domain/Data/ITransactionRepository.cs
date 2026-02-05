@@ -6,7 +6,8 @@ namespace Buenaventura.Data
 {
     public interface ITransactionRepository : IAppService
     {
-        Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50);
+        Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50,
+            bool isRestricted = false);
         Task Insert(TransactionForDisplay transaction);
         Task<Transaction> Update(TransactionForDisplay transaction);
         Task Delete(Guid transactionId);

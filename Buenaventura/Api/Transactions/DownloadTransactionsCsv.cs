@@ -1,12 +1,15 @@
+using Buenaventura.Domain;
 using Buenaventura.Shared;
 using FastEndpoints;
+using Microsoft.AspNetCore.Identity;
 using IAccountService = Buenaventura.Services.IAccountService;
 
 namespace Buenaventura.Api;
 
 internal record DownloadTransactionsCsvRequest(Guid AccountId, int Page = 0, int PageSize = 50, string? Search = null);
 
-internal class DownloadTransactionsCsv(IAccountService accountService) : Endpoint<DownloadTransactionsCsvRequest, TransactionListModel>
+internal class DownloadTransactionsCsv(IAccountService accountService, UserManager<User> userManager)
+    : Endpoint<DownloadTransactionsCsvRequest, TransactionListModel>
 {
     public override void Configure()
     {
@@ -15,8 +18,10 @@ internal class DownloadTransactionsCsv(IAccountService accountService) : Endpoin
 
     public override async Task HandleAsync(DownloadTransactionsCsvRequest request, CancellationToken ct)
     {
+        var user = await userManager.GetUserAsync(User);
+        var isRestricted = user?.Restricted ?? false;
         var account = await accountService.GetAccount(request.AccountId);
-        var transactions = await accountService.GetTransactions(request.AccountId, "", 0, int.MaxValue);
+        var transactions = await accountService.GetTransactions(request.AccountId, "", 0, int.MaxValue, isRestricted);
 
         var csvContent = "Date,Vendor,Category,Description,Debit,Credit,Balance\n";
         foreach (var transaction in transactions.Items)

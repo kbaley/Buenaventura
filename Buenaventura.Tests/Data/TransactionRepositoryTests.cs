@@ -88,6 +88,50 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task GetByAccount_WithRestrictedUser_FiltersExcludedCategories()
+    {
+        // Arrange
+        var account = TestDataFactory.AccountFaker.Generate();
+        _fixture.Context.Accounts.Add(account);
+
+        var restrictedCategory = new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Restricted",
+            ExcludeFromTransactionReport = true
+        };
+        var allowedCategory = new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Allowed",
+            ExcludeFromTransactionReport = false
+        };
+        _fixture.Context.Categories.AddRange(restrictedCategory, allowedCategory);
+
+        var restrictedTransaction = TestDataFactory.TransactionFaker.Generate();
+        restrictedTransaction.AccountId = account.AccountId;
+        restrictedTransaction.CategoryId = restrictedCategory.CategoryId;
+        restrictedTransaction.Category = restrictedCategory;
+
+        var allowedTransaction = TestDataFactory.TransactionFaker.Generate();
+        allowedTransaction.AccountId = account.AccountId;
+        allowedTransaction.CategoryId = allowedCategory.CategoryId;
+        allowedTransaction.Category = allowedCategory;
+
+        _fixture.Context.Transactions.AddRange(restrictedTransaction, allowedTransaction);
+        await _fixture.Context.SaveChangesAsync();
+
+        // Act
+        var restrictedResult = await _repository.GetByAccount(account.AccountId, "", 0, 50, true);
+        var unrestrictedResult = await _repository.GetByAccount(account.AccountId, "", 0, 50, false);
+
+        // Assert
+        restrictedResult.Items.Should().HaveCount(1);
+        restrictedResult.Items.Should().ContainSingle(t => t.Category.Name == "Allowed");
+        unrestrictedResult.Items.Should().HaveCount(2);
+    }
+
+    [Fact]
     public async Task GetInDateRange_ReturnsTransactionsInRange()
     {
         // Arrange
