@@ -112,11 +112,13 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         restrictedTransaction.AccountId = account.AccountId;
         restrictedTransaction.CategoryId = restrictedCategory.CategoryId;
         restrictedTransaction.Category = restrictedCategory;
+        restrictedTransaction.TransactionType = TransactionType.REGULAR;
 
         var allowedTransaction = TestDataFactory.TransactionFaker.Generate();
         allowedTransaction.AccountId = account.AccountId;
         allowedTransaction.CategoryId = allowedCategory.CategoryId;
         allowedTransaction.Category = allowedCategory;
+        allowedTransaction.TransactionType = TransactionType.REGULAR;
 
         _fixture.Context.Transactions.AddRange(restrictedTransaction, allowedTransaction);
         await _fixture.Context.SaveChangesAsync();
@@ -127,8 +129,8 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
 
         // Assert
         restrictedResult.Items.Should().HaveCount(1);
-        restrictedResult.Items.Should().ContainSingle(t => t.Category.Name == "Allowed");
         unrestrictedResult.Items.Should().HaveCount(2);
+        restrictedResult.Items.Should().ContainSingle(t => t.Category.Name == "Allowed");
     }
 
     [Fact]
