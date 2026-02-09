@@ -23,6 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{3CCB8D4C-C
 	ProjectSection(SolutionItems) = preProject
 		.junie\guidelines.md = .junie\guidelines.md
 		README.md = README.md
+		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
 Global

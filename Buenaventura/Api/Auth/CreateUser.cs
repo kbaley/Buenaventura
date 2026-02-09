@@ -5,7 +5,9 @@ using FastEndpoints;
 
 namespace Buenaventura.Api;
 
+#pragma warning disable CS9113 // Parameter is unread.
 public class CreateUser(BuenaventuraDbContext context) : EndpointWithoutRequest
+#pragma warning restore CS9113 // Parameter is unread.
 {
     public override void Configure()
     {

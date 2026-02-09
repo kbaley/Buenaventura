@@ -8,26 +8,24 @@
 
 
   <ItemGroup>
-    <PackageReference Include="CryptoHelper" Version="4.*" />
-    <PackageReference Include="Dapper" Version="2.*" />
-    <PackageReference Include="EFCore.NamingConventions" Version="10.*" />
-    <PackageReference Include="FastEndpoints" Version="6.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.*">
+    <PackageReference Include="CryptoHelper" />
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="FastEndpoints" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.*" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.*" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.*" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.*" />
-    <PackageReference Include="Resend" Version="0.*" />
-    <PackageReference Include="Scrutor" Version="6.*" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.*" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Resend" />
+    <PackageReference Include="Scrutor" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <ProjectReference Include="..\Buenaventura.Client\Buenaventura.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
     <ProjectReference Include="..\Buenaventura.Domain\Buenaventura.Domain.csproj" />
     <ProjectReference Include="..\Buenaventura.Shared\Buenaventura.Shared.csproj" />
   </ItemGroup>
