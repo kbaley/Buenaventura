@@ -8,12 +8,18 @@ WEBSITE_TIME_ZONE because Azure Functions does not support setting the time zone
 
 See [this article](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?pivots=programming-language-python&tabs=python-v2%2Cin-process%2Cnodejs-v4#ncrontab-time-zones) for details.
 
-### Deploying
+## Deploying
 
-Currently done directly from Rider in Azure Explorer. In the future, may set up a GitHub Action to deploy on push to
-main but as of November 2025, this is not yet done.
+Done via a GitHub Action with azure-webapps-dotnet-core.yml.
 
-### Monitoring
+## Azure App Service notes
+
+Set the Startup Command to `dotnet Buenaventura.dll`. This became required after updating the application to .NET 10. 
+I _think_ it's because there are two runtimeconfig.json files and this helps determine which one to launch but this
+command wasn't required when it was .NET 9 so 🤷‍♂️.
+
+
+## Monitoring
 
 Go to the Azure Portal, navigate to the Function App, and select "Monitoring" -> "Logs" to see the logs for the function.
 
@@ -31,7 +37,7 @@ traces
 To trigger the function manually, navigate to it in Azure Explorer in Rider. Right-click on the function and select
 "Trigger Function with Http Client".
 
-### EF migrations
+## EF migrations
 
 To add a new migration, use the following command in the terminal from the root folder:
 
