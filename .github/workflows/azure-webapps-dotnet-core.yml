@@ -3,7 +3,7 @@ name: Build and deploy ASP.Net Core app to an Azure Web App
 env:
   AZURE_WEBAPP_NAME: Buenaventura
   AZURE_WEBAPP_PACKAGE_PATH: '.'
-  DOTNET_VERSION: '10.0.2'
+  DOTNET_VERSION: '10.0.x'
 
 on:
   push:
