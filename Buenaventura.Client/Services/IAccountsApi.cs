@@ -7,6 +7,9 @@ public interface IAccountsApi
 {
     [Get("/api/accounts")]
     Task<IEnumerable<AccountWithBalance>> GetAccounts();
+
+    [Post("/api/accounts")]
+    Task<AccountWithTransactions> CreateAccount(AccountForPosting account);
     
     [Get("/api/accounts/{accountId}")]
     Task<AccountWithBalance> GetAccount(Guid accountId);

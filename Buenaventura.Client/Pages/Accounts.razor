@@ -50,6 +50,12 @@
 </MudPaper>
 
 <MudStack Spacing="2" Row="true" Justify="Justify.FlexEnd">
+    <MudButton Variant="Variant.Outlined"
+              Color="Color.Primary"
+              OnClick="NavigateToCreateAccount"
+              StartIcon="@Icons.Material.Filled.Add">
+        Create Account
+    </MudButton>
     <MudButton Variant="Variant.Filled" 
               Color="Color.Primary" 
               OnClick="SaveOrder"
@@ -127,4 +133,9 @@
         NavigationManager.NavigateTo($"/account/edit/{accountId}");
     }
 
-} 
+    private void NavigateToCreateAccount()
+    {
+        NavigationManager.NavigateTo("/account/create");
+    }
+
+}

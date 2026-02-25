@@ -2,6 +2,7 @@ using Buenaventura.Data;
 using Buenaventura.Domain;
 using Buenaventura.Shared;
 using FastEndpoints;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Api;
 
@@ -14,9 +15,11 @@ public class CreateAccount(BuenaventuraDbContext context) : Endpoint<AccountForP
 
     public override async Task HandleAsync(AccountForPosting account, CancellationToken ct)
     {
+        var maxDisplayOrder = await context.Accounts
+            .MaxAsync(a => (int?)a.DisplayOrder, ct) ?? -1;
+
         var mappedAccount = new Account
         {
-            AccountId = account.AccountId,
             Name = account.Name,
             Currency = account.Currency,
             Vendor = account.Vendor,
@@ -24,7 +27,8 @@ public class CreateAccount(BuenaventuraDbContext context) : Endpoint<AccountForP
             MortgagePayment = account.MortgagePayment,
             MortgageType = account.MortgageType,
             IsHidden = account.IsHidden,
-            DisplayOrder = account.DisplayOrder
+            ExcludeFromReports = account.ExcludeFromReports,
+            DisplayOrder = maxDisplayOrder + 1
         };
         mappedAccount.AccountId = Guid.NewGuid();
         context.Accounts.Add(mappedAccount);
