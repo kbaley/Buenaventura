@@ -35,14 +35,16 @@ jobs:
 
       - name: Build with dotnet
         run: |
-          dotnet restore
-          dotnet build --configuration Release
+          dotnet restore Buenaventura/Buenaventura.csproj
+          dotnet restore Buenaventura.Tests/Buenaventura.Tests.csproj
+          dotnet build Buenaventura/Buenaventura.csproj --configuration Release --no-restore
+          dotnet build Buenaventura.Tests/Buenaventura.Tests.csproj --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test --configuration Release --no-build --verbosity normal
+        run: dotnet test Buenaventura.Tests/Buenaventura.Tests.csproj --configuration Release --no-build --verbosity normal
 
       - name: dotnet publish
-        run: dotnet publish Buenaventura/Buenaventura.csproj -c Release -o ${{env.DOTNET_ROOT}}/Buenaventura
+        run: dotnet publish Buenaventura/Buenaventura.csproj -c Release --no-build -o ${{env.DOTNET_ROOT}}/Buenaventura
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
