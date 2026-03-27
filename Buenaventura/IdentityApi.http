@@ -1,0 +1,18 @@
+@host = https://localhost:7254
+
+### Login and issue auth cookie
+POST {{host}}/login?useCookies=true
+Content-Type: application/json
+
+{
+  "email": "{{$json username}}",
+  "password": "{{$json password}}"
+}
+
+### Get hashed password
+POST {{host}}/api/auth/hashpassword
+Content-Type: application/json
+
+{
+  "password": "{{$json password}}"
+}

@@ -37,6 +37,7 @@ public static class Infrastructure
             .AddSignInManager()
             .AddDefaultTokenProviders();
         services.AddScoped<IUserPasswordStore<User>, BuenaventuraUserStore>();
+        services.AddSingleton<IEmailSender<User>, BuenaventuraEmailSender>();
         return services;
     }
 

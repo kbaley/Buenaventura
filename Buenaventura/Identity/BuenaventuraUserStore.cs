@@ -1,13 +1,12 @@
 using Buenaventura.Data;
 using Buenaventura.Domain;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buenaventura.Identity;
 
-public class BuenaventuraUserStore(
-    BuenaventuraDbContext context
-) : IUserPasswordStore<User>
+public class BuenaventuraUserStore(BuenaventuraDbContext context) : IUserPasswordStore<User>
 {
     public void Dispose()
     {

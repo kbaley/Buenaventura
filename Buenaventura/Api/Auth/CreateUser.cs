@@ -1,4 +1,6 @@
 using Buenaventura.Data;
+using Buenaventura.Domain;
+using CryptoHelper;
 // using Buenaventura.Domain;
 // using CryptoHelper;
 using FastEndpoints;
@@ -11,7 +13,7 @@ public class CreateUser(BuenaventuraDbContext context) : EndpointWithoutRequest
 {
     public override void Configure()
     {
-        Post("/api/auth/CreateUser");
+        Get("/api/auth/CreateUser");
         AllowAnonymous();
     }
 
