@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Buenaventura.Mobile.Services;
+using Microsoft.Extensions.Logging;
 
 namespace Buenaventura.Mobile;
 
@@ -12,6 +13,9 @@ public static class MauiProgram
             .ConfigureFonts(fonts => { fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular"); });
 
         builder.Services.AddMauiBlazorWebView();
+        builder.Services.AddSingleton<ApiConfiguration>();
+        builder.Services.AddSingleton<ApiClientContext>();
+        builder.Services.AddSingleton<AuthService>();
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

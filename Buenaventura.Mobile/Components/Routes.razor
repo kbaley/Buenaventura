@@ -1,6 +1,66 @@
-﻿<Router AppAssembly="typeof(MauiProgram).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+﻿@implements IDisposable
+@using Buenaventura.Mobile.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<Router AppAssembly="typeof(MauiProgram).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)"/>
-        <FocusOnNavigate RouteData="routeData" Selector="h1"/>
+        @if (!isReady)
+        {
+            <LayoutView Layout="typeof(Layout.MainLayout)">
+                <p>Loading session...</p>
+            </LayoutView>
+        }
+        else if (CanRender(routeData))
+        {
+            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        }
     </Found>
 </Router>
+
+@code {
+    private bool isReady;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.AuthenticationStateChanged += HandleAuthenticationStateChanged;
+        await AuthService.InitializeAsync();
+        isReady = true;
+        RedirectIfNeeded();
+    }
+
+    private bool CanRender(RouteData routeData)
+    {
+        var loginPage = routeData.PageType == typeof(Pages.Login);
+        if (loginPage || AuthService.IsAuthenticated)
+        {
+            return true;
+        }
+
+        RedirectIfNeeded();
+        return false;
+    }
+
+    private void RedirectIfNeeded()
+    {
+        var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        var isLoginRoute = string.Equals(relativePath, "login", StringComparison.OrdinalIgnoreCase);
+
+        if (!AuthService.IsAuthenticated && !isLoginRoute)
+        {
+            Navigation.NavigateTo("/login", replace: true);
+        }
+    }
+
+    private void HandleAuthenticationStateChanged()
+    {
+        RedirectIfNeeded();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthService.AuthenticationStateChanged -= HandleAuthenticationStateChanged;
+    }
+}

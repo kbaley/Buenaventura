@@ -1,5 +1,45 @@
 ﻿@page "/"
+@implements IDisposable
+@using Buenaventura.Mobile.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
 
-<h1>Hello, world!</h1>
+<PageTitle>Home</PageTitle>
 
-Welcome to your new app.
+@if (!isReady)
+{
+    <p>Loading session...</p>
+}
+else if (AuthService.IsAuthenticated)
+{
+    <section class="home-panel">
+        <p class="eyebrow">Authenticated</p>
+        <h1>Welcome back</h1>
+        <p>You are signed in as <strong>@AuthService.Email</strong>.</p>
+        <p class="connection-hint">API base address: <code>@AuthService.GetBaseAddress()</code></p>
+        <p class="connection-hint">The current mobile session is backed by the identity cookie returned from <code>/login?useCookies=true</code>.</p>
+    </section>
+}
+
+@code {
+    private bool isReady;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.AuthenticationStateChanged += HandleAuthenticationStateChanged;
+        await AuthService.InitializeAsync();
+        isReady = true;
+
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", replace: true);
+        }
+    }
+
+    private void HandleAuthenticationStateChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        AuthService.AuthenticationStateChanged -= HandleAuthenticationStateChanged;
+    }
+}

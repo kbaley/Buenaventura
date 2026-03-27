@@ -1,0 +1,112 @@
+@page "/login"
+@implements IDisposable
+@using System.ComponentModel.DataAnnotations
+@using Buenaventura.Mobile.Services
+@inject AuthService AuthService
+@inject ApiConfiguration ApiConfiguration
+@inject NavigationManager Navigation
+
+<PageTitle>Login</PageTitle>
+
+<div class="login-shell">
+    <section class="login-card">
+        <p class="eyebrow">Buenaventura</p>
+        <h1>Sign in</h1>
+        <p class="login-copy">Use the API account configured in the main Buenaventura app.</p>
+
+        <div class="field-group">
+            <label for="baseAddress">Backend URL</label>
+            <InputText id="baseAddress" class="form-control" @bind-Value="baseAddress" />
+            <p class="field-hint">Simulator default: <code>https://localhost:7254/</code>. On your iPhone, use your Mac's HTTPS LAN URL, for example <code>https://192.168.1.25:7254/</code>.</p>
+        </div>
+
+        <EditForm Model="model" OnValidSubmit="HandleSubmitAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="field-group">
+                <label for="email">Email</label>
+                <InputText id="email" class="form-control" @bind-Value="model.Email" autocomplete="username" />
+                <ValidationMessage For="@(() => model.Email)" />
+            </div>
+
+            <div class="field-group">
+                <label for="password">Password</label>
+                <InputText id="password" class="form-control" type="password" @bind-Value="model.Password" autocomplete="current-password" />
+                <ValidationMessage For="@(() => model.Password)" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <p class="login-error" role="alert">@errorMessage</p>
+            }
+
+            <button class="btn btn-primary login-button" type="submit" disabled="@isSubmitting">
+                @(isSubmitting ? "Signing in..." : "Sign in")
+            </button>
+        </EditForm>
+    </section>
+</div>
+
+@code {
+    private readonly LoginInputModel model = new();
+    private bool isSubmitting;
+    private string? errorMessage;
+    private string baseAddress = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.AuthenticationStateChanged += HandleAuthenticationStateChanged;
+        await AuthService.InitializeAsync();
+        baseAddress = AuthService.GetBaseAddress();
+
+        if (AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/", replace: true);
+        }
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+
+        try
+        {
+            AuthService.UpdateBaseAddress(baseAddress);
+            var result = await AuthService.LoginAsync(model.Email, model.Password);
+            if (!result.Succeeded)
+            {
+                errorMessage = result.ErrorMessage;
+                return;
+            }
+
+            Navigation.NavigateTo("/", replace: true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void HandleAuthenticationStateChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        AuthService.AuthenticationStateChanged -= HandleAuthenticationStateChanged;
+    }
+
+    private sealed class LoginInputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string Password { get; set; } = string.Empty;
+    }
+}
