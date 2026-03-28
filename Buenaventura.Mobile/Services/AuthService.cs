@@ -26,10 +26,18 @@ public sealed class AuthService(ApiClientContext apiClientContext, ApiConfigurat
     public async Task<LoginResult> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
     {
         apiClientContext.Reset();
-        var response = await apiClientContext.HttpClient.PostAsJsonAsync(
-            "login?useCookies=true",
-            new LoginRequest(email, password),
-            cancellationToken);
+        HttpResponseMessage response;
+        try
+        {
+            response = await apiClientContext.HttpClient.PostAsJsonAsync(
+                "login?useCookies=true",
+                new LoginRequest(email, password),
+                cancellationToken);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            return new LoginResult(false, GetRequestFailureMessage(ex));
+        }
 
         if (!response.IsSuccessStatusCode)
         {
@@ -87,6 +95,31 @@ public sealed class AuthService(ApiClientContext apiClientContext, ApiConfigurat
             System.Net.HttpStatusCode.Unauthorized => "Invalid email or password.",
             _ => $"Login failed with status code {(int)response.StatusCode}."
         };
+    }
+
+    private string GetRequestFailureMessage(Exception exception)
+    {
+        var details = FlattenExceptionMessages(exception);
+        return $"Login request to {apiConfiguration.BaseAddress} failed before the API returned a response. {details}";
+    }
+
+    private static string FlattenExceptionMessages(Exception exception)
+    {
+        var messages = new List<string>();
+        var current = exception;
+
+        while (current is not null)
+        {
+            if (!string.IsNullOrWhiteSpace(current.Message) &&
+                !messages.Contains(current.Message, StringComparer.Ordinal))
+            {
+                messages.Add(current.Message);
+            }
+
+            current = current.InnerException!;
+        }
+
+        return string.Join(" Inner exception: ", messages);
     }
 
     private sealed record LoginRequest(

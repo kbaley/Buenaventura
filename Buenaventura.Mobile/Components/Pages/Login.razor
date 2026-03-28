@@ -17,7 +17,7 @@
         <div class="field-group">
             <label for="baseAddress">Backend URL</label>
             <InputText id="baseAddress" class="form-control" @bind-Value="baseAddress" />
-            <p class="field-hint">Simulator default: <code>https://localhost:7254/</code>. On your iPhone, use your Mac's HTTPS LAN URL, for example <code>https://192.168.1.25:7254/</code>.</p>
+            <p class="field-hint">Debug builds default to your local API. Release builds default to the production API. You can still override the URL here when needed.</p>
         </div>
 
         <EditForm Model="model" OnValidSubmit="HandleSubmitAsync">

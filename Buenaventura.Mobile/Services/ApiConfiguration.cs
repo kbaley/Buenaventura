@@ -1,13 +1,12 @@
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Storage;
+using Microsoft.Extensions.Configuration;
 
 namespace Buenaventura.Mobile.Services;
 
-public sealed class ApiConfiguration
+public sealed class ApiConfiguration(IConfiguration configuration)
 {
     private const string BaseAddressKey = "api.base_address";
-    private const string SimulatorUrl = "https://localhost:7254/";
-    private const string DevicePlaceholderUrl = "https://your-mac-hostname-or-ip:7254/";
 
     public string BaseAddress
     {
@@ -15,15 +14,19 @@ public sealed class ApiConfiguration
         set => Preferences.Default.Set(BaseAddressKey, Normalize(value));
     }
 
-    public static string GetDefaultBaseAddress()
+    public string GetDefaultBaseAddress()
     {
+#if DEBUG
         if (DeviceInfo.Current.Platform == DevicePlatform.iOS &&
             DeviceInfo.Current.DeviceType == DeviceType.Virtual)
         {
-            return SimulatorUrl;
+            return GetRequiredSetting("Api:DevelopmentSimulatorBaseAddress");
         }
 
-        return DevicePlaceholderUrl;
+        return GetRequiredSetting("Api:DevelopmentDeviceBaseAddress");
+#else
+        return GetRequiredSetting("Api:ProductionBaseAddress");
+#endif
     }
 
     public static string Normalize(string value)
@@ -35,5 +38,16 @@ public sealed class ApiConfiguration
         }
 
         return trimmed;
+    }
+
+    private string GetRequiredSetting(string key)
+    {
+        var value = configuration[key];
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException($"Missing configuration value for '{key}'.");
+        }
+
+        return Normalize(value);
     }
 }

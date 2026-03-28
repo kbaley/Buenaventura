@@ -23,7 +23,7 @@
         <ApplicationTitle>Buenaventura.Mobile</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.buenaventura.mobile</ApplicationId>
+        <ApplicationId>com.kylebaley.buenaventura.mobile</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -58,6 +58,19 @@
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Remove="appsettings.json" />
+        <Content Remove="appsettings.Development.json" />
+        <MauiAsset Remove="appsettings.json" />
+        <MauiAsset Remove="appsettings.Development.json" />
+        <BundleResource Remove="appsettings.json" />
+        <BundleResource Remove="appsettings.Development.json" />
+        <None Remove="appsettings.json" />
+        <None Remove="appsettings.Development.json" />
+        <EmbeddedResource Include="appsettings.json" />
+        <EmbeddedResource Include="appsettings.Development.json" />
     </ItemGroup>
 
     <ItemGroup>

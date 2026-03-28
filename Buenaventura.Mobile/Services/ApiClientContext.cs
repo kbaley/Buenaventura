@@ -12,7 +12,7 @@ public sealed class ApiClientContext : IDisposable
     public ApiClientContext(ApiConfiguration apiConfiguration)
     {
         this.apiConfiguration = apiConfiguration;
-        httpClientHandler = CreateHandler();
+        httpClientHandler = CreateHandler(apiConfiguration.BaseAddress);
         HttpClient = CreateClient(httpClientHandler);
     }
 
@@ -23,7 +23,7 @@ public sealed class ApiClientContext : IDisposable
         HttpClient.Dispose();
         httpClientHandler.Dispose();
 
-        httpClientHandler = CreateHandler();
+        httpClientHandler = CreateHandler(apiConfiguration.BaseAddress);
         HttpClient = CreateClient(httpClientHandler);
     }
 
@@ -33,17 +33,52 @@ public sealed class ApiClientContext : IDisposable
         httpClientHandler.Dispose();
     }
 
-    private static HttpClientHandler CreateHandler() =>
-        new()
+    private static HttpClientHandler CreateHandler(string baseAddress)
+    {
+        var handler = new HttpClientHandler
         {
             CookieContainer = new CookieContainer(),
-            UseCookies = true,
-#if DEBUG
-            ServerCertificateCustomValidationCallback = AllowDevelopmentCertificates
-#endif
+            UseCookies = true
         };
 
 #if DEBUG
+        if (ShouldAllowDevelopmentCertificates(baseAddress))
+        {
+            handler.ServerCertificateCustomValidationCallback = AllowDevelopmentCertificates;
+        }
+#endif
+
+        return handler;
+    }
+
+#if DEBUG
+    private static bool ShouldAllowDevelopmentCertificates(string baseAddress)
+    {
+        if (!Uri.TryCreate(baseAddress, UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        var host = uri.Host;
+        if (string.IsNullOrWhiteSpace(host))
+        {
+            return false;
+        }
+
+        if (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(host, "127.0.0.1", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (IPAddress.TryParse(host, out var address))
+        {
+            return IPAddress.IsLoopback(address) || IsPrivateNetwork(address);
+        }
+
+        return host.EndsWith(".local", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool AllowDevelopmentCertificates(
         HttpRequestMessage requestMessage,
         X509Certificate2? _,
