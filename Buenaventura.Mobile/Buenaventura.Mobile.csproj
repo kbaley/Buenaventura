@@ -79,4 +79,8 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\Buenaventura.Components\Buenaventura.Components.csproj" />
+    </ItemGroup>
+
 </Project>

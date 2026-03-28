@@ -3,7 +3,7 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<Router AppAssembly="typeof(MauiProgram).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+<Router AppAssembly="typeof(MauiProgram).Assembly" AdditionalAssemblies="new[] { typeof(Buenaventura.Components.Pages.ComponentLibraryTest).Assembly }" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
         @if (!isReady)
         {

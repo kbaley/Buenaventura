@@ -1,0 +1,18 @@
+.component-library-test {
+    padding: 1.5rem;
+}
+
+.component-library-test h1 {
+    margin-bottom: 0.5rem;
+}
+
+.component-library-test > p {
+    max-width: 48rem;
+    margin-bottom: 1.5rem;
+}
+
+.panel-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}

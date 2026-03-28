@@ -24,6 +24,7 @@
     <PackageReference Include="Resend" />
     <PackageReference Include="Scrutor" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <ProjectReference Include="..\Buenaventura.Components\Buenaventura.Components.csproj" />
     <ProjectReference Include="..\Buenaventura.Client\Buenaventura.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
     <ProjectReference Include="..\Buenaventura.Domain\Buenaventura.Domain.csproj" />

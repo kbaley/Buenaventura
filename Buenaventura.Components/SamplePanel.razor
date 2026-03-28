@@ -1,0 +1,29 @@
+<section class="sample-panel">
+    <header>
+        <p class="eyebrow">@Eyebrow</p>
+        <h2>@Title</h2>
+    </header>
+
+    <p>@Description</p>
+
+    <div class="meta">
+        <span>Host: @Host</span>
+        <span>Rendered: @RenderedAt.ToString("u")</span>
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public required string Eyebrow { get; set; }
+
+    [Parameter]
+    public required string Title { get; set; }
+
+    [Parameter]
+    public required string Description { get; set; }
+
+    [Parameter]
+    public required string Host { get; set; }
+
+    private DateTimeOffset RenderedAt { get; } = DateTimeOffset.UtcNow;
+}

@@ -1,0 +1,24 @@
+@page "/component-library-test"
+
+<PageTitle>Component Library Test</PageTitle>
+
+<div class="component-library-test">
+    <h1>Component library test page</h1>
+    <p>
+        This page is defined in <code>Buenaventura.Components</code> and can be used to verify
+        routing and static asset loading from the shared Razor class library.
+    </p>
+
+    <div class="panel-grid">
+        <SamplePanel
+            Eyebrow="Web + Mobile"
+            Title="Shared markup"
+            Description="If you can see this panel, the host app is rendering a component from the shared library."
+            Host="Shared RCL" />
+        <SamplePanel
+            Eyebrow="Scoped CSS"
+            Title="Shared styling"
+            Description="The rounded card styling is coming from the Razor class library's scoped CSS."
+            Host="Shared RCL" />
+    </div>
+</div>

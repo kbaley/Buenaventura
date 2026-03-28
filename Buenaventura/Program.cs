@@ -79,7 +79,9 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(Buenaventura.Client._Imports).Assembly);
+    .AddAdditionalAssemblies(
+        typeof(Buenaventura.Client._Imports).Assembly,
+        typeof(Buenaventura.Components.Pages.ComponentLibraryTest).Assembly);
 
 app.MapAdditionalIdentityEndpoints();
 app.UseFastEndpoints(c => c.Serializer.Options.ReferenceHandler = ReferenceHandler.IgnoreCycles);

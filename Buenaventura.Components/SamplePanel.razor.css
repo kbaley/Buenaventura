@@ -1,0 +1,39 @@
+.sample-panel {
+    border: 1px solid #d6d6d6;
+    border-radius: 16px;
+    padding: 1.25rem;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f1ed 100%);
+    color: #2f241d;
+    box-shadow: 0 10px 30px rgba(47, 36, 29, 0.08);
+}
+
+.sample-panel header {
+    margin-bottom: 0.75rem;
+}
+
+.sample-panel h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.eyebrow {
+    margin: 0 0 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    color: #856654;
+}
+
+.sample-panel p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.meta {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    color: #5f4b3f;
+}

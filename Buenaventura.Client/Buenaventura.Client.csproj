@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Buenaventura.Components\Buenaventura.Components.csproj" />
     <ProjectReference Include="..\Buenaventura.Shared\Buenaventura.Shared.csproj" />
   </ItemGroup>
 
