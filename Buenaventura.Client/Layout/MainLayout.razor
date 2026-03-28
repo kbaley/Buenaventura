@@ -178,7 +178,7 @@
         if (firstRender)
         {
             // setTheme(true);
-            setTheme(await mudThemeProvider!.GetSystemPreference());
+            setTheme(await mudThemeProvider!.GetSystemDarkModeAsync());
             StateHasChanged();
         }
     }
