@@ -1,0 +1,44 @@
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="mb-4">
+            Paste rows copied from BAC. Expected format: <code>dd/MM/yyyy[TAB]vendor[TAB]amount USD</code>.
+        </MudText>
+
+        <MudTextField T="string"
+                      @bind-Value="PastedTransactions"
+                      Label="Transactions"
+                      Variant="Variant.Outlined"
+                      Lines="12"
+                      FullWidth="true"
+                      Placeholder="06/03/2026	NETFLIX.COM 866-579-717	13.99 USD"
+                      Immediate="true"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Review</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+
+    private string PastedTransactions { get; set; } = string.Empty;
+
+    private void Cancel()
+    {
+        MudDialog!.Cancel();
+    }
+
+    private void Submit()
+    {
+        if (string.IsNullOrWhiteSpace(PastedTransactions))
+        {
+            Snackbar.Add("Paste at least one transaction", Severity.Warning);
+            return;
+        }
+
+        MudDialog!.Close(DialogResult.Ok(PastedTransactions));
+    }
+}

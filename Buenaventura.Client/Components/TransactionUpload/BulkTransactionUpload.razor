@@ -1,4 +1,7 @@
+@using System.Globalization
+@using System.Text
 @using System.Text.Json
+@using System.Text.RegularExpressions
 @inject IJSRuntime JSRuntime
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -8,18 +11,27 @@
            Color="Color.Primary"
            OnClick="OpenFileUpload"
            StartIcon="@Icons.Material.Filled.Upload"
-           Class="ml-2 d-none d-md-inline-flex"
-           Title="Upload transactions from Excel">
-    Upload
+           Class="ml-2 d-none d-md-inline-flex">
+    Upload File
+</MudButton>
+
+<MudButton Variant="Variant.Outlined"
+           Color="Color.Primary"
+           OnClick="OpenPasteDialog"
+           StartIcon="@Icons.Material.Filled.ContentPaste"
+           Class="ml-2 d-none d-md-inline-flex">
+    Paste Transactions
 </MudButton>
 
 <InputFile id="fileInput" OnChange="OnInputFileChange" style="display:none" accept=".xls,.xlsx"/>
 
 @code {
+    private static readonly Regex PastedTransactionPattern = new(
+        @"^(?<date>\d{2}/\d{2}/\d{4})\t(?<description>.+?)\t(?<amount>-?[\d,]+(?:\.\d{2})?)\s+USD$",
+        RegexOptions.Compiled);
+
     [Parameter] public Guid AccountId { get; set; }
     [Parameter] public EventCallback OnTransactionsProcessed { get; set; }
-
-    private InputFile? fileInput;
 
     private async Task OpenFileUpload()
     {
@@ -54,29 +66,38 @@
 
             var pendingTransactions = ParseExcelData(excelData);
 
-            // Check for already processed transactions
-            await CheckForProcessedTransactions(pendingTransactions);
-
-            // Show the dialog with pending transactions
-            var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, CloseButton = true };
-            var parameters = new DialogParameters
-            {
-                ["PendingTransactions"] = pendingTransactions,
-                ["AccountId"] = AccountId
-            };
-
-            var dialog = await DialogService.ShowAsync<PendingTransactionsDialog>("Review Transactions", parameters, options);
-            var result = await dialog.Result;
-
-            if (!result.Canceled)
-            {
-                await OnTransactionsProcessed.InvokeAsync();
-            }
+            await ReviewAndProcessTransactions(pendingTransactions);
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error processing file: {ex.Message}", Severity.Error);
         }
+    }
+
+    private async Task OpenPasteDialog()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        var dialog = await DialogService.ShowAsync<PasteTransactionsDialog>("Paste Transactions", options);
+        if (dialog is null)
+        {
+            return;
+        }
+
+        var result = await dialog.Result;
+
+        if (result!.Canceled || result.Data is not string pastedText)
+        {
+            return;
+        }
+
+        var pendingTransactions = ParsePastedTransactions(pastedText);
+        if (pendingTransactions.Count == 0)
+        {
+            Snackbar.Add("No valid transactions were found in the pasted text", Severity.Warning);
+            return;
+        }
+
+        await ReviewAndProcessTransactions(pendingTransactions);
     }
 
     private List<PendingTransactionModel> ParseExcelData(string jsonData)
@@ -126,24 +147,64 @@
         return transactions;
     }
 
+    private List<PendingTransactionModel> ParsePastedTransactions(string pastedText)
+    {
+        var transactions = new List<PendingTransactionModel>();
+        var lines = pastedText
+            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var line in lines)
+        {
+            var match = PastedTransactionPattern.Match(line);
+            if (!match.Success)
+            {
+                continue;
+            }
+
+            if (!DateTime.TryParseExact(match.Groups["date"].Value, "dd/MM/yyyy", CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out var transactionDate))
+            {
+                continue;
+            }
+
+            if (!decimal.TryParse(match.Groups["amount"].Value.Replace(",", ""), NumberStyles.Number | NumberStyles.AllowLeadingSign,
+                    CultureInfo.InvariantCulture, out var amount))
+            {
+                continue;
+            }
+
+            var description = match.Groups["description"].Value.Trim();
+            transactions.Add(new PendingTransactionModel
+            {
+                TransactionDate = transactionDate,
+                Description = description,
+                Amount = amount,
+                IsSelected = true
+            });
+        }
+
+        return transactions;
+    }
+
     private async Task CheckForProcessedTransactions(List<PendingTransactionModel> pendingTransactions)
     {
+        if (pendingTransactions.Count == 0)
+        {
+            return;
+        }
+
         var start = pendingTransactions.Min(t => t.TransactionDate).AddDays(-7);
         var end = pendingTransactions.Max(t => t.TransactionDate).AddDays(7);
-        // Get existing transactions to check for duplicates
         var existingTransactions = await TransactionsApi.GetAllTransactions(AccountId, start, end);
 
         foreach (var transaction in pendingTransactions)
         {
-            // Check if already processed by DownloadId
             if (!string.IsNullOrEmpty(transaction.ReferenceNumber))
             {
-                // Need to match the reference number AND other fields because the bank reference numbers
-                // are just the amount of the transaction with the decimal removed and some zero padding
                 var alreadyProcessed = existingTransactions.Items.Any(t =>
-                    t.DownloadId == transaction.ReferenceNumber && t.TransactionDate == transaction.TransactionDate 
+                    t.DownloadId == transaction.ReferenceNumber && t.TransactionDate == transaction.TransactionDate
                     && -t.Amount == transaction.Amount);
-                
+
                 if (alreadyProcessed)
                 {
                     transaction.IsAlreadyProcessed = true;
@@ -152,19 +213,104 @@
                 }
             }
 
-            // Check for potential matches based on date and amount
-            var potentialMatches = existingTransactions.Items.Where(t =>
-                t.TransactionDate.Date == transaction.TransactionDate.Date &&
-                -transaction.Amount == t.Amount
-            ).ToList();
+            var matchingTransactions = existingTransactions.Items
+                .Where(t => t.TransactionDate.Date == transaction.TransactionDate.Date && -transaction.Amount == t.Amount)
+                .Select(t => new
+                {
+                    Transaction = t,
+                    Score = GetMatchingScore(transaction, t)
+                })
+                .OrderByDescending(t => t.Score)
+                .ThenByDescending(t => !string.IsNullOrWhiteSpace(t.Transaction.Description))
+                .ToList();
 
-            if (potentialMatches.Any())
+            if (matchingTransactions.Count == 0)
             {
-                transaction.HasPotentialMatch = true;
-                transaction.PotentialMatch = potentialMatches.First();
-                transaction.IsSelected = true;
+                continue;
             }
+
+            var bestMatch = matchingTransactions.First();
+            if (bestMatch.Score >= 120 && matchingTransactions.Count(t => t.Score == bestMatch.Score) == 1)
+            {
+                transaction.IsAlreadyProcessed = true;
+                transaction.IsSelected = false;
+                transaction.PotentialMatch = bestMatch.Transaction;
+                continue;
+            }
+
+            transaction.HasPotentialMatch = true;
+            transaction.PotentialMatch = bestMatch.Transaction;
+            transaction.IsSelected = true;
         }
     }
 
+    private async Task ReviewAndProcessTransactions(List<PendingTransactionModel> pendingTransactions)
+    {
+        await CheckForProcessedTransactions(pendingTransactions);
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters
+        {
+            ["PendingTransactions"] = pendingTransactions,
+            ["AccountId"] = AccountId
+        };
+
+        var dialog = await DialogService.ShowAsync<PendingTransactionsDialog>("Review Transactions", parameters, options);
+        if (dialog is null)
+        {
+            return;
+        }
+
+        var result = await dialog.Result;
+
+        if (!result.Canceled && OnTransactionsProcessed.HasDelegate)
+        {
+            await OnTransactionsProcessed.InvokeAsync();
+        }
+    }
+
+    private static int GetMatchingScore(PendingTransactionModel pendingTransaction, TransactionForDisplay existingTransaction)
+    {
+        var pendingText = NormalizeForMatching(pendingTransaction.Vendor, pendingTransaction.Description);
+        var existingText = NormalizeForMatching(existingTransaction.Vendor, existingTransaction.Description);
+
+        if (string.IsNullOrWhiteSpace(pendingText) || string.IsNullOrWhiteSpace(existingText))
+        {
+            return 0;
+        }
+
+        if (pendingText == existingText)
+        {
+            return 120;
+        }
+
+        if (pendingText.Contains(existingText, StringComparison.Ordinal) ||
+            existingText.Contains(pendingText, StringComparison.Ordinal))
+        {
+            return 90;
+        }
+
+        var pendingTokens = pendingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var existingTokens = existingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var overlapCount = pendingTokens.Intersect(existingTokens).Count();
+
+        return overlapCount * 20;
+    }
+
+    private static string NormalizeForMatching(params string?[] values)
+    {
+        var combined = string.Join(" ", values.Where(v => !string.IsNullOrWhiteSpace(v))).Trim();
+        if (string.IsNullOrWhiteSpace(combined))
+        {
+            return string.Empty;
+        }
+
+        var builder = new StringBuilder(combined.Length);
+        foreach (var character in combined.ToUpperInvariant())
+        {
+            builder.Append(char.IsLetterOrDigit(character) ? character : ' ');
+        }
+
+        return string.Join(" ", builder.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
 }
