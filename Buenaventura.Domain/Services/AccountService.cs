@@ -232,11 +232,12 @@ public class AccountService(
             }
             else
             {
-                // Update the transaction's download ID instead
+                // Update imported metadata on the matched transaction instead of creating a duplicate.
                 var dbTransaction = await context.Transactions.FindAsync(transaction.TransactionId);
                 if (dbTransaction != null)
                 {
                     dbTransaction.DownloadId = transaction.DownloadId;
+                    dbTransaction.Description = transaction.Description;
                     context.Transactions.Update(dbTransaction);
                 }
             }

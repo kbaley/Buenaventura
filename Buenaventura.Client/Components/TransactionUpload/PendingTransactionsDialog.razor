@@ -133,11 +133,9 @@
                 if (selectedTransaction is { HasPotentialMatch: true, PotentialMatch: not null })
                 {
                     transactionToSync.TransactionId = selectedTransaction.PotentialMatch.TransactionId;
-                    // Copy the imported description if the potential match doesn't already have one
-                    if (string.IsNullOrWhiteSpace(selectedTransaction.PotentialMatch.Description))
-                    {
-                        transactionToSync.Description = selectedTransaction.Description ?? string.Empty;
-                    }
+                    transactionToSync.Description = MergeDescriptions(
+                        selectedTransaction.PotentialMatch.Description,
+                        selectedTransaction.Description);
                     // Also make sure we keep the same category
                     transactionToSync.Category = selectedTransaction.PotentialMatch.Category;
                 }
@@ -160,5 +158,29 @@
         {
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
+    }
+
+    private static string MergeDescriptions(string? existingDescription, string? importedDescription)
+    {
+        var existing = existingDescription?.Trim() ?? string.Empty;
+        var imported = importedDescription?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(existing))
+        {
+            return imported;
+        }
+
+        if (string.IsNullOrWhiteSpace(imported))
+        {
+            return existing;
+        }
+
+        if (string.Equals(existing, imported, StringComparison.OrdinalIgnoreCase) ||
+            existing.Contains(imported, StringComparison.OrdinalIgnoreCase))
+        {
+            return existing;
+        }
+
+        return $"{existing} | {imported}";
     }
 }
