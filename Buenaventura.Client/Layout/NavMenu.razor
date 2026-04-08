@@ -1,4 +1,6 @@
-﻿<MudNavMenu>
+﻿@inject ILocalStorageService localStorage
+
+<MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">
         <MudGrid>
             <MudItem xs="8">Dashboard</MudItem>
@@ -9,23 +11,64 @@
     </MudNavLink>
     <MudDivider Class="my-2" />
 
-    @foreach (var account in accounts.OrderBy(a => a.DisplayOrder))
+    @foreach (var accountGroup in groupedAccounts)
     {
-        <MudNavLink Href="@($"account/{account.AccountId}")" Match="NavLinkMatch.Prefix"
-                    Icon="@(GetIcon(account.AccountType))">
-            <MudGrid>
-                <MudItem xs="8">@account.Name</MudItem>
-                <MudItem xs="4" Class="d-flex justify-end">
-                    @account.CurrentBalance.ToString("N2")
-                </MudItem>
-            </MudGrid>
-        </MudNavLink>
+        <MudNavGroup Title="@accountGroup.AccountType"
+                     Icon="@GetIcon(accountGroup.AccountType)"
+                     Expanded="@IsGroupExpanded(accountGroup.AccountType)"
+                     ExpandedChanged="@(expanded => OnGroupExpandedChanged(accountGroup.AccountType, expanded))">
+            @foreach (var account in accountGroup.Accounts)
+            {
+                <MudNavLink Href="@($"account/{account.AccountId}")" Match="NavLinkMatch.Prefix">
+                    <MudGrid>
+                        <MudItem xs="8">@account.Name</MudItem>
+                        <MudItem xs="4" Class="d-flex justify-end pe-3">
+                            @account.CurrentBalance.ToString("N2")
+                        </MudItem>
+                    </MudGrid>
+                </MudNavLink>
+            }
+        </MudNavGroup>
     }
 
 </MudNavMenu>
 
 @code {
     [CascadingParameter] public IEnumerable<AccountWithBalance> accounts { get; set; } = [];
+    private const string CollapsedGroupsStorageKey = "nav-menu-collapsed-account-types";
+    private static readonly string[] PreferredAccountTypeOrder =
+    [
+        AccountType.BANK_ACCOUNT,
+        AccountType.CREDIT_CARD,
+        AccountType.LOAN,
+        AccountType.MORTGAGE,
+        AccountType.INVESTMENT,
+        AccountType.ASSET
+    ];
+
+    private readonly Dictionary<string, bool> collapsedGroups = new(StringComparer.Ordinal);
+    private List<AccountGroup> groupedAccounts = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var savedCollapsedGroups =
+            await localStorage.GetItemAsync<Dictionary<string, bool>>(CollapsedGroupsStorageKey);
+
+        if (savedCollapsedGroups is not null)
+        {
+            foreach (var group in savedCollapsedGroups)
+            {
+                collapsedGroups[group.Key] = group.Value;
+            }
+        }
+
+        BuildAccountGroups();
+    }
+
+    protected override void OnParametersSet()
+    {
+        BuildAccountGroups();
+    }
 
     private string? GetIcon(string accountType)
     {
@@ -34,10 +77,40 @@
             "Bank Account" => Icons.Material.Outlined.AccountBalance,
             "Loan" => Icons.Material.Outlined.Money,
             "Credit Card" => Icons.Material.Outlined.CreditCard,
-                "Asset" => Icons.Material.Filled.DirectionsCar,
+            "Mortgage" => Icons.Material.Outlined.Home,
+            "Investment" => Icons.Material.Outlined.TrendingUp,
+            "Asset" => Icons.Material.Filled.DirectionsCar,
             _ => Icons.Material.Filled.AttachMoney
         };
         return icon;
     }
 
+    private void BuildAccountGroups()
+    {
+        var orderLookup = PreferredAccountTypeOrder
+            .Select((accountType, index) => new { accountType, index })
+            .ToDictionary(x => x.accountType, x => x.index, StringComparer.Ordinal);
+
+        groupedAccounts = accounts
+            .GroupBy(a => a.AccountType)
+            .Select(group => new AccountGroup(
+                group.Key,
+                group.OrderBy(a => a.DisplayOrder).ToList()))
+            .OrderBy(group => orderLookup.TryGetValue(group.AccountType, out var order) ? order : int.MaxValue)
+            .ThenBy(group => group.AccountType)
+            .ToList();
+    }
+
+    private bool IsGroupExpanded(string accountType)
+    {
+        return !collapsedGroups.TryGetValue(accountType, out var isCollapsed) || !isCollapsed;
+    }
+
+    private async Task OnGroupExpandedChanged(string accountType, bool expanded)
+    {
+        collapsedGroups[accountType] = !expanded;
+        await localStorage.SetItemAsync(CollapsedGroupsStorageKey, collapsedGroups);
+    }
+
+    private sealed record AccountGroup(string AccountType, List<AccountWithBalance> Accounts);
 }
