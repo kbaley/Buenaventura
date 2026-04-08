@@ -1,0 +1,24 @@
+.account-type-group__title {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    width: 100%;
+}
+
+.account-type-group__name {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.account-type-group-total {
+    font-size: 0.72rem;
+    color: var(--mud-palette-text-secondary);
+}
+
+.account-type-group ::deep .account-type-group__header {
+    background: rgba(var(--mud-palette-primary-rgb), 0.08);
+    border-radius: 6px;
+    margin: 0.2rem 0;
+}

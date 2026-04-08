@@ -1,17 +1,17 @@
-.account-type-card {
+.account-type-card-shell ::deep .account-type-card {
     border: 1px solid var(--mud-palette-lines-default);
     background:
         linear-gradient(180deg, color-mix(in srgb, var(--mud-palette-primary) 6%, transparent), transparent 72%),
         var(--mud-palette-surface);
 }
 
-.account-type-card__header {
+.account-type-card-shell ::deep .account-type-card__header {
     border-bottom: 1px solid var(--mud-palette-lines-default);
     padding-bottom: 0;
 }
 
 @media (max-width: 768px) {
-    .account-type-card__header :deep(.mud-card-header-content) {
+    .account-type-card-shell ::deep .account-type-card__header .mud-card-header-content {
         width: 100%;
     }
 }

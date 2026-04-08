@@ -18,59 +18,61 @@
 <MudStack Spacing="3" Class="mb-4">
     @foreach (var accountGroup in GetGroupedAccounts())
     {
-        <MudCard Class="account-type-card">
-            <MudCardHeader Class="account-type-card__header">
-                <CardHeaderContent>
-                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="w-100">
-                        <MudText Typo="Typo.h6">@accountGroup.AccountType</MudText>
-                        <MudChip T="string"
-                                 Variant="Variant.Outlined"
-                                 Color="Color.Primary"
-                                 Size="Size.Small"
-                                 Value="@accountGroup.AccountType">
-                            @($"{accountGroup.Accounts.Count} account{(accountGroup.Accounts.Count == 1 ? string.Empty : "s")}")
-                        </MudChip>
-                    </MudStack>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudTable Dense="true" Hover="true" Bordered="true" T="AccountWithBalance" Items="@accountGroup.Accounts">
-                    <HeaderContent>
-                        <MudTh>Name</MudTh>
-                        <MudTh>Currency</MudTh>
-                        <MudTh>Vendor</MudTh>
-                        <MudTh>IsHidden</MudTh>
-                        <MudTh>Actions</MudTh>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd DataLabel="Name">@context.Name</MudTd>
-                        <MudTd DataLabel="Currency">@context.Currency</MudTd>
-                        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-                        <MudTd DataLabel="IsHidden">
-                            @if (context.IsHidden)
-                            {
-                                <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Primary" />
-                            }
-                        </MudTd>
-                        <MudTd DataLabel="Actions">
-                            <MudStack Spacing="2" Row="true">
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                               Color="Color.Primary"
-                                               OnClick="() => NavigateToEditAccount(context.AccountId)" />
-                                <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
-                                               Color="Color.Primary"
-                                               OnClick="() => MoveAccountUp(context)"
-                                               Disabled="@IsFirstInGroup(accountGroup.Accounts, context)" />
-                                <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
-                                               Color="Color.Primary"
-                                               OnClick="() => MoveAccountDown(context)"
-                                               Disabled="@IsLastInGroup(accountGroup.Accounts, context)" />
-                            </MudStack>
-                        </MudTd>
-                    </RowTemplate>
-                </MudTable>
-            </MudCardContent>
-        </MudCard>
+        <div class="account-type-card-shell">
+            <MudCard Class="account-type-card">
+                <MudCardHeader Class="account-type-card__header">
+                    <CardHeaderContent>
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="w-100">
+                            <MudText Typo="Typo.h6">@accountGroup.AccountType</MudText>
+                            <MudChip T="string"
+                                     Variant="Variant.Outlined"
+                                     Color="Color.Primary"
+                                     Size="Size.Small"
+                                     Value="@accountGroup.AccountType">
+                                @($"{accountGroup.Accounts.Count} account{(accountGroup.Accounts.Count == 1 ? string.Empty : "s")}")
+                            </MudChip>
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTable Dense="true" Hover="true" Bordered="true" T="AccountWithBalance" Items="@accountGroup.Accounts">
+                        <HeaderContent>
+                            <MudTh>Name</MudTh>
+                            <MudTh>Currency</MudTh>
+                            <MudTh>Vendor</MudTh>
+                            <MudTh>IsHidden</MudTh>
+                            <MudTh>Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Name">@context.Name</MudTd>
+                            <MudTd DataLabel="Currency">@context.Currency</MudTd>
+                            <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                            <MudTd DataLabel="IsHidden">
+                                @if (context.IsHidden)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Primary" />
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Actions">
+                                <MudStack Spacing="2" Row="true">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Color="Color.Primary"
+                                                   OnClick="() => NavigateToEditAccount(context.AccountId)" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
+                                                   Color="Color.Primary"
+                                                   OnClick="() => MoveAccountUp(context)"
+                                                   Disabled="@IsFirstInGroup(accountGroup.Accounts, context)" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
+                                                   Color="Color.Primary"
+                                                   OnClick="() => MoveAccountDown(context)"
+                                                   Disabled="@IsLastInGroup(accountGroup.Accounts, context)" />
+                                </MudStack>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent>
+            </MudCard>
+        </div>
     }
 </MudStack>
 

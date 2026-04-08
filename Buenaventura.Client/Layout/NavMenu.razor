@@ -13,22 +13,33 @@
 
     @foreach (var accountGroup in groupedAccounts)
     {
-        <MudNavGroup Title="@accountGroup.AccountType"
-                     Icon="@GetIcon(accountGroup.AccountType)"
-                     Expanded="@IsGroupExpanded(accountGroup.AccountType)"
-                     ExpandedChanged="@(expanded => OnGroupExpandedChanged(accountGroup.AccountType, expanded))">
-            @foreach (var account in accountGroup.Accounts)
-            {
-                <MudNavLink Href="@($"account/{account.AccountId}")" Match="NavLinkMatch.Prefix">
-                    <MudGrid>
-                        <MudItem xs="8">@account.Name</MudItem>
-                        <MudItem xs="4" Class="d-flex justify-end pe-3">
-                            @account.CurrentBalance.ToString("N2")
-                        </MudItem>
-                    </MudGrid>
-                </MudNavLink>
-            }
-        </MudNavGroup>
+        <div class="account-type-group">
+            <MudNavGroup Title="@GetGroupTitle(accountGroup)"
+                         HeaderClass="account-type-group__header"
+                         Icon="@GetIcon(accountGroup.AccountType)"
+                         Expanded="@IsGroupExpanded(accountGroup.AccountType)"
+                         ExpandedChanged="@(expanded => OnGroupExpandedChanged(accountGroup.AccountType, expanded))">
+                <TitleContent>
+                    <div class="account-type-group__title">
+                        <span class="account-type-group__name">@accountGroup.AccountType</span>
+                        <span class="account-type-group-total">(@accountGroup.TotalBalanceInUsd.ToString("N2"))</span>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    @foreach (var account in accountGroup.Accounts)
+                    {
+                        <MudNavLink Href="@($"account/{account.AccountId}")" Match="NavLinkMatch.Prefix">
+                            <MudGrid>
+                                <MudItem xs="8">@account.Name</MudItem>
+                                <MudItem xs="4" Class="d-flex justify-end pe-3">
+                                    @account.CurrentBalance.ToString("N2")
+                                </MudItem>
+                            </MudGrid>
+                        </MudNavLink>
+                    }
+                </ChildContent>
+            </MudNavGroup>
+        </div>
     }
 
 </MudNavMenu>
@@ -95,10 +106,16 @@
             .GroupBy(a => a.AccountType)
             .Select(group => new AccountGroup(
                 group.Key,
-                group.OrderBy(a => a.DisplayOrder).ToList()))
+                group.OrderBy(a => a.DisplayOrder).ToList(),
+                group.Sum(a => a.CurrentBalanceInUsd)))
             .OrderBy(group => orderLookup.TryGetValue(group.AccountType, out var order) ? order : int.MaxValue)
             .ThenBy(group => group.AccountType)
             .ToList();
+    }
+
+    private static string GetGroupTitle(AccountGroup accountGroup)
+    {
+        return $"{accountGroup.AccountType} ({accountGroup.TotalBalanceInUsd:N2})";
     }
 
     private bool IsGroupExpanded(string accountType)
@@ -112,5 +129,5 @@
         await localStorage.SetItemAsync(CollapsedGroupsStorageKey, collapsedGroups);
     }
 
-    private sealed record AccountGroup(string AccountType, List<AccountWithBalance> Accounts);
+    private sealed record AccountGroup(string AccountType, List<AccountWithBalance> Accounts, decimal TotalBalanceInUsd);
 }
