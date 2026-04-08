@@ -47,9 +47,13 @@ public class DashboardService(
 
     public async Task<decimal> GetLiquidAssetBalance()
     {
+        var exchangeRate = await context.Currencies.GetCadExchangeRate();
         var assetBalance = await context.Accounts
             .Where(a => a.AccountType == "Cash" || a.AccountType == "Bank Account")
-            .SumAsync(a => a.Transactions.Sum(t => t.AmountInBaseCurrency));
+            .Select(a => a.Currency == "CAD"
+                ? Math.Round(a.Transactions.Sum(t => t.Amount) / exchangeRate, 2)
+                : a.Transactions.Sum(t => t.Amount))
+            .SumAsync();
         return assetBalance;
     }
 
