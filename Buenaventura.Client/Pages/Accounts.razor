@@ -8,46 +8,64 @@
 
 <MudText Typo="Typo.h4" GutterBottom="true">Accounts</MudText>
 
-<MudPaper Elevation="0" Class="pa-4 mb-4" Style="background-color: var(--mud-palette-surface);">
-    <MudTable Dense="true" Hover="true" Bordered="true" T="AccountWithBalance" Items="@accounts">
-        <HeaderContent>
-            <MudTh>Name</MudTh>
-            <MudTh>Currency</MudTh>
-            <MudTh>Vendor</MudTh>
-            <MudTh>AccountType</MudTh>
-            <MudTh>IsHidden</MudTh>
-            <MudTh>Actions</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Currency">@context.Currency</MudTd>
-            <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-            <MudTd DataLabel="AccountType">@context.AccountType</MudTd>
-            <MudTd DataLabel="IsHidden">
-                @if(context.IsHidden)
-                {
-                    <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Primary" />
-                }
-            </MudTd>
-            <MudTd DataLabel="Actions">
-                <MudStack Spacing="2" Row="true">
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                   Color="Color.Primary"
-                                   OnClick="() => NavigateToEditAccount(context.AccountId)"
-                    />
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" 
-                                 Color="Color.Primary" 
-                                 OnClick="() => MoveAccountUp(context)"
-                                 Disabled="@(context.DisplayOrder == 0)"/>
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" 
-                                 Color="Color.Primary" 
-                                 OnClick="() => MoveAccountDown(context)"
-                                 Disabled="@(context.DisplayOrder == accounts.Count() - 1)"/>
-                </MudStack>
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
-</MudPaper>
+<MudStack Spacing="3" Class="mb-4">
+    @foreach (var accountGroup in GetGroupedAccounts())
+    {
+        <MudCard Class="account-type-card">
+            <MudCardHeader Class="account-type-card__header">
+                <CardHeaderContent>
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="w-100">
+                        <MudText Typo="Typo.h6">@accountGroup.AccountType</MudText>
+                        <MudChip T="string"
+                                 Variant="Variant.Outlined"
+                                 Color="Color.Primary"
+                                 Size="Size.Small"
+                                 Value="@accountGroup.AccountType">
+                            @($"{accountGroup.Accounts.Count} account{(accountGroup.Accounts.Count == 1 ? string.Empty : "s")}")
+                        </MudChip>
+                    </MudStack>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudTable Dense="true" Hover="true" Bordered="true" T="AccountWithBalance" Items="@accountGroup.Accounts">
+                    <HeaderContent>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Currency</MudTh>
+                        <MudTh>Vendor</MudTh>
+                        <MudTh>IsHidden</MudTh>
+                        <MudTh>Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="Currency">@context.Currency</MudTd>
+                        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                        <MudTd DataLabel="IsHidden">
+                            @if (context.IsHidden)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Primary" />
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="Actions">
+                            <MudStack Spacing="2" Row="true">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Color="Color.Primary"
+                                               OnClick="() => NavigateToEditAccount(context.AccountId)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
+                                               Color="Color.Primary"
+                                               OnClick="() => MoveAccountUp(context)"
+                                               Disabled="@IsFirstInGroup(accountGroup.Accounts, context)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
+                                               Color="Color.Primary"
+                                               OnClick="() => MoveAccountDown(context)"
+                                               Disabled="@IsLastInGroup(accountGroup.Accounts, context)" />
+                            </MudStack>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudCardContent>
+        </MudCard>
+    }
+</MudStack>
 
 <MudStack Spacing="2" Row="true" Justify="Justify.FlexEnd">
     <MudButton Variant="Variant.Outlined"
@@ -65,53 +83,49 @@
 </MudStack>
 
 @code {
-    private IEnumerable<AccountWithBalance> accounts = [];
+    private List<AccountWithBalance> accounts = [];
+    private readonly Dictionary<string, int> accountTypeOrder = AccountType.GetAccountTypes()
+        .Select((accountType, index) => new { accountType, index })
+        .ToDictionary(x => x.accountType, x => x.index);
 
     protected override async Task OnInitializedAsync()
     {
         accounts = (await accountsApi.GetAccounts())
-            .OrderBy(a => a.DisplayOrder)
+            .OrderBy(a => GetAccountTypeOrder(a.AccountType))
+            .ThenBy(a => a.DisplayOrder)
             .ToList();
+
+        ReassignDisplayOrder();
     }
 
     private void MoveAccountUp(AccountWithBalance account)
     {
-        var currentIndex = accounts.ToList().IndexOf(account);
-        if (currentIndex > 0)
+        var sameTypeAccounts = accounts.Where(a => a.AccountType == account.AccountType).ToList();
+        var currentGroupIndex = sameTypeAccounts.IndexOf(account);
+        if (currentGroupIndex > 0)
         {
-            var accountsList = accounts.ToList();
-            var temp = accountsList[currentIndex - 1];
-            accountsList[currentIndex - 1] = account;
-            accountsList[currentIndex] = temp;
-            
-            // Update display orders
-            for (var i = 0; i < accountsList.Count; i++)
-            {
-                accountsList[i].DisplayOrder = i;
-            }
-            
-            accounts = accountsList;
+            var previousAccount = sameTypeAccounts[currentGroupIndex - 1];
+            var currentIndex = accounts.IndexOf(account);
+            var previousIndex = accounts.IndexOf(previousAccount);
+            (accounts[previousIndex], accounts[currentIndex]) = (accounts[currentIndex], accounts[previousIndex]);
+
+            ReassignDisplayOrder();
             StateHasChanged();
         }
     }
 
     private void MoveAccountDown(AccountWithBalance account)
     {
-        var currentIndex = accounts.ToList().IndexOf(account);
-        if (currentIndex < accounts.Count() - 1)
+        var sameTypeAccounts = accounts.Where(a => a.AccountType == account.AccountType).ToList();
+        var currentGroupIndex = sameTypeAccounts.IndexOf(account);
+        if (currentGroupIndex < sameTypeAccounts.Count - 1)
         {
-            var accountsList = accounts.ToList();
-            var temp = accountsList[currentIndex + 1];
-            accountsList[currentIndex + 1] = account;
-            accountsList[currentIndex] = temp;
-            
-            // Update display orders
-            for (var i = 0; i < accountsList.Count; i++)
-            {
-                accountsList[i].DisplayOrder = i;
-            }
-            
-            accounts = accountsList;
+            var nextAccount = sameTypeAccounts[currentGroupIndex + 1];
+            var currentIndex = accounts.IndexOf(account);
+            var nextIndex = accounts.IndexOf(nextAccount);
+            (accounts[nextIndex], accounts[currentIndex]) = (accounts[currentIndex], accounts[nextIndex]);
+
+            ReassignDisplayOrder();
             StateHasChanged();
         }
     }
@@ -138,4 +152,38 @@
         NavigationManager.NavigateTo("/account/create");
     }
 
+    private IEnumerable<AccountGroup> GetGroupedAccounts()
+    {
+        return accounts
+            .GroupBy(a => a.AccountType)
+            .OrderBy(g => GetAccountTypeOrder(g.Key))
+            .Select(g => new AccountGroup(g.Key, g.ToList()));
+    }
+
+    private bool IsFirstInGroup(IReadOnlyList<AccountWithBalance> groupAccounts, AccountWithBalance account)
+    {
+        return groupAccounts.Count == 0 || groupAccounts[0] == account;
+    }
+
+    private bool IsLastInGroup(IReadOnlyList<AccountWithBalance> groupAccounts, AccountWithBalance account)
+    {
+        return groupAccounts.Count == 0 || groupAccounts[^1] == account;
+    }
+
+    private int GetAccountTypeOrder(string accountType)
+    {
+        return accountTypeOrder.TryGetValue(accountType, out var order)
+            ? order
+            : int.MaxValue;
+    }
+
+    private void ReassignDisplayOrder()
+    {
+        for (var i = 0; i < accounts.Count; i++)
+        {
+            accounts[i].DisplayOrder = i;
+        }
+    }
+
+    private sealed record AccountGroup(string AccountType, List<AccountWithBalance> Accounts);
 }
