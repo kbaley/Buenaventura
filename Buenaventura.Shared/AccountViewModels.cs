@@ -48,4 +48,10 @@ namespace Buenaventura.Shared
         public decimal CurrentBalance { get; set; }
         public decimal CurrentBalanceInUsd { get; set; }
     }
+
+    public class DeleteAccountResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+    }
 }

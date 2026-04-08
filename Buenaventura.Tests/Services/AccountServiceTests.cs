@@ -1,4 +1,5 @@
 using Buenaventura.Data;
+using Buenaventura.Domain;
 using Buenaventura.Services;
 using Buenaventura.Shared;
 using Buenaventura.Tests.Helpers;
@@ -46,6 +47,29 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
         // Assert
         result.Should().HaveCount(3);
         result.Should().AllSatisfy(a => a.AccountId.Should().NotBeEmpty());
+    }
+
+    [Fact]
+    public async Task GetAccounts_IncludeHidden_ReturnsHiddenAccounts()
+    {
+        // Arrange
+        _fixture.Context.Accounts.RemoveRange(_fixture.Context.Accounts);
+        await _fixture.Context.SaveChangesAsync();
+
+        var visibleAccount = TestDataFactory.AccountFaker.Generate();
+        visibleAccount.IsHidden = false;
+        var hiddenAccount = TestDataFactory.AccountFaker.Generate();
+        hiddenAccount.IsHidden = true;
+
+        _fixture.Context.Accounts.AddRange(visibleAccount, hiddenAccount);
+        await _fixture.Context.SaveChangesAsync();
+
+        // Act
+        var result = (await _service.GetAccounts(includeHidden: true)).ToList();
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(a => a.AccountId == hiddenAccount.AccountId && a.IsHidden);
     }
 
     [Fact]
@@ -222,5 +246,93 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
 
         // Assert
         _mockTransactionRepo.Verify(r => r.Update(transaction), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteAccount_WithOnlyStartingBalance_DeletesAccount()
+    {
+        // Arrange
+        var account = TestDataFactory.AccountFaker.Generate();
+        var category = new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Starting Balance"
+        };
+        var transaction = new Transaction
+        {
+            TransactionId = Guid.NewGuid(),
+            AccountId = account.AccountId,
+            CategoryId = category.CategoryId,
+            Amount = 100m,
+            AmountInBaseCurrency = 100m,
+            TransactionDate = DateTime.UtcNow,
+            EnteredDate = DateTime.UtcNow,
+            IsReconciled = true
+        };
+
+        _fixture.Context.Categories.Add(category);
+        _fixture.Context.Accounts.Add(account);
+        _fixture.Context.Transactions.Add(transaction);
+        await _fixture.Context.SaveChangesAsync();
+
+        // Act
+        var result = await _service.DeleteAccount(account.AccountId);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        (await _fixture.Context.Accounts.FindAsync(account.AccountId)).Should().BeNull();
+        (await _fixture.Context.Transactions.AnyAsync(t => t.AccountId == account.AccountId)).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task DeleteAccount_WithNonStartingBalanceTransaction_DoesNotDeleteAccount()
+    {
+        // Arrange
+        var account = TestDataFactory.AccountFaker.Generate();
+        var startingBalanceCategory = new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Starting Balance"
+        };
+        var groceriesCategory = new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Groceries"
+        };
+
+        _fixture.Context.Categories.AddRange(startingBalanceCategory, groceriesCategory);
+        _fixture.Context.Accounts.Add(account);
+        _fixture.Context.Transactions.AddRange(
+            new Transaction
+            {
+                TransactionId = Guid.NewGuid(),
+                AccountId = account.AccountId,
+                CategoryId = startingBalanceCategory.CategoryId,
+                Amount = 100m,
+                AmountInBaseCurrency = 100m,
+                TransactionDate = DateTime.UtcNow,
+                EnteredDate = DateTime.UtcNow,
+                IsReconciled = true
+            },
+            new Transaction
+            {
+                TransactionId = Guid.NewGuid(),
+                AccountId = account.AccountId,
+                CategoryId = groceriesCategory.CategoryId,
+                Amount = -25m,
+                AmountInBaseCurrency = -25m,
+                TransactionDate = DateTime.UtcNow,
+                EnteredDate = DateTime.UtcNow,
+                IsReconciled = true
+            });
+        await _fixture.Context.SaveChangesAsync();
+
+        // Act
+        var result = await _service.DeleteAccount(account.AccountId);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Message.Should().Contain("only transaction is the Starting Balance");
+        (await _fixture.Context.Accounts.FindAsync(account.AccountId)).Should().NotBeNull();
     }
 }

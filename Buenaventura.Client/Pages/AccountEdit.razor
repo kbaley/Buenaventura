@@ -3,6 +3,10 @@
 @inject IAccountsApi accountsApi
 @inject NavigationManager navigationManager
 @inject AccountSyncService accountSyncService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@using System.Text.Json
+@using ApiException = Refit.ApiException
 
 @attribute [Authorize]
 
@@ -69,6 +73,16 @@
                                Class="mt-4">
                         Cancel
                     </MudButton>
+
+                    @if (!IsCreateMode)
+                    {
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Error"
+                                   OnClick="DeleteAccount"
+                                   Class="mt-4">
+                            Delete Account
+                        </MudButton>
+                    }
                 </MudItem>
             </MudGrid>
         </MudForm>
@@ -147,6 +161,53 @@
         await accountSyncService.RefreshAccounts();
         StateHasChanged();
         navigationManager.NavigateTo("/accounts");
+    }
+
+    private async Task DeleteAccount()
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] =
+                $"Delete account {account.Name}? This is only allowed when the account has no transactions other than Starting Balance.",
+            ["ButtonText"] = "Delete",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Account", parameters);
+        var result = await dialog.Result;
+        if (result?.Canceled != false)
+        {
+            return;
+        }
+
+        try
+        {
+            await accountsApi.DeleteAccount(account.AccountId);
+            await accountSyncService.RefreshAccounts();
+            Snackbar.Add("Account deleted", Severity.Success);
+            navigationManager.NavigateTo("/accounts");
+        }
+        catch (ApiException ex)
+        {
+            var errorMessage = "Unable to delete account.";
+            if (!string.IsNullOrWhiteSpace(ex.Content))
+            {
+                try
+                {
+                    var response = JsonSerializer.Deserialize<DeleteAccountResponse>(ex.Content);
+                    if (!string.IsNullOrWhiteSpace(response?.Message))
+                    {
+                        errorMessage = response.Message;
+                    }
+                }
+                catch (JsonException)
+                {
+                    errorMessage = ex.Content;
+                }
+            }
+
+            Snackbar.Add(errorMessage, Severity.Error);
+        }
     }
     
     private void Cancel()

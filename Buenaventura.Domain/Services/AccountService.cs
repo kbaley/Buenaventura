@@ -6,7 +6,7 @@ namespace Buenaventura.Services;
 
 public interface IAccountService : IAppService
 {
-    Task<IEnumerable<AccountWithBalance>> GetAccounts();
+    Task<IEnumerable<AccountWithBalance>> GetAccounts(bool includeHidden = false);
     Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50,
         bool isRestricted = false);
     Task<AccountWithBalance> GetAccount(Guid id);
@@ -19,6 +19,7 @@ public interface IAccountService : IAppService
     Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime startDate, DateTime endDate);
     Task<TransactionListModel> GetAllTransactions(DateTime startDate, DateTime endDate);
     Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions);
+    Task<DeleteAccountResponse> DeleteAccount(Guid accountId);
 }
 
 public class AccountService(
@@ -26,11 +27,16 @@ public class AccountService(
     ITransactionRepository transactionRepo
 ) : IAccountService
 {
-    public async Task<IEnumerable<AccountWithBalance>> GetAccounts()
+    public async Task<IEnumerable<AccountWithBalance>> GetAccounts(bool includeHidden = false)
     {
         var exchangeRate = await context.Currencies.GetCadExchangeRate();
-        var accounts = await context.Accounts
-            .Where(a => !a.IsHidden)
+        var query = context.Accounts.AsQueryable();
+        if (!includeHidden)
+        {
+            query = query.Where(a => !a.IsHidden);
+        }
+
+        var accounts = await query
             .OrderBy(a => a.DisplayOrder)
             .Select(a => new AccountWithBalance
             {
@@ -244,5 +250,43 @@ public class AccountService(
         }
         await context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<DeleteAccountResponse> DeleteAccount(Guid accountId)
+    {
+        var account = await context.Accounts
+            .Include(a => a.Transactions)
+            .ThenInclude(t => t.Category)
+            .FirstOrDefaultAsync(a => a.AccountId == accountId);
+
+        if (account == null)
+        {
+            return new DeleteAccountResponse
+            {
+                Success = false,
+                Message = "Account not found."
+            };
+        }
+
+        var hasNonStartingBalanceTransactions = account.Transactions.Any(t =>
+            !string.Equals(t.Category?.Name, "Starting Balance", StringComparison.OrdinalIgnoreCase));
+
+        if (hasNonStartingBalanceTransactions)
+        {
+            return new DeleteAccountResponse
+            {
+                Success = false,
+                Message = "Account can only be deleted when its only transaction is the Starting Balance transaction."
+            };
+        }
+
+        context.Accounts.Remove(account);
+        await context.SaveChangesAsync();
+
+        return new DeleteAccountResponse
+        {
+            Success = true,
+            Message = "Account deleted."
+        };
     }
 }

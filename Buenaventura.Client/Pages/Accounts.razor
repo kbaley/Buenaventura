@@ -8,6 +8,13 @@
 
 <MudText Typo="Typo.h4" GutterBottom="true">Accounts</MudText>
 
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudCheckBox T="bool"
+                 Label="Show hidden accounts"
+                 Value="@showHiddenAccounts"
+                 ValueChanged="OnShowHiddenAccountsChanged" />
+</MudStack>
+
 <MudStack Spacing="3" Class="mb-4">
     @foreach (var accountGroup in GetGroupedAccounts())
     {
@@ -84,18 +91,30 @@
 
 @code {
     private List<AccountWithBalance> accounts = [];
+    private bool showHiddenAccounts;
     private readonly Dictionary<string, int> accountTypeOrder = AccountType.GetAccountTypes()
         .Select((accountType, index) => new { accountType, index })
         .ToDictionary(x => x.accountType, x => x.index);
 
     protected override async Task OnInitializedAsync()
     {
-        accounts = (await accountsApi.GetAccounts())
+        await LoadAccounts();
+    }
+
+    private async Task LoadAccounts()
+    {
+        accounts = (await accountsApi.GetAccounts(showHiddenAccounts))
             .OrderBy(a => GetAccountTypeOrder(a.AccountType))
             .ThenBy(a => a.DisplayOrder)
             .ToList();
 
         ReassignDisplayOrder();
+    }
+
+    private async Task OnShowHiddenAccountsChanged(bool value)
+    {
+        showHiddenAccounts = value;
+        await LoadAccounts();
     }
 
     private void MoveAccountUp(AccountWithBalance account)

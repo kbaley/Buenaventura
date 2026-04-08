@@ -4,15 +4,20 @@ using IAccountService = Buenaventura.Services.IAccountService;
 
 namespace Buenaventura.Api;
 
-internal class GetAccounts(IAccountService accountService) : EndpointWithoutRequest<List<AccountWithBalance>>
+internal sealed class GetAccountsRequest
+{
+    public bool IncludeHidden { get; set; }
+}
+
+internal class GetAccounts(IAccountService accountService) : Endpoint<GetAccountsRequest, List<AccountWithBalance>>
 {
     public override void Configure()
     {
         Get("/api/accounts");
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetAccountsRequest req, CancellationToken ct)
     {
-        await SendAsync((await accountService.GetAccounts()).ToList(), cancellation: ct);
+        await SendAsync((await accountService.GetAccounts(req.IncludeHidden)).ToList(), cancellation: ct);
     }
 }

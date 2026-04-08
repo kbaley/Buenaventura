@@ -6,7 +6,7 @@ namespace Buenaventura.Client.Services;
 public interface IAccountsApi
 {
     [Get("/api/accounts")]
-    Task<IEnumerable<AccountWithBalance>> GetAccounts();
+    Task<IEnumerable<AccountWithBalance>> GetAccounts(bool includeHidden = false);
 
     [Post("/api/accounts")]
     Task<AccountWithTransactions> CreateAccount(AccountForPosting account);
@@ -19,4 +19,7 @@ public interface IAccountsApi
     
     [Put("/api/accounts")]
     Task UpdateAccount(AccountWithBalance account);
+
+    [Delete("/api/accounts/{accountId}")]
+    Task<DeleteAccountResponse> DeleteAccount(Guid accountId);
 }
