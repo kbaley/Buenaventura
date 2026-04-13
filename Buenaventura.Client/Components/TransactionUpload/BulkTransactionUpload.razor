@@ -26,6 +26,7 @@
 <InputFile id="fileInput" OnChange="OnInputFileChange" style="display:none" accept=".xls,.xlsx"/>
 
 @code {
+    private static readonly string[] SupportedPastedDateFormats = ["MM/dd/yyyy", "M/d/yyyy", "dd/MM/yyyy", "d/M/yyyy"];
     private static readonly Regex PastedTransactionPattern = new(
         @"^(?<date>\d{2}/\d{2}/\d{4})\t(?<description>.+?)\t(?<amount>-?[\d,]+(?:\.\d{2})?)\s+USD$",
         RegexOptions.Compiled);
@@ -161,8 +162,7 @@
                 continue;
             }
 
-            if (!DateTime.TryParseExact(match.Groups["date"].Value, "dd/MM/yyyy", CultureInfo.InvariantCulture,
-                    DateTimeStyles.None, out var transactionDate))
+            if (!TryParsePastedTransactionDate(match.Groups["date"].Value, out var transactionDate))
             {
                 continue;
             }
@@ -184,6 +184,12 @@
         }
 
         return transactions;
+    }
+
+    private static bool TryParsePastedTransactionDate(string rawDate, out DateTime transactionDate)
+    {
+        return DateTime.TryParseExact(rawDate, SupportedPastedDateFormats, CultureInfo.InvariantCulture,
+            DateTimeStyles.None, out transactionDate);
     }
 
     private async Task CheckForProcessedTransactions(List<PendingTransactionModel> pendingTransactions)
