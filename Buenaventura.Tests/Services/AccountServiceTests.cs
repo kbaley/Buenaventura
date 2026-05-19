@@ -249,6 +249,65 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task AddBulkTransactions_WithMatchedTransaction_UpdatesImportedVendorAndCategory()
+    {
+        // Arrange
+        var account = TestDataFactory.AccountFaker.Generate();
+        var originalCategory = new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Original"
+        };
+        var suggestedCategory = new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Streaming"
+        };
+        var existingTransaction = new Transaction
+        {
+            TransactionId = Guid.NewGuid(),
+            AccountId = account.AccountId,
+            Vendor = "",
+            Description = "Original description",
+            CategoryId = originalCategory.CategoryId,
+            Amount = -13.99m,
+            AmountInBaseCurrency = -13.99m,
+            TransactionDate = DateTime.UtcNow,
+            EnteredDate = DateTime.UtcNow
+        };
+
+        _fixture.Context.Accounts.Add(account);
+        _fixture.Context.Categories.AddRange(originalCategory, suggestedCategory);
+        _fixture.Context.Transactions.Add(existingTransaction);
+        await _fixture.Context.SaveChangesAsync();
+
+        var importedTransaction = new TransactionForDisplay
+        {
+            TransactionId = existingTransaction.TransactionId,
+            Vendor = "Netflix",
+            Description = "NETFLIX.COM 866-579-717",
+            DownloadId = "posted-123",
+            Category = new CategoryModel
+            {
+                CategoryId = suggestedCategory.CategoryId,
+                Name = suggestedCategory.Name
+            }
+        };
+
+        // Act
+        await _service.AddBulkTransactions(account.AccountId, [importedTransaction]);
+
+        // Assert
+        var updatedTransaction = await _fixture.Context.Transactions
+            .AsNoTracking()
+            .SingleAsync(t => t.TransactionId == existingTransaction.TransactionId);
+        updatedTransaction.Vendor.Should().Be("Netflix");
+        updatedTransaction.Description.Should().Be("NETFLIX.COM 866-579-717");
+        updatedTransaction.DownloadId.Should().Be("posted-123");
+        updatedTransaction.CategoryId.Should().Be(suggestedCategory.CategoryId);
+    }
+
+    [Fact]
     public async Task DeleteAccount_WithOnlyStartingBalance_DeletesAccount()
     {
         // Arrange

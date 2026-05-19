@@ -9,6 +9,7 @@ public class PendingTransactionModel
     public string? CardNumber { get; set; }
     public string? Description { get; set; }
     public string? Vendor { get; set; }
+    public CategoryModel Category { get; set; } = new();
     public decimal Amount { get; set; }
     public bool IsSelected { get; set; } = true;
     public bool IsAlreadyProcessed { get; set; }

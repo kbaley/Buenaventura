@@ -1,4 +1,6 @@
 @inject ITransactionsApi TransactionsApi
+@inject IVendorsApi VendorsApi
+@inject ICategoriesApi CategoriesApi
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -15,6 +17,7 @@
                 </MudTh>
                 <MudTh Style="width: 125px;">Date</MudTh>
                 <MudTh Style="width: 175px;">Vendor</MudTh>
+                <MudTh Style="width: 200px;">Category</MudTh>
                 <MudTh Style="width: 150px;">Reference #</MudTh>
                 <MudTh Class="flex-grow-1">Description</MudTh>
                 <MudTh Class="transaction-amount">Debit</MudTh>
@@ -28,7 +31,20 @@
                                  Disabled="@transaction.IsAlreadyProcessed"/>
                 </MudTd>
                 <MudTd DataLabel="Date" Style="@GetRowStyle(transaction)">@transaction.DateFormatted</MudTd>
-                <MudTd DataLabel="Vendor" Style="@GetRowStyle(transaction)">@transaction.Vendor</MudTd>
+                <MudTd DataLabel="Vendor" Style="@GetRowStyle(transaction)">
+                    <MudAutocomplete Value="@transaction.Vendor"
+                                     T="string"
+                                     Dense="true"
+                                     Variant="Variant.Text"
+                                     ResetValueOnEmptyText="true"
+                                     CoerceText="true"
+                                     CoerceValue="true"
+                                     SelectValueOnTab="true"
+                                     SearchFunc="SearchVendors"
+                                     ValueChanged="@(vendor => SetVendor(transaction, vendor))"
+                                     Adornment="Adornment.None"/>
+                </MudTd>
+                <MudTd DataLabel="Category" Style="@GetRowStyle(transaction)">@transaction.Category.Name</MudTd>
                 <MudTd DataLabel="Reference #" Style="@GetRowStyle(transaction)">@transaction.ReferenceNumber</MudTd>
                 <MudTd DataLabel="Description" Style="@GetRowStyle(transaction)">@transaction.Description</MudTd>
                 <MudTd DataLabel="Debit" Class="transaction-amount" Style="@GetRowStyle(transaction)">@transaction.DebitFormatted</MudTd>
@@ -42,6 +58,7 @@
                         <MudTd></MudTd>
                         <MudTd>@transaction.PotentialMatch.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
                         <MudTd>@transaction.PotentialMatch.Vendor</MudTd>
+                        <MudTd>@transaction.PotentialMatch.Category.Name</MudTd>
                         <MudTd>@transaction.PotentialMatch.DownloadId</MudTd>
                         <MudTd>@transaction.PotentialMatch.Description</MudTd>
                         <MudTd Class="transaction-amount">@(transaction.PotentialMatch.Debit?.ToString("N2"))</MudTd>
@@ -74,6 +91,15 @@
     [Parameter] public Guid AccountId { get; set; }
     
     private bool SelectAll { get; set; }
+    private List<CategoryModel> categories = [];
+    private List<VendorModel> vendors = [];
+    
+    protected override async Task OnInitializedAsync()
+    {
+        categories = (await CategoriesApi.GetCategories()).ToList();
+        vendors = (await VendorsApi.GetVendors()).ToList();
+        SuggestVendors();
+    }
     
     private void SelectAllChanged(bool value)
     {
@@ -97,6 +123,100 @@
         }
         
         return string.Empty;
+    }
+
+    private Task<IEnumerable<string>> SearchVendors(string? search, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return Task.FromResult(vendors
+                .Select(v => v.Name)
+                .OrderBy(v => v)
+                .AsEnumerable());
+        }
+
+        return Task.FromResult(vendors
+            .Where(v => v.Name.Contains(search, StringComparison.CurrentCultureIgnoreCase))
+            .Select(v => v.Name)
+            .OrderBy(v => v)
+            .AsEnumerable());
+    }
+
+    private void SuggestVendors()
+    {
+        foreach (var transaction in PendingTransactions.Where(t => string.IsNullOrWhiteSpace(t.Vendor)))
+        {
+            var vendor = FindSuggestedVendor(transaction.Description);
+            if (vendor == null)
+            {
+                continue;
+            }
+
+            SetVendor(transaction, vendor.Name);
+        }
+    }
+
+    private VendorModel? FindSuggestedVendor(string? description)
+    {
+        var normalizedDescription = NormalizeForVendorMatching(description);
+        if (string.IsNullOrWhiteSpace(normalizedDescription))
+        {
+            return null;
+        }
+
+        return vendors
+            .Select(v => new
+            {
+                Vendor = v,
+                NormalizedName = NormalizeForVendorMatching(v.Name)
+            })
+            .Where(v => v.NormalizedName.Length >= 3)
+            .Where(v => normalizedDescription.StartsWith(v.NormalizedName, StringComparison.Ordinal) ||
+                        normalizedDescription.StartsWith(v.NormalizedName.Replace(" ", ""), StringComparison.Ordinal))
+            .OrderByDescending(v => v.NormalizedName.Length)
+            .Select(v => v.Vendor)
+            .FirstOrDefault();
+    }
+
+    private void SetVendor(PendingTransactionModel transaction, string? vendor)
+    {
+        if (string.IsNullOrWhiteSpace(vendor))
+        {
+            ClearVendor(transaction);
+            return;
+        }
+
+        transaction.Vendor = vendor;
+        var selectedVendor = vendors.FirstOrDefault(v => string.Equals(v.Name, vendor, StringComparison.CurrentCultureIgnoreCase));
+        if (selectedVendor == null)
+        {
+            transaction.Category = new CategoryModel();
+            return;
+        }
+
+        transaction.Category = categories.FirstOrDefault(c => c.CategoryId == selectedVendor.LastTransactionCategoryId)
+                               ?? new CategoryModel();
+    }
+
+    private void ClearVendor(PendingTransactionModel transaction)
+    {
+        transaction.Vendor = "";
+        transaction.Category = new CategoryModel();
+    }
+
+    private static string NormalizeForVendorMatching(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var normalizedCharacters = value
+            .ToUpperInvariant()
+            .Select(c => char.IsLetterOrDigit(c) ? c : ' ')
+            .ToArray();
+
+        return string.Join(" ", new string(normalizedCharacters).Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
     
     private void Cancel()
@@ -125,6 +245,7 @@
                     TransactionDate = selectedTransaction.TransactionDate,
                     Vendor = selectedTransaction.Vendor,
                     Description = selectedTransaction.Description ?? string.Empty,  
+                    Category = selectedTransaction.Category,
                     Debit = selectedTransaction.Debit,
                     Credit = selectedTransaction.Credit,
                     DownloadId = selectedTransaction.ReferenceNumber,
@@ -136,8 +257,6 @@
                     transactionToSync.Description = MergeDescriptions(
                         selectedTransaction.PotentialMatch.Description,
                         selectedTransaction.Description);
-                    // Also make sure we keep the same category
-                    transactionToSync.Category = selectedTransaction.PotentialMatch.Category;
                 }
                 transactionsToAdd.Add(transactionToSync);
             }

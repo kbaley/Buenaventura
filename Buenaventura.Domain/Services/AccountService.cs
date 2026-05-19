@@ -243,7 +243,9 @@ public class AccountService(
                 if (dbTransaction != null)
                 {
                     dbTransaction.DownloadId = transaction.DownloadId;
+                    dbTransaction.Vendor = transaction.Vendor;
                     dbTransaction.Description = transaction.Description;
+                    dbTransaction.Category = await context.GetOrCreateCategory(transaction.Category);
                     context.Transactions.Update(dbTransaction);
                 }
             }
