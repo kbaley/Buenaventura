@@ -8,6 +8,7 @@ namespace Buenaventura.Client.Pages;
 
 public partial class Investments(
     IInvestmentsApi investmentsApi,
+    IDashboardApi dashboardApi,
     NavigationManager navigationManager,
     AccountSyncService accountSyncService,
     IDialogService dialogService
@@ -16,11 +17,25 @@ public partial class Investments(
 
     [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
     private IEnumerable<InvestmentModel>? investments;
+    private IEnumerable<ReportDataPoint> investmentPerformanceData = [];
     private double portfolioIrr;
+    private bool isInvestmentPerformanceLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadInvestments();
+        await LoadPageData();
+    }
+
+    private async Task LoadPageData()
+    {
+        isInvestmentPerformanceLoading = true;
+
+        var investmentsTask = LoadInvestments();
+        var performanceTask = LoadInvestmentPerformanceData();
+
+        await Task.WhenAll(investmentsTask, performanceTask);
+
+        isInvestmentPerformanceLoading = false;
     }
 
     private async Task LoadInvestments()
@@ -28,6 +43,11 @@ public partial class Investments(
         var investmentList = await investmentsApi.GetInvestments();
         investments = investmentList.Investments;
         portfolioIrr = investmentList.PortfolioIrr;
+    }
+
+    private async Task LoadInvestmentPerformanceData()
+    {
+        investmentPerformanceData = await dashboardApi.GetInvestmentData();
     }
 
     private void EditInvestment(InvestmentModel investment)
@@ -119,6 +139,10 @@ Do this only for test databases or if you are absolutely sure you want to delete
     {
         await investmentsApi.MakeCorrectingEntry();
         await accountSyncService.RefreshAccounts();
+        isInvestmentPerformanceLoading = true;
+        StateHasChanged();
+        await LoadInvestmentPerformanceData();
+        isInvestmentPerformanceLoading = false;
     }
 
     private void ComparePortfolioRatios()

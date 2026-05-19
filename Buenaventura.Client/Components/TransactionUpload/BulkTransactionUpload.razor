@@ -1,17 +1,7 @@
 @using System.Text
-@using System.Text.Json
-@inject IJSRuntime JSRuntime
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ITransactionsApi TransactionsApi
-
-<MudButton Variant="Variant.Filled"
-           Color="Color.Primary"
-           OnClick="OpenFileUpload"
-           StartIcon="@Icons.Material.Filled.Upload"
-           Class="ml-2 d-none d-md-inline-flex">
-    Upload File
-</MudButton>
 
 <MudButton Variant="Variant.Outlined"
            Color="Color.Primary"
@@ -21,52 +11,9 @@
     Paste Transactions
 </MudButton>
 
-<InputFile id="fileInput" OnChange="OnInputFileChange" style="display:none" accept=".xls,.xlsx"/>
-
 @code {
     [Parameter] public Guid AccountId { get; set; }
     [Parameter] public EventCallback OnTransactionsProcessed { get; set; }
-
-    private async Task OpenFileUpload()
-    {
-        await JSRuntime.InvokeVoidAsync("openBulkTransactionFileInput");
-    }
-
-    private async Task OnInputFileChange(InputFileChangeEventArgs e)
-    {
-        try
-        {
-            var file = e.File;
-            if (file == null)
-            {
-                return;
-            }
-
-            // Read the file content
-            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB max
-            using var memoryStream = new MemoryStream();
-            await stream.CopyToAsync(memoryStream);
-            memoryStream.Position = 0;
-
-            // Process the Excel file using JSInterop
-            var fileData = Convert.ToBase64String(memoryStream.ToArray());
-            var excelData = await JSRuntime.InvokeAsync<string>("parseExcelFile", fileData);
-
-            if (string.IsNullOrEmpty(excelData))
-            {
-                Snackbar.Add("Failed to parse Excel file", Severity.Error);
-                return;
-            }
-
-            var pendingTransactions = ParseExcelData(excelData);
-
-            await ReviewAndProcessTransactions(pendingTransactions);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error processing file: {ex.Message}", Severity.Error);
-        }
-    }
 
     private async Task OpenPasteDialog()
     {
@@ -92,53 +39,6 @@
         }
 
         await ReviewAndProcessTransactions(pendingTransactions);
-    }
-
-    private List<PendingTransactionModel> ParseExcelData(string jsonData)
-    {
-        var rows = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonData);
-        var transactions = new List<PendingTransactionModel>();
-
-        if (rows == null || rows.Count == 0)
-        {
-            return transactions;
-        }
-
-        // Skip header rows (start from row 16 as per the screenshot)
-        foreach (var row in rows)
-        {
-            if (!row.TryGetValue("Date", out var dateObj) ||
-                !row.TryGetValue("Reference number", out var refObj) ||
-                !row.TryGetValue("Card number", out var cardObj) ||
-                !row.TryGetValue("Description", out var descObj) ||
-                !row.TryGetValue("Dollars", out var amountObj))
-            {
-                continue;
-            }
-
-            // Parse the date
-            if (dateObj is JsonElement { ValueKind: JsonValueKind.String } element 
-                && DateTime.TryParse(element.GetString(), out var transactionDate))
-            {
-                // Parse the amount
-                if (amountObj is JsonElement { ValueKind: JsonValueKind.String} amountStr && 
-                    decimal.TryParse(amountStr.GetString()!.Replace(",", ""), out var amount))
-                {
-                    transactions.Add(new PendingTransactionModel
-                    {
-                        ReferenceNumber = refObj.ToString(),
-                        TransactionDate = transactionDate,
-                        CardNumber = cardObj.ToString(),
-                        Description = descObj.ToString(),
-                        Vendor = "",
-                        Amount = amount,
-                        IsSelected = true
-                    });
-                }
-            }
-        }
-
-        return transactions;
     }
 
     private List<PendingTransactionModel> ParsePastedTransactions(string pastedText)
@@ -223,7 +123,7 @@
 
         var result = await dialog.Result;
 
-        if (!result.Canceled && OnTransactionsProcessed.HasDelegate)
+        if (result is not null && !result.Canceled && OnTransactionsProcessed.HasDelegate)
         {
             await OnTransactionsProcessed.InvokeAsync();
         }
