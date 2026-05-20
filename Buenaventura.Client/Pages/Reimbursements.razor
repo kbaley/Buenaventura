@@ -1,0 +1,158 @@
+@page "/reports/reimbursements"
+@inject IReimbursementsApi ReimbursementsApi
+
+@attribute [Authorize]
+
+<MudText Typo="Typo.h4" GutterBottom="true">Reimbursements</MudText>
+
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+else if (!report.Summary.HasTransactions)
+{
+    <MudAlert Severity="Severity.Info">No transactions are categorized as To be reimbursed yet.</MudAlert>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="3">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6">@BalanceLabel</MudText>
+                <MudText Typo="Typo.h4" Color="@BalanceColor">@Math.Abs(report.Summary.OutstandingBalance).ToString("C")</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6">Oldest Outstanding</MudText>
+                @if (report.Summary.OldestOutstandingDays.HasValue)
+                {
+                    <MudText Typo="Typo.h4" Color="Color.Warning">@report.Summary.OldestOutstandingDays.Value days</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Since @report.Summary.OldestOutstandingDate!.Value.ToString("MMM d, yyyy")
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h4" Color="Color.Success">Clear</MudText>
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6">Expenses Last 12 Months</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Error">@report.Summary.ExpensesLast12Months.ToString("C")</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6">Repayments Last 12 Months</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Success">@report.Summary.RepaymentsLast12Months.ToString("C")</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Monthly Balance</MudText>
+                <MudTable Items="@report.MonthlyRows" Dense="true" Hover="true" Bordered="true" Striped="true">
+                    <HeaderContent>
+                        <MudTh>Month</MudTh>
+                        <MudTh Style="text-align: right">Expenses</MudTh>
+                        <MudTh Style="text-align: right">Repayments</MudTh>
+                        <MudTh Style="text-align: right">Net</MudTh>
+                        <MudTh Style="text-align: right">Running Balance</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Month">@context.Month.ToString("MMM yyyy")</MudTd>
+                        <MudTd DataLabel="Expenses" Style="text-align: right">@context.Expenses.ToString("C")</MudTd>
+                        <MudTd DataLabel="Repayments" Style="text-align: right">@context.Repayments.ToString("C")</MudTd>
+                        <MudTd DataLabel="Net" Style="text-align: right">
+                            <span style="color: @GetAmountColor(context.Net)">
+                                @context.Net.ToString("C")
+                            </span>
+                        </MudTd>
+                        <MudTd DataLabel="Running Balance" Style="text-align: right">
+                            <span style="color: @GetAmountColor(context.RunningBalance)">
+                                @context.RunningBalance.ToString("C")
+                            </span>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Recent Reimbursement Transactions</MudText>
+                <MudTable Items="@report.RecentTransactions" Dense="true" Hover="true" Bordered="true" Striped="true">
+                    <HeaderContent>
+                        <MudTh>Date</MudTh>
+                        <MudTh>Account</MudTh>
+                        <MudTh>Vendor</MudTh>
+                        <MudTh>Description</MudTh>
+                        <MudTh Style="text-align: right">Transaction</MudTh>
+                        <MudTh Style="text-align: right">Balance Impact</MudTh>
+                        <MudTh Style="text-align: right">Running Balance</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
+                        <MudTd DataLabel="Account">@context.AccountName</MudTd>
+                        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                        <MudTd DataLabel="Description">@context.Description</MudTd>
+                        <MudTd DataLabel="Transaction" Style="text-align: right">@context.Amount.ToString("C")</MudTd>
+                        <MudTd DataLabel="Balance Impact" Style="text-align: right">
+                            <span style="color: @GetAmountColor(context.ReimbursementAmount)">
+                                @context.ReimbursementAmount.ToString("C")
+                            </span>
+                        </MudTd>
+                        <MudTd DataLabel="Running Balance" Style="text-align: right">
+                            <span style="color: @GetAmountColor(context.RunningBalance)">
+                                @context.RunningBalance.ToString("C")
+                            </span>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private bool isLoading = true;
+    private ReimbursementReport report = new();
+
+    private string BalanceLabel => report.Summary.OutstandingBalance switch
+    {
+        > 0 => "Outstanding",
+        < 0 => "Surplus",
+        _ => "Balance"
+    };
+
+    private Color BalanceColor => report.Summary.OutstandingBalance switch
+    {
+        > 0 => Color.Warning,
+        < 0 => Color.Info,
+        _ => Color.Success
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        report = await ReimbursementsApi.GetReport();
+        isLoading = false;
+    }
+
+    private static string GetAmountColor(decimal amount)
+    {
+        if (amount > 0)
+        {
+            return "var(--mud-palette-warning)";
+        }
+
+        if (amount < 0)
+        {
+            return "var(--mud-palette-info)";
+        }
+
+        return "inherit";
+    }
+}

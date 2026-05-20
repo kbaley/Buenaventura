@@ -1,9 +1,13 @@
 using Buenaventura.Client.Services;
 using Buenaventura.Shared;
+using MudBlazor;
 
 namespace Buenaventura.Client.Pages;
 
-public partial class Dashboard(IDashboardApi dashboardApi, IExpensesApi expensesApi)
+public partial class Dashboard(
+    IDashboardApi dashboardApi,
+    IExpensesApi expensesApi,
+    IReimbursementsApi reimbursementsApi)
 {
     private decimal creditCardBalance;
     private decimal liquidAssetBalance;
@@ -14,6 +18,7 @@ public partial class Dashboard(IDashboardApi dashboardApi, IExpensesApi expenses
     private IEnumerable<ReportDataPoint> expenseData = [];
     private IEnumerable<ReportDataPoint> assetData = [];
     private IEnumerable<ExpenseAveragesDataPoint> expenseAveragesData = [];
+    private ReimbursementSummary reimbursementSummary = new();
     private bool isLoading = true;
 
     protected override async Task OnParametersSetAsync()
@@ -29,6 +34,7 @@ public partial class Dashboard(IDashboardApi dashboardApi, IExpensesApi expenses
         var expenseTask = expensesApi.GetExpenseCategoryBreakdown();
         var assetTask = dashboardApi.GetAssetClassData();
         var expenseAveragesTask = expensesApi.GetExpenseAveragesData();
+        var reimbursementSummaryTask = reimbursementsApi.GetSummary();
 
         await Task.WhenAll(
             expensesTask,
@@ -39,7 +45,8 @@ public partial class Dashboard(IDashboardApi dashboardApi, IExpensesApi expenses
             investmentTask,
             expenseTask,
             assetTask,
-            expenseAveragesTask
+            expenseAveragesTask,
+            reimbursementSummaryTask
         );
 
         expensesThisMonth = -(await expensesTask);
@@ -51,10 +58,21 @@ public partial class Dashboard(IDashboardApi dashboardApi, IExpensesApi expenses
         expenseData = await expenseTask;
         assetData = await assetTask;
         expenseAveragesData = await expenseAveragesTask;
+        reimbursementSummary = await reimbursementSummaryTask;
         StateHasChanged();
         isLoading = false;
 
         await base.OnParametersSetAsync();
+    }
+
+    private Color GetReimbursementColor()
+    {
+        return reimbursementSummary.OutstandingBalance switch
+        {
+            > 0 => Color.Warning,
+            < 0 => Color.Info,
+            _ => Color.Success
+        };
     }
 
 }
