@@ -28,10 +28,6 @@ else
                         <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Success"
                                        OnClick="AddInvestment"/>
                     </MudTooltip>
-                    <MudTooltip Text="Compare portfolio with desired ratios">
-                        <MudIconButton Icon="@Icons.Material.Filled.Compare" Color="Color.Info"
-                                       OnClick="ComparePortfolioRatios"/>
-                    </MudTooltip>
                     <MudTooltip Text="Sync portfolio value with Investments account">
                         <MudIconButton Icon="@Icons.Material.Filled.Sync" Color="Color.Secondary"
                                        OnClick="SyncPortfolioValue"/>
@@ -46,12 +42,12 @@ else
     </MudPaper>
 
     <MudGrid>
-        <MudItem xs="12" md="6">
+        <MudItem xs="12" md="8">
             <LineChart
                 IsLoading="isInvestmentPerformanceLoading"
                 ChartData="investmentPerformanceData"
                 Title="Investment Performance Over Time"
-                Height="320"
+                Height="350"
             />
         </MudItem>
 

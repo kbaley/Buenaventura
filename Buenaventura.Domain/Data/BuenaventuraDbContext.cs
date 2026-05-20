@@ -18,6 +18,9 @@ namespace Buenaventura.Data;
         public DbSet<InvestmentTransaction> InvestmentTransactions { get; set; }
         public DbSet<Transfer> Transfers { get; set; }
         public DbSet<InvestmentCategory> InvestmentCategories { get; set; }
+        public DbSet<ReimbursementSettlement> ReimbursementSettlements { get; set; }
+        public DbSet<ReimbursementMatch> ReimbursementMatches { get; set; }
+        public DbSet<ReimbursementMatchTransaction> ReimbursementMatchTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -28,5 +31,22 @@ namespace Buenaventura.Data;
             builder.Entity<Transaction>()
                 .HasOne(a => a.RightTransfer)
                 .WithOne(t => t.RightTransaction);
+            builder.Entity<Transaction>()
+                .HasOne(t => t.ReimbursementSettlement)
+                .WithMany(s => s.Transactions)
+                .HasForeignKey(t => t.ReimbursementSettlementId)
+                .OnDelete(DeleteBehavior.SetNull);
+            builder.Entity<ReimbursementMatchTransaction>()
+                .HasKey(t => new { t.ReimbursementMatchId, t.TransactionId });
+            builder.Entity<ReimbursementMatchTransaction>()
+                .HasOne(t => t.Match)
+                .WithMany(m => m.MatchTransactions)
+                .HasForeignKey(t => t.ReimbursementMatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<ReimbursementMatchTransaction>()
+                .HasOne(t => t.Transaction)
+                .WithMany(t => t.ReimbursementMatchTransactions)
+                .HasForeignKey(t => t.TransactionId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }

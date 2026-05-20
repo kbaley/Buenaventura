@@ -1,5 +1,6 @@
 using Buenaventura.Domain;
 using Buenaventura.Services;
+using Buenaventura.Shared;
 using Buenaventura.Tests.Helpers;
 using FluentAssertions;
 using Xunit;
@@ -33,26 +34,38 @@ public class ReimbursementServiceTests
     }
 
     [Fact]
-    public async Task GetReport_AllowsSurplusRepaymentsWithoutShowingOldOutstandingExpenses()
+    public async Task CreateSettlement_RemovesClosedItemsFromOutstandingSummary()
     {
         await using var context = TestDbContextFactory.CreateInMemoryDbContext();
         var account = CreateAccount();
         var category = CreateCategory();
+        var expense = CreateTransaction(account, category, new DateTime(2026, 1, 10), -50m);
+        var repayment = CreateTransaction(account, category, new DateTime(2026, 1, 20), 100m);
+        var laterExpense = CreateTransaction(account, category, new DateTime(2026, 2, 5), -25m);
         context.Accounts.Add(account);
         context.Categories.Add(category);
-        context.Transactions.AddRange(
-            CreateTransaction(account, category, new DateTime(2026, 1, 10), -50m),
-            CreateTransaction(account, category, new DateTime(2026, 1, 20), 100m),
-            CreateTransaction(account, category, new DateTime(2026, 2, 5), -25m));
+        context.Transactions.AddRange(expense, repayment, laterExpense);
         await context.SaveChangesAsync();
 
         var service = new ReimbursementService(context);
 
+        await service.CreateSettlement(new CreateReimbursementSettlementRequest
+        {
+            Name = "January settlement",
+            TransactionIds = [expense.TransactionId, repayment.TransactionId],
+            CloseImmediately = true
+        });
         var report = await service.GetReport();
 
-        report.Summary.OutstandingBalance.Should().Be(-25m);
-        report.Summary.OldestOutstandingDate.Should().BeNull();
-        report.Summary.OldestOutstandingDays.Should().BeNull();
+        report.Summary.OutstandingBalance.Should().Be(25m);
+        report.Summary.OldestOutstandingDate.Should().Be(new DateTime(2026, 2, 5));
+        report.UnsettledExpenses.Should().ContainSingle(t => t.TransactionId == laterExpense.TransactionId);
+        report.UnsettledRepayments.Should().BeEmpty();
+        report.Settlements.Should().ContainSingle(s =>
+            s.Name == "January settlement" &&
+            s.Expenses == 50m &&
+            s.Repayments == 100m &&
+            s.Difference == -50m);
     }
 
     private static Account CreateAccount()

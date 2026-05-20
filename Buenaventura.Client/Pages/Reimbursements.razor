@@ -19,7 +19,7 @@ else
         <MudItem xs="12" md="3">
             <MudPaper Elevation="1" Class="pa-4">
                 <MudText Typo="Typo.h6">@BalanceLabel</MudText>
-                <MudText Typo="Typo.h4" Color="@BalanceColor">@Math.Abs(report.Summary.OutstandingBalance).ToString("C")</MudText>
+                <MudText Typo="Typo.h4" Color="@BalanceColor">@(Math.Abs(report.Summary.OutstandingBalance).ToString("C"))</MudText>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" md="3">
@@ -48,6 +48,122 @@ else
             <MudPaper Elevation="1" Class="pa-4">
                 <MudText Typo="Typo.h6">Repayments Last 12 Months</MudText>
                 <MudText Typo="Typo.h4" Color="Color.Success">@report.Summary.RepaymentsLast12Months.ToString("C")</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Settle Selected</MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="settlementName"
+                                      Label="Settlement name"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="12" md="5">
+                        <MudTextField @bind-Value="settlementNotes"
+                                      Label="Notes"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="12" md="3" Class="d-flex align-center justify-end">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Disabled="@(!selectedTransactionIds.Any() || isSavingSettlement)"
+                                   OnClick="CreateSettlement">
+                            Settle @selectedTransactionIds.Count selected
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-2">
+                    <MudChip T="string" Color="@SelectedDifferenceColor" Variant="Variant.Filled">
+                        Selected Difference: @Math.Abs(SelectedDifference).ToString("C")
+                    </MudChip>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        @SelectedDifferenceLabel. Closing a settlement means the discrepancy is accepted and should no longer count as outstanding.
+                    </MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="7">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Unsettled Expenses</MudText>
+                <MudTable Items="@report.UnsettledExpenses" Dense="true" Hover="true" Bordered="true" Striped="true">
+                    <HeaderContent>
+                        <MudTh></MudTh>
+                        <MudTh>Date</MudTh>
+                        <MudTh>Vendor</MudTh>
+                        <MudTh>Description</MudTh>
+                        <MudTh Style="text-align: right">Owed</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>
+                            <MudCheckBox T="bool"
+                                         Value="@IsSelected(context.TransactionId)"
+                                         ValueChanged="@(selected => SetSelected(context.TransactionId, selected))"
+                                         Color="Color.Primary" />
+                        </MudTd>
+                        <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
+                        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                        <MudTd DataLabel="Description">@context.Description</MudTd>
+                        <MudTd DataLabel="Owed" Style="text-align: right">@context.ReimbursementAmount.ToString("C")</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="5">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Unsettled Repayments</MudText>
+                <MudTable Items="@report.UnsettledRepayments" Dense="true" Hover="true" Bordered="true" Striped="true">
+                    <HeaderContent>
+                        <MudTh></MudTh>
+                        <MudTh>Date</MudTh>
+                        <MudTh>Vendor</MudTh>
+                        <MudTh Style="text-align: right">Paid</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>
+                            <MudCheckBox T="bool"
+                                         Value="@IsSelected(context.TransactionId)"
+                                         ValueChanged="@(selected => SetSelected(context.TransactionId, selected))"
+                                         Color="Color.Primary" />
+                        </MudTd>
+                        <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
+                        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                        <MudTd DataLabel="Paid" Style="text-align: right">@((-context.ReimbursementAmount).ToString("C"))</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Recent Settlements</MudText>
+                <MudTable Items="@report.Settlements" Dense="true" Hover="true" Bordered="true" Striped="true">
+                    <HeaderContent>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Closed</MudTh>
+                        <MudTh Style="text-align: right">Expenses</MudTh>
+                        <MudTh Style="text-align: right">Repayments</MudTh>
+                        <MudTh Style="text-align: right">Difference</MudTh>
+                        <MudTh Style="text-align: right">Items</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="Closed">@(context.ClosedDate?.ToString("MM/dd/yyyy") ?? "Open")</MudTd>
+                        <MudTd DataLabel="Expenses" Style="text-align: right">@context.Expenses.ToString("C")</MudTd>
+                        <MudTd DataLabel="Repayments" Style="text-align: right">@context.Repayments.ToString("C")</MudTd>
+                        <MudTd DataLabel="Difference" Style="text-align: right">
+                            <span style="color: @GetAmountColor(context.Difference)">
+                                @context.Difference.ToString("C")
+                            </span>
+                        </MudTd>
+                        <MudTd DataLabel="Items" Style="text-align: right">@context.TransactionCount</MudTd>
+                    </RowTemplate>
+                </MudTable>
             </MudPaper>
         </MudItem>
 
@@ -119,7 +235,30 @@ else
 
 @code {
     private bool isLoading = true;
+    private bool isSavingSettlement;
     private ReimbursementReport report = new();
+    private readonly HashSet<Guid> selectedTransactionIds = [];
+    private string settlementName = $"Reimbursement settlement - {DateTime.Today:MMM yyyy}";
+    private string settlementNotes = "";
+
+    private decimal SelectedDifference => report.UnsettledExpenses
+        .Concat(report.UnsettledRepayments)
+        .Where(t => selectedTransactionIds.Contains(t.TransactionId))
+        .Sum(t => t.ReimbursementAmount);
+
+    private string SelectedDifferenceLabel => SelectedDifference switch
+    {
+        > 0 => "Selected expenses exceed selected repayments",
+        < 0 => "Selected repayments exceed selected expenses",
+        _ => "Selected expenses and repayments are balanced"
+    };
+
+    private Color SelectedDifferenceColor => SelectedDifference switch
+    {
+        > 0 => Color.Warning,
+        < 0 => Color.Info,
+        _ => Color.Success
+    };
 
     private string BalanceLabel => report.Summary.OutstandingBalance switch
     {
@@ -137,8 +276,46 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadReport();
+    }
+
+    private async Task LoadReport()
+    {
         report = await ReimbursementsApi.GetReport();
+        selectedTransactionIds.Clear();
         isLoading = false;
+    }
+
+    private bool IsSelected(Guid transactionId)
+    {
+        return selectedTransactionIds.Contains(transactionId);
+    }
+
+    private void SetSelected(Guid transactionId, bool selected)
+    {
+        if (selected)
+        {
+            selectedTransactionIds.Add(transactionId);
+            return;
+        }
+
+        selectedTransactionIds.Remove(transactionId);
+    }
+
+    private async Task CreateSettlement()
+    {
+        isSavingSettlement = true;
+        await ReimbursementsApi.CreateSettlement(new CreateReimbursementSettlementRequest
+        {
+            Name = settlementName,
+            Notes = settlementNotes,
+            CloseImmediately = true,
+            TransactionIds = selectedTransactionIds.ToList()
+        });
+        settlementNotes = "";
+        settlementName = $"Reimbursement settlement - {DateTime.Today:MMM yyyy}";
+        await LoadReport();
+        isSavingSettlement = false;
     }
 
     private static string GetAmountColor(decimal amount)

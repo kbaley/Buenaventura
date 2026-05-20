@@ -10,4 +10,7 @@ public interface IReimbursementsApi
 
     [Get("/api/reimbursements/report")]
     Task<ReimbursementReport> GetReport();
+
+    [Post("/api/reimbursements/settlements")]
+    Task CreateSettlement([Body] CreateReimbursementSettlementRequest request);
 }
