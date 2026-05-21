@@ -5,17 +5,19 @@ using FastEndpoints;
 namespace Buenaventura.Api;
 
 internal class GetVendorData(IExpenseService expenseService)
-    : EndpointWithoutRequest<List<ReportDataPoint>>
+    : Endpoint<ExpenseReportRequest, List<ReportDataPoint>>
 {
     public override void Configure()
     {
         Get("/api/expenses/vendors");
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(ExpenseReportRequest req, CancellationToken ct)
     {
         // Ignore "Other" category for total vendor spending
-        var data = (await expenseService.GetVendorSpending())
+        var data = (await expenseService.GetVendorSpending(
+                includeTags: TransactionTagFormatter.ParseTagText(req.IncludeTags),
+                excludeTags: TransactionTagFormatter.ParseTagText(req.ExcludeTags)))
             .Where(d => d.Label != "Other")
             .ToList();
         await SendOkAsync(data, ct);

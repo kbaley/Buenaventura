@@ -246,6 +246,7 @@ public class AccountService(
                     dbTransaction.Vendor = transaction.Vendor;
                     dbTransaction.Description = transaction.Description;
                     dbTransaction.Category = await context.GetOrCreateCategory(transaction.Category);
+                    dbTransaction.Tags = TransactionTagFormatter.Serialize(TransactionTagFormatter.ParseHashTags(transaction.Description));
                     context.Transactions.Update(dbTransaction);
                 }
             }
@@ -291,4 +292,5 @@ public class AccountService(
             Message = "Account deleted."
         };
     }
+
 }

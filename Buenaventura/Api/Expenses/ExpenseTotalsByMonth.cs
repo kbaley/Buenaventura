@@ -5,16 +5,18 @@ using FastEndpoints;
 namespace Buenaventura.Api;
 
 internal class ExpenseTotalsByMonth(IExpenseService expenseService)
-    : EndpointWithoutRequest<CategoryTotals>
+    : Endpoint<ExpenseReportRequest, CategoryTotals>
 {
     public override void Configure()
     {
         Get("/api/expenses/totalsbymonth");
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(ExpenseReportRequest req, CancellationToken ct)
     {
-        var data = await expenseService.GetExpenseTotalsByMonth();
+        var data = await expenseService.GetExpenseTotalsByMonth(
+            TransactionTagFormatter.ParseTagText(req.IncludeTags),
+            TransactionTagFormatter.ParseTagText(req.ExcludeTags));
         await SendOkAsync(data, ct);
     }
 }

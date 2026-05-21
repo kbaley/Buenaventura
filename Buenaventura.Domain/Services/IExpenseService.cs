@@ -7,63 +7,70 @@ namespace Buenaventura.Services;
 
 public interface IExpenseService : IAppService
 {
-    Task<decimal> GetThisMonthExpenses(Guid? categoryId = null);
+    Task<decimal> GetThisMonthExpenses(Guid? categoryId = null, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null);
     /// <summary>
     /// Gets a list of expense data points for the last 12 months
     ///
     /// Each data point is a tuple of (category name, total amount)
     /// </summary>
-    Task<IEnumerable<ReportDataPoint>> GetExpenseCategoryBreakdown();
-    Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData(Guid? categoryId = null);
+    Task<IEnumerable<ReportDataPoint>> GetExpenseCategoryBreakdown(IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null);
+    Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData(Guid? categoryId = null, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null);
     /// <summary>
     /// Get a breakdown of expense totals by category and month for the last 12 months
     /// </summary>
-    Task<CategoryTotals> GetExpenseTotalsByMonth();
+    Task<CategoryTotals> GetExpenseTotalsByMonth(IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null);
     /// <summary>
     /// Get a breakdown of expense totals for a category by month for the last 24 months
     /// </summary>
-    Task<List<MonthlyAmount>> GetExpenseTotalsByMonth(Guid categoryId);
+    Task<List<MonthlyAmount>> GetExpenseTotalsByMonth(Guid categoryId, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null);
 
-    Task<decimal> GetLastMonthExpenses(Guid? categoryId = null);
+    Task<decimal> GetLastMonthExpenses(Guid? categoryId = null, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null);
     
     /// <summary>
     /// Get spending by vendor for a specific category over the last 12 months
     /// </summary>
-    Task<List<ReportDataPoint>> GetVendorSpending(Guid? categoryId = null);
+    Task<List<ReportDataPoint>> GetVendorSpending(Guid? categoryId = null, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null);
 }
 
 public class ExpenseService(
     BuenaventuraDbContext context,
     IReportRepository reportRepo) : IExpenseService
 {
-    public async Task<decimal> GetThisMonthExpenses(Guid? categoryId = null)
+    public async Task<decimal> GetThisMonthExpenses(Guid? categoryId = null, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null)
     {
         var start = DateTime.Today.FirstDayOfMonth();
         var end = start.AddMonths(1);
 
-        var expenses = await context.Transactions
+        var transactions = await context.Transactions
             .Include(t => t.Category)
             .Where(t => t.TransactionDate >= start && t.TransactionDate < end &&
                         t.Category != null && t.Category.Type == "Expense" &&
                         (categoryId == null || t.CategoryId == categoryId))
-            .SumAsync(t => t.AmountInBaseCurrency);
-        return expenses;
+            .ToListAsync();
+        return FilterByTags(transactions, includeTags, excludeTags).Sum(t => t.AmountInBaseCurrency);
     }
 
     /// <summary>
     /// Get a breakdown of expense totals by category and month for the last 12 months
     /// </summary>
-    public async Task<CategoryTotals> GetExpenseTotalsByMonth()
+    public async Task<CategoryTotals> GetExpenseTotalsByMonth(IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null)
     {
         var period = ReportPeriod.GetLast12Months();
-        var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End);
+        var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End, includeTags, excludeTags);
         return expenseData;
     }
 
-    public async Task<List<MonthlyAmount>> GetExpenseTotalsByMonth(Guid categoryId)
+    public async Task<List<MonthlyAmount>> GetExpenseTotalsByMonth(Guid categoryId, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null)
     {
         var period = ReportPeriod.GetLast24Months();
-        var expenses = (await reportRepo.GetMonthlyAmountsByCategory(categoryId, period.Start, period.End))
+        var transactions = await context.Transactions
+            .Where(t => t.TransactionDate > period.Start
+                        && t.TransactionDate <= period.End
+                        && t.CategoryId == categoryId)
+            .ToListAsync();
+        var expenses = FilterByTags(transactions, includeTags, excludeTags)
+            .GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month })
+            .Select(g => new MonthlyAmount(g.Key.Year, g.Key.Month, 0 - g.Sum(t => t.AmountInBaseCurrency)))
             .ToList();
         var testDate = period.Start;
         while (testDate < period.End)
@@ -79,18 +86,18 @@ public class ExpenseService(
         return expenses;
     }
 
-    public async Task<decimal> GetLastMonthExpenses(Guid? categoryId = null)
+    public async Task<decimal> GetLastMonthExpenses(Guid? categoryId = null, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null)
     {
         var start = DateTime.Today.FirstDayOfMonth().AddMonths(-1);
         var end = start.AddMonths(1);
 
-        var expenses = await context.Transactions
+        var transactions = await context.Transactions
             .Include(t => t.Category)
             .Where(t => t.TransactionDate >= start && t.TransactionDate < end &&
                         t.Category != null && t.Category.Type == "Expense" &&
                         (categoryId == null || t.CategoryId == categoryId))
-            .SumAsync(t => t.AmountInBaseCurrency);
-        return expenses;
+            .ToListAsync();
+        return FilterByTags(transactions, includeTags, excludeTags).Sum(t => t.AmountInBaseCurrency);
     }
 
     /// <summary>
@@ -98,10 +105,10 @@ public class ExpenseService(
     ///
     /// Each data point is a tuple of (category name, total amount)
     /// </summary>
-    public async Task<IEnumerable<ReportDataPoint>> GetExpenseCategoryBreakdown()
+    public async Task<IEnumerable<ReportDataPoint>> GetExpenseCategoryBreakdown(IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null)
     {
         var period = ReportPeriod.GetLast12Months();
-        var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End);
+        var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End, includeTags, excludeTags);
         var report = expenseData.Expenses
             .Select(category => new ReportDataPoint
             {
@@ -125,7 +132,7 @@ public class ExpenseService(
         return report;
     }
 
-    public async Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData(Guid? categoryId = null)
+    public async Task<IEnumerable<ExpenseAveragesDataPoint>> GetExpenseAveragesData(Guid? categoryId = null, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null)
     {
         // Retrieve expense totals for the last 12 months, grouped by month for the
         // expenses tied to categories where Category.IncludeInReport = true
@@ -133,34 +140,42 @@ public class ExpenseService(
         var last30Days = now.AddDays(-30);
         var last90Days = now.AddDays(-90);
         var last360Days = now.AddDays(-360);
-        var results = await context.Categories
+        var categories = await context.Categories
             .Include(c => c.Transactions)
             .Where(c => (categoryId.HasValue ? c.CategoryId == categoryId : c.IncludeInReports))
-            .Select(c => new ExpenseAveragesDataPoint
+            .ToListAsync();
+        var results = categories
+            .Select(c =>
             {
-                Category = c.Name,
-                Last30Days = c.Transactions
-                    .Where(t => t.TransactionDate >= last30Days)
-                    .Sum(t => -t.AmountInBaseCurrency),
-                Last90DaysAverage = c.Transactions
-                    .Where(t => t.TransactionDate >= last90Days)
-                    .Sum(t => -t.AmountInBaseCurrency) / 3,
-                Last360DaysAverage = c.Transactions
-                    .Where(t => t.TransactionDate >= last360Days)
-                    .Sum(t => -t.AmountInBaseCurrency) / 12
-            }).ToListAsync();
+                var transactions = FilterByTags(c.Transactions, includeTags, excludeTags).ToList();
+                return new ExpenseAveragesDataPoint
+                {
+                    Category = c.Name,
+                    Last30Days = transactions
+                        .Where(t => t.TransactionDate >= last30Days)
+                        .Sum(t => -t.AmountInBaseCurrency),
+                    Last90DaysAverage = transactions
+                        .Where(t => t.TransactionDate >= last90Days)
+                        .Sum(t => -t.AmountInBaseCurrency) / 3,
+                    Last360DaysAverage = transactions
+                        .Where(t => t.TransactionDate >= last360Days)
+                        .Sum(t => -t.AmountInBaseCurrency) / 12
+                };
+            }).ToList();
         return results;
     }
 
-    public async Task<List<ReportDataPoint>> GetVendorSpending(Guid? categoryId = null)
+    public async Task<List<ReportDataPoint>> GetVendorSpending(Guid? categoryId = null, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null)
     {
         var startDate = DateTime.Today.AddYears(-1);
         
         // Get vendor spending for the last year
-        var vendorSpending = await context.Transactions
+        var transactions = await context.Transactions
             .Where(t => (categoryId == null || t.CategoryId == categoryId)
                         && t.TransactionDate >= startDate 
                         && !string.IsNullOrEmpty(t.Vendor))
+            .ToListAsync();
+        var vendorSpending = FilterByTags(transactions, includeTags, excludeTags)
             .GroupBy(t => t.Vendor)
             .Select(g => new ReportDataPoint
             {
@@ -168,7 +183,7 @@ public class ExpenseService(
                 Value = -g.Sum(t => t.AmountInBaseCurrency)
             })
             .OrderByDescending(v => v.Value)
-            .ToListAsync();
+            .ToList();
 
         if (!vendorSpending.Any())
         {
@@ -196,10 +211,32 @@ public class ExpenseService(
         return mainVendors;
     }
 
-    private async Task<CategoryTotals> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end)
+    private async Task<CategoryTotals> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null)
     {
         var categories = await context.Categories.Where(c => c.Type == categoryType).ToListAsync();
-        var expenses = (await reportRepo.GetTransactionsByCategoryType(categoryType, start, end)).ToList();
+        var transactions = await context.Transactions
+            .Include(t => t.Category)
+            .Where(t => t.TransactionDate > start
+                        && t.TransactionDate <= end
+                        && t.Category != null
+                        && t.Category.Type == categoryType)
+            .ToListAsync();
+        var amountMultiplier = categoryType == "Expense" ? -1 : 1;
+        var expenses = FilterByTags(transactions, includeTags, excludeTags)
+            .GroupBy(t => new { t.CategoryId, CategoryName = t.Category!.Name })
+            .Select(g => new CategoryTotal
+            {
+                CategoryId = g.Key.CategoryId!.Value,
+                CategoryName = g.Key.CategoryName,
+                Amounts = g
+                    .GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month })
+                    .Select(month => new MonthlyAmount(
+                        month.Key.Year,
+                        month.Key.Month,
+                        amountMultiplier * month.Sum(t => t.AmountInBaseCurrency)))
+                    .ToList()
+            })
+            .ToList();
         if (categoryType == "Income") {
             var invoiceTotals = reportRepo.GetInvoiceLineItemsIncomeTotals(start, end);
             foreach (var item in invoiceTotals)
@@ -243,5 +280,10 @@ public class ExpenseService(
             Expenses = expenses,
             MonthTotals = monthTotals
         };
+    }
+
+    private static IEnumerable<Transaction> FilterByTags(IEnumerable<Transaction> transactions, IEnumerable<string>? includeTags, IEnumerable<string>? excludeTags)
+    {
+        return transactions.Where(t => TransactionTagFormatter.Matches(t.Tags, includeTags, excludeTags));
     }
 }

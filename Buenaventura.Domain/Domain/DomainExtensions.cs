@@ -20,7 +20,8 @@ public static class DomainExtensions
             IsReconciled = transaction.IsReconciled,
             InvoiceId = transaction.Category.InvoiceId,
             AmountInBaseCurrency = transaction.AmountInBaseCurrency,
-            DownloadId = transaction.DownloadId
+            DownloadId = transaction.DownloadId,
+            Tags = TransactionTagFormatter.Serialize(TransactionTagFormatter.ParseHashTags(transaction.Description))
         };
     }
 

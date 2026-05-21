@@ -4,7 +4,7 @@ using FastEndpoints;
 
 namespace Buenaventura.Api;
 
-internal sealed record GetExpenseCategoryPageDataRequest(Guid CategoryId);
+internal sealed record GetExpenseCategoryPageDataRequest(Guid CategoryId, string? IncludeTags, string? ExcludeTags);
 
 internal class GetExpenseCategoryPageData(IExpenseService expenseService, ICategoryService categoryService)
     : Endpoint<GetExpenseCategoryPageDataRequest, ExpenseCategoryPageData>
@@ -16,10 +16,12 @@ internal class GetExpenseCategoryPageData(IExpenseService expenseService, ICateg
 
     public override async Task HandleAsync(GetExpenseCategoryPageDataRequest req, CancellationToken ct)
     {
-        var monthExpenses = await expenseService.GetThisMonthExpenses(req.CategoryId);
-        var lastMonth = await expenseService.GetLastMonthExpenses(req.CategoryId);
+        var includeTags = TransactionTagFormatter.ParseTagText(req.IncludeTags);
+        var excludeTags = TransactionTagFormatter.ParseTagText(req.ExcludeTags);
+        var monthExpenses = await expenseService.GetThisMonthExpenses(req.CategoryId, includeTags, excludeTags);
+        var lastMonth = await expenseService.GetLastMonthExpenses(req.CategoryId, includeTags, excludeTags);
         var data = new ExpenseCategoryPageData();
-        var averages = (await expenseService.GetExpenseAveragesData(req.CategoryId)).FirstOrDefault();
+        var averages = (await expenseService.GetExpenseAveragesData(req.CategoryId, includeTags, excludeTags)).FirstOrDefault();
         var comparison = new List<ReportDataPoint>();
         if (averages != null)
         {
@@ -30,7 +32,7 @@ internal class GetExpenseCategoryPageData(IExpenseService expenseService, ICateg
             ]);
         }
 
-        var monthlyData = await expenseService.GetExpenseTotalsByMonth(req.CategoryId);
+        var monthlyData = await expenseService.GetExpenseTotalsByMonth(req.CategoryId, includeTags, excludeTags);
         var cutoff = DateTime.Today.AddMonths(-12);
         data.ThisMonthSpending = -monthExpenses;
         data.LastMonthSpending = -lastMonth;
@@ -44,7 +46,7 @@ internal class GetExpenseCategoryPageData(IExpenseService expenseService, ICateg
             .Where(x => x.Date < cutoff)
             .Select(x => new ReportDataPoint { Label = x.Date.ToString("MMM yyyy"), Value = x.Amount })
             .ToList();
-        data.VendorData = await expenseService.GetVendorSpending(req.CategoryId);
+        data.VendorData = await expenseService.GetVendorSpending(req.CategoryId, includeTags, excludeTags);
         await SendOkAsync(data, ct);
     }
 }

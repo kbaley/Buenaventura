@@ -30,7 +30,8 @@ public static class Mappers
             Vendor = transaction.Vendor,
             TransactionId = transaction.TransactionId,
             TransactionType = transaction.TransactionType,
-            DownloadId = transaction.DownloadId
+            DownloadId = transaction.DownloadId,
+            Tags = TransactionTagFormatter.Deserialize(transaction.Tags)
         };
     }
 

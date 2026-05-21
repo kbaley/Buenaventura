@@ -9,6 +9,31 @@
 <MudText Typo="Typo.h4" GutterBottom="true">Expense Analysis</MudText>
 
 <MudGrid>
+    <MudItem xs="12">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string"
+                                  Label="Include hashtags"
+                                  Value="@includeTagsForEdit"
+                                  ValueChanged="OnIncludeTagsChanged"
+                                  Clearable="true"
+                                  Immediate="false"
+                                  Placeholder="#EuropeTrip2026 #maintenance" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string"
+                                  Label="Exclude hashtags"
+                                  Value="@excludeTagsForEdit"
+                                  ValueChanged="OnExcludeTagsChanged"
+                                  Clearable="true"
+                                  Immediate="false"
+                                  Placeholder="#personal #reimbursed" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+
     <!-- Monthly Expenses Line Chart -->
     <MudItem xs="12" md="9">
         <LineChart
@@ -132,16 +157,20 @@
     private List<decimal> monthlyTotals = [];
     private decimal grandTotal;
     private List<ReportDataPoint> vendorData = [];
+    private string includeTagsForEdit = "";
+    private string excludeTagsForEdit = "";
     private readonly ApexChartOptions<ReportDataPoint> vendorChartOptions = Services.ChartOptions.GetDefaultOptions<ReportDataPoint>();
 
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
-        var expenseBreakdownTask = expensesApi.GetExpenseTotalsByMonth();
-        var expensesTask = expensesApi.GetThisMonthExpenses();
-        var expenseTask = expensesApi.GetExpenseCategoryBreakdown();
-        var expenseAveragesTask = expensesApi.GetExpenseAveragesData();
-        var vendorDataTask = expensesApi.GetVendorData();
+        var includeFilter = TransactionTagFormatter.ToTagText(TransactionTagFormatter.ParseTagText(includeTagsForEdit));
+        var excludeFilter = TransactionTagFormatter.ToTagText(TransactionTagFormatter.ParseTagText(excludeTagsForEdit));
+        var expenseBreakdownTask = expensesApi.GetExpenseTotalsByMonth(includeFilter, excludeFilter);
+        var expensesTask = expensesApi.GetThisMonthExpenses(includeFilter, excludeFilter);
+        var expenseTask = expensesApi.GetExpenseCategoryBreakdown(includeFilter, excludeFilter);
+        var expenseAveragesTask = expensesApi.GetExpenseAveragesData(includeFilter, excludeFilter);
+        var vendorDataTask = expensesApi.GetVendorData(includeFilter, excludeFilter);
         await Task.WhenAll(
             expensesTask,
             expenseTask,
@@ -165,6 +194,18 @@
             .Where(x => x.Date.Date != DateTime.Today.Date)
             .Sum(x => x.Amount) ?? 0m) / 11m;
         categoryMonthlyData = expenseBreakdown.Expenses.ToList();
+    }
+
+    private async Task OnIncludeTagsChanged(string tags)
+    {
+        includeTagsForEdit = tags;
+        await OnParametersSetAsync();
+    }
+
+    private async Task OnExcludeTagsChanged(string tags)
+    {
+        excludeTagsForEdit = tags;
+        await OnParametersSetAsync();
     }
 
     private void GenerateData(CategoryTotals expenseBreakdown)

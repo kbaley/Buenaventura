@@ -4,17 +4,21 @@ using FastEndpoints;
 
 namespace Buenaventura.Api;
 
+internal sealed record ExpenseReportRequest(string? IncludeTags, string? ExcludeTags);
+
 internal class Expenses(IExpenseService expenseService)
-    : EndpointWithoutRequest<IEnumerable<ReportDataPoint>>
+    : Endpoint<ExpenseReportRequest, IEnumerable<ReportDataPoint>>
 {
     public override void Configure()
     {
         Get("/api/expenses");
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(ExpenseReportRequest req, CancellationToken ct)
     {
-        var data = await expenseService.GetExpenseCategoryBreakdown();
+        var data = await expenseService.GetExpenseCategoryBreakdown(
+            TransactionTagFormatter.ParseTagText(req.IncludeTags),
+            TransactionTagFormatter.ParseTagText(req.ExcludeTags));
         await SendOkAsync(data, ct);
     }
 }

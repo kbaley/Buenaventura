@@ -95,6 +95,7 @@ public partial class AccountTransactions(
             Credit = transaction.Credit,
             RunningTotal = transaction.RunningTotal,
             TransactionId = transaction.TransactionId,
+            Tags = transaction.Tags.ToList()
         };
     }
 
@@ -119,6 +120,7 @@ public partial class AccountTransactions(
             transaction.Credit = transactionBackup.Credit;
             transaction.RunningTotal = transactionBackup.RunningTotal;
             transaction.TransactionId = transactionBackup.TransactionId;
+            transaction.Tags = transactionBackup.Tags.ToList();
 
             editingTransaction = null;
             transactionBackup = null;
@@ -190,6 +192,8 @@ public partial class AccountTransactions(
         {
             return;
         }
+
+        transaction.Tags = TransactionTagFormatter.ParseHashTags(transaction.Description);
 
         if (transaction == newTransaction)
         {

@@ -74,6 +74,7 @@ namespace Buenaventura.Data
             dbTransaction.InvoiceId = transaction.InvoiceId;
             dbTransaction.TransactionDate = transaction.TransactionDate;
             dbTransaction.DownloadId = transaction.DownloadId;
+            dbTransaction.Tags = TransactionTagFormatter.Serialize(TransactionTagFormatter.ParseHashTags(transaction.Description));
             dbTransaction.Category = await context.GetOrCreateCategory(transaction.Category);
 
             await UpdateAmount(dbTransaction, transaction);
@@ -333,7 +334,8 @@ namespace Buenaventura.Data
                     && (string.IsNullOrWhiteSpace(search) 
                         || (t.Description ?? "").ToLower().Contains(search.ToLower())
                         || t.Vendor != null && t.Vendor.ToLower().Contains(search.ToLower())
-                        || t.Category!.Name.ToLower().Contains(search.ToLower()))
+                        || t.Category!.Name.ToLower().Contains(search.ToLower())
+                        || t.Tags.ToLower().Contains(search.ToLower()))
                     // ReSharper disable once SpecifyACultureInStringConversionExplicitly
                         || t.Amount.ToString() == search
                     // ReSharper disable once SpecifyACultureInStringConversionExplicitly
@@ -355,7 +357,8 @@ namespace Buenaventura.Data
                             && (string.IsNullOrWhiteSpace(search)
                         || (t.Description ?? "").ToLower().Contains(search.ToLower())
                         || t.Vendor != null && t.Vendor.ToLower().Contains(search.ToLower())
-                        || t.Category!.Name.ToLower().Contains(search.ToLower()))
+                        || t.Category!.Name.ToLower().Contains(search.ToLower())
+                        || t.Tags.ToLower().Contains(search.ToLower()))
                     // ReSharper disable once SpecifyACultureInStringConversionExplicitly
                         || t.Amount.ToString() == search
                     // ReSharper disable once SpecifyACultureInStringConversionExplicitly
