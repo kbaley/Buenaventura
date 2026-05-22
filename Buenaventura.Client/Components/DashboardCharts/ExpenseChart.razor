@@ -20,7 +20,7 @@
 else
 {
     <ApexChart TItem="ReportDataPoint"
-               Title="Expense Breakdown by Category (last 12 months)"
+               Title="@Title"
                Height="300"
                 Options="@chartOptions"
                OnDataPointSelection="OnDataPointSelection"
@@ -41,6 +41,7 @@ else
 
     [Parameter] public bool IsLoading { get; set; } = true;
     [Parameter] public IEnumerable<ReportDataPoint> expenseData { get; set; } = [];
+    [Parameter] public string Title { get; set; } = "Expense Breakdown by Category (last 12 months)";
 
     private void OnDataPointSelection(SelectedData<ReportDataPoint> selectedData)
     {

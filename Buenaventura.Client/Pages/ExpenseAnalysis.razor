@@ -30,61 +30,101 @@
                                   Immediate="false"
                                   Placeholder="#personal #reimbursed" />
                 </MudItem>
+                @if (HasIncludeTags)
+                {
+                    <MudItem xs="12">
+                        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined" Size="MudBlazor.Size.Small">
+                            <MudButton Variant="@(tagReportMode == TagReportMode.Project ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => SetTagReportMode(TagReportMode.Project))">
+                                Project
+                            </MudButton>
+                            <MudButton Variant="@(tagReportMode == TagReportMode.Ongoing ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => SetTagReportMode(TagReportMode.Ongoing))">
+                                Ongoing
+                            </MudButton>
+                        </MudButtonGroup>
+                    </MudItem>
+                }
             </MudGrid>
         </MudPaper>
     </MudItem>
 
     <!-- Monthly Expenses Line Chart -->
-    <MudItem xs="12" md="9">
-        <LineChart
-            IsLoading="isLoading"
-            ChartData="@monthlyExpenseData"
-            TrendLine="@monthlyExpenseTrendLine"
-            Title="Monthly Expenses (Last 12 Months)"
-            Height="350"
-        />
-    </MudItem>
+    @if (!IsProjectTagMode)
+    {
+        <MudItem xs="12" md="9">
+            <LineChart
+                IsLoading="isLoading"
+                ChartData="@monthlyExpenseData"
+                TrendLine="@monthlyExpenseTrendLine"
+                Title="Monthly Expenses (Last 12 Months)"
+                Height="350"
+            />
+        </MudItem>
+    }
 
     <!-- Total Expenses This Month -->
-    <MudItem xs="12" md="3">
-        <MudGrid>
-            <MudItem xs="12">
-                <MudPaper Elevation="1" Class="pa-4">
-                    <MudText Typo="Typo.h6">Expenses This Month</MudText>
-                    <MudText Typo="Typo.h4" Color="Color.Success">@(expensesThisMonth.ToString("C0"))</MudText>
-                </MudPaper>
-            </MudItem>
-            <MudItem xs="12">
-                <MudPaper Elevation="1" Class="pa-4">
-                    <MudText Typo="Typo.h6">Average Monthly Expenses</MudText>
-                    <MudText Typo="Typo.h4" Color="Color.Success">@(averageMonthlyExpenses.ToString("C0"))</MudText>
-                </MudPaper>
-            </MudItem>
-        </MudGrid>
-    </MudItem>
+    @if (IsProjectTagMode)
+    {
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6">Tagged Expenses</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Success">@projectTotal.ToString("C0")</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6">Date Range</MudText>
+                <MudText Typo="Typo.h5">@projectDateRange</MudText>
+            </MudPaper>
+        </MudItem>
+    }
+    else
+    {
+        <MudItem xs="12" md="3">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudText Typo="Typo.h6">Expenses This Month</MudText>
+                        <MudText Typo="Typo.h4" Color="Color.Success">@(expensesThisMonth.ToString("C0"))</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudText Typo="Typo.h6">Average Monthly Expenses</MudText>
+                        <MudText Typo="Typo.h4" Color="Color.Success">@(averageMonthlyExpenses.ToString("C0"))</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+    }
 
     <!-- Expense Breakdown by Category -->
-    <MudItem xs="12" md="4">
+    <MudItem xs="12" md="@(IsProjectTagMode ? 6 : 4)">
         <MudPaper Elevation="1" Class="pa-4" Height="335px">
             <ExpenseChart
                 IsLoading="@isLoading"
                 ExpenseData="@expenseData"
+                Title="@ExpenseChartTitle"
             />
         </MudPaper>
     </MudItem>
 
     <!-- Expense Averages -->
-    <MudItem xs="12" md="4">
-        <MudPaper Elevation="1" Class="pa-4" Height="335px">
-            <ExpenseAveragesChart
-                IsLoading="isLoading"
-                ExpenseData="@expenseAveragesData"
-            />
-        </MudPaper>
-    </MudItem>
+    @if (!IsProjectTagMode)
+    {
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="1" Class="pa-4" Height="335px">
+                <ExpenseAveragesChart
+                    IsLoading="isLoading"
+                    ExpenseData="@expenseAveragesData"
+                />
+            </MudPaper>
+        </MudItem>
+    }
 
     <!-- Spending by Vendor -->
-    <MudItem xs="12" md="4">
+    <MudItem xs="12" md="@(IsProjectTagMode ? 6 : 4)">
         <MudPaper Elevation="1" Class="pa-4" Height="335px">
             @if (isLoading)
             {
@@ -92,7 +132,7 @@
             }
             else
             {
-                <ApexChart TItem="ReportDataPoint" Title="Spending by Vendor (last 12 months)" Height="300" Options="vendorChartOptions">
+                <ApexChart TItem="ReportDataPoint" Title="@VendorChartTitle" Height="300" Options="vendorChartOptions">
                     <ApexPointSeries TItem="ReportDataPoint"
                                      Items="vendorData"
                                      Name="Spending"
@@ -148,6 +188,8 @@
     private bool isLoading = true;
     private decimal expensesThisMonth;
     private decimal averageMonthlyExpenses;
+    private decimal projectTotal;
+    private string projectDateRange = "";
     private IEnumerable<ReportDataPoint> expenseData = [];
     private IEnumerable<ExpenseAveragesDataPoint> expenseAveragesData = [];
     private IEnumerable<ReportDataPoint> monthlyExpenseData = [];
@@ -159,40 +201,60 @@
     private List<ReportDataPoint> vendorData = [];
     private string includeTagsForEdit = "";
     private string excludeTagsForEdit = "";
+    private TagReportMode tagReportMode = TagReportMode.Project;
     private readonly ApexChartOptions<ReportDataPoint> vendorChartOptions = Services.ChartOptions.GetDefaultOptions<ReportDataPoint>();
+    private bool HasIncludeTags => TransactionTagFormatter.ParseTagText(includeTagsForEdit).Any();
+    private bool IsProjectTagMode => HasIncludeTags && tagReportMode == TagReportMode.Project;
+    private string ExpenseChartTitle => IsProjectTagMode
+        ? "Expense Breakdown by Category"
+        : "Expense Breakdown by Category (last 12 months)";
+    private string VendorChartTitle => IsProjectTagMode
+        ? "Spending by Vendor"
+        : "Spending by Vendor (last 12 months)";
 
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
         var includeFilter = TransactionTagFormatter.ToTagText(TransactionTagFormatter.ParseTagText(includeTagsForEdit));
         var excludeFilter = TransactionTagFormatter.ToTagText(TransactionTagFormatter.ParseTagText(excludeTagsForEdit));
-        var expenseBreakdownTask = expensesApi.GetExpenseTotalsByMonth(includeFilter, excludeFilter);
-        var expensesTask = expensesApi.GetThisMonthExpenses(includeFilter, excludeFilter);
-        var expenseTask = expensesApi.GetExpenseCategoryBreakdown(includeFilter, excludeFilter);
-        var expenseAveragesTask = expensesApi.GetExpenseAveragesData(includeFilter, excludeFilter);
-        var vendorDataTask = expensesApi.GetVendorData(includeFilter, excludeFilter);
-        await Task.WhenAll(
-            expensesTask,
-            expenseTask,
-            expenseAveragesTask,
-            expenseBreakdownTask,
-            vendorDataTask
-        );
+        var allTime = IsProjectTagMode;
+        var expenseBreakdownTask = expensesApi.GetExpenseTotalsByMonth(includeFilter, excludeFilter, allTime);
+        var expenseTask = expensesApi.GetExpenseCategoryBreakdown(includeFilter, excludeFilter, allTime);
+        var vendorDataTask = expensesApi.GetVendorData(includeFilter, excludeFilter, allTime);
 
-        expensesThisMonth = -(await expensesTask);
+        if (IsProjectTagMode)
+        {
+            await Task.WhenAll(expenseTask, expenseBreakdownTask, vendorDataTask);
+            expenseAveragesData = [];
+        }
+        else
+        {
+            var expensesTask = expensesApi.GetThisMonthExpenses(includeFilter, excludeFilter);
+            var expenseAveragesTask = expensesApi.GetExpenseAveragesData(includeFilter, excludeFilter);
+            await Task.WhenAll(
+                expensesTask,
+                expenseTask,
+                expenseAveragesTask,
+                expenseBreakdownTask,
+                vendorDataTask
+            );
+
+            expensesThisMonth = -(await expensesTask);
+            expenseAveragesData = await expenseAveragesTask;
+        }
+
         expenseData = await expenseTask;
-        expenseAveragesData = await expenseAveragesTask;
         vendorData = await vendorDataTask;
         var expenseBreakdown = await expenseBreakdownTask;
+        projectTotal = expenseBreakdown.Total;
+        projectDateRange = GetProjectDateRange(expenseBreakdown);
 
         StateHasChanged();
         isLoading = false;
 
-        GenerateData(expenseBreakdown);
+        GenerateData(expenseBreakdown, allTime);
         monthlyExpenseTrendLine = CalculateTrendLine(expenseBreakdown.MonthTotals?.ToList());
-        averageMonthlyExpenses = (expenseBreakdown.MonthTotals?
-            .Where(x => x.Date.Date != DateTime.Today.Date)
-            .Sum(x => x.Amount) ?? 0m) / 11m;
+        averageMonthlyExpenses = CalculateAverageMonthlyExpenses(expenseBreakdown);
         categoryMonthlyData = expenseBreakdown.Expenses.ToList();
     }
 
@@ -208,11 +270,31 @@
         await OnParametersSetAsync();
     }
 
-    private void GenerateData(CategoryTotals expenseBreakdown)
+    private void SetTagReportMode(TagReportMode mode)
+    {
+        tagReportMode = mode;
+        _ = OnParametersSetAsync();
+    }
+
+    private void GenerateData(CategoryTotals expenseBreakdown, bool allTime)
     {
         var currentDate = DateTime.Now;
         lastTwelveMonths = [];
         monthlyTotals = [];
+        if (allTime && expenseBreakdown.MonthTotals != null)
+        {
+            var monthTotals = expenseBreakdown.MonthTotals.OrderBy(x => x.Date).ToList();
+            lastTwelveMonths = monthTotals.Select(x => x.Date).ToList();
+            monthlyTotals = monthTotals.Select(x => x.Amount).ToList();
+            grandTotal = monthlyTotals.Sum();
+            monthlyExpenseData = monthTotals.Select(x => new ReportDataPoint
+            {
+                Label = x.Date.ToString("MMM yyyy"),
+                Value = x.Amount
+            });
+            return;
+        }
+
         for (var i = 11; i >= 0; i--)
         {
             var date = currentDate.AddMonths(-i);
@@ -245,6 +327,11 @@
 
         // Ignore the current month so we don't skew the results
         var n = data.Count - 1;
+        if (n < 2)
+        {
+            return CreateFlatTrendLine(data.Take(n).ToList());
+        }
+
         var sumX = 0.0;
         var sumY = 0.0;
         var sumXY = 0.0;
@@ -262,7 +349,13 @@
         }
 
         // Calculate slope (m) and y-intercept (b) for y = mx + b
-        var slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        var denominator = n * sumXX - sumX * sumX;
+        if (denominator == 0)
+        {
+            return CreateFlatTrendLine(data.Take(n).ToList());
+        }
+
+        var slope = (n * sumXY - sumX * sumY) / denominator;
         var intercept = (sumY - slope * sumX) / n;
 
         // Generate trend line points
@@ -278,6 +371,44 @@
         }
 
         return trendPoints;
+    }
+
+    private static List<ReportDataPoint> CreateFlatTrendLine(List<MonthlyAmount> data)
+    {
+        if (data.Count == 0)
+        {
+            return [];
+        }
+
+        var average = data.Average(x => x.Amount);
+        return data.Select(x => new ReportDataPoint
+        {
+            Label = x.Date.ToString("MMM yyyy"),
+            Value = average
+        }).ToList();
+    }
+
+    private static decimal CalculateAverageMonthlyExpenses(CategoryTotals expenseBreakdown)
+    {
+        return (expenseBreakdown.MonthTotals?
+            .Where(x => x.Date.Date != DateTime.Today.Date)
+            .Sum(x => x.Amount) ?? 0m) / 11m;
+    }
+
+    private static string GetProjectDateRange(CategoryTotals expenseBreakdown)
+    {
+        if (expenseBreakdown.StartDate == null || expenseBreakdown.EndDate == null)
+        {
+            return "No tagged expenses";
+        }
+
+        return $"{expenseBreakdown.StartDate.Value:MMM d, yyyy} - {expenseBreakdown.EndDate.Value:MMM d, yyyy}";
+    }
+
+    private enum TagReportMode
+    {
+        Project,
+        Ongoing
     }
 
 }

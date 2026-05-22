@@ -17,7 +17,8 @@ internal class GetVendorData(IExpenseService expenseService)
         // Ignore "Other" category for total vendor spending
         var data = (await expenseService.GetVendorSpending(
                 includeTags: TransactionTagFormatter.ParseTagText(req.IncludeTags),
-                excludeTags: TransactionTagFormatter.ParseTagText(req.ExcludeTags)))
+                excludeTags: TransactionTagFormatter.ParseTagText(req.ExcludeTags),
+                allTime: req.AllTime))
             .Where(d => d.Label != "Other")
             .ToList();
         await SendOkAsync(data, ct);

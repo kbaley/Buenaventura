@@ -16,7 +16,8 @@ internal class ExpenseTotalsByMonth(IExpenseService expenseService)
     {
         var data = await expenseService.GetExpenseTotalsByMonth(
             TransactionTagFormatter.ParseTagText(req.IncludeTags),
-            TransactionTagFormatter.ParseTagText(req.ExcludeTags));
+            TransactionTagFormatter.ParseTagText(req.ExcludeTags),
+            req.AllTime);
         await SendOkAsync(data, ct);
     }
 }

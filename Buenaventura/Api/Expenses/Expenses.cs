@@ -4,7 +4,7 @@ using FastEndpoints;
 
 namespace Buenaventura.Api;
 
-internal sealed record ExpenseReportRequest(string? IncludeTags, string? ExcludeTags);
+internal sealed record ExpenseReportRequest(string? IncludeTags, string? ExcludeTags, bool AllTime = false);
 
 internal class Expenses(IExpenseService expenseService)
     : Endpoint<ExpenseReportRequest, IEnumerable<ReportDataPoint>>
@@ -18,7 +18,8 @@ internal class Expenses(IExpenseService expenseService)
     {
         var data = await expenseService.GetExpenseCategoryBreakdown(
             TransactionTagFormatter.ParseTagText(req.IncludeTags),
-            TransactionTagFormatter.ParseTagText(req.ExcludeTags));
+            TransactionTagFormatter.ParseTagText(req.ExcludeTags),
+            req.AllTime);
         await SendOkAsync(data, ct);
     }
 }

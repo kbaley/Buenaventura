@@ -45,5 +45,8 @@ namespace Buenaventura.Shared
     {
         public IEnumerable<CategoryTotal> Expenses { get; set; } = [];
         public IEnumerable<MonthlyAmount>? MonthTotals { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public decimal Total { get; set; }
     }
 }
