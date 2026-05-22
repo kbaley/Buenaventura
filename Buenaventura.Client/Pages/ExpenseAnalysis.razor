@@ -103,6 +103,7 @@
     <MudItem xs="12" md="@(IsProjectTagMode ? 6 : 4)">
         <MudPaper Elevation="1" Class="pa-4" Height="335px">
             <ExpenseChart
+                @key="@($"expense-chart-{chartRenderVersion}")"
                 IsLoading="@isLoading"
                 ExpenseData="@expenseData"
                 Title="@ExpenseChartTitle"
@@ -132,7 +133,7 @@
             }
             else
             {
-                <ApexChart TItem="ReportDataPoint" Title="@VendorChartTitle" Height="300" Options="vendorChartOptions">
+                <ApexChart @key="@($"vendor-chart-{chartRenderVersion}")" TItem="ReportDataPoint" Title="@VendorChartTitle" Height="300" Options="vendorChartOptions">
                     <ApexPointSeries TItem="ReportDataPoint"
                                      Items="vendorData"
                                      Name="Spending"
@@ -199,9 +200,11 @@
     private List<decimal> monthlyTotals = [];
     private decimal grandTotal;
     private List<ReportDataPoint> vendorData = [];
+    private int chartRenderVersion;
     private string includeTagsForEdit = "";
     private string excludeTagsForEdit = "";
     private TagReportMode tagReportMode = TagReportMode.Project;
+    private const int OngoingTagMinimumMonthSpan = 12;
     private readonly ApexChartOptions<ReportDataPoint> vendorChartOptions = Services.ChartOptions.GetDefaultOptions<ReportDataPoint>();
     private bool HasIncludeTags => TransactionTagFormatter.ParseTagText(includeTagsForEdit).Any();
     private bool IsProjectTagMode => HasIncludeTags && tagReportMode == TagReportMode.Project;
@@ -249,18 +252,18 @@
         projectTotal = expenseBreakdown.Total;
         projectDateRange = GetProjectDateRange(expenseBreakdown);
 
-        StateHasChanged();
-        isLoading = false;
-
         GenerateData(expenseBreakdown, allTime);
         monthlyExpenseTrendLine = CalculateTrendLine(expenseBreakdown.MonthTotals?.ToList());
         averageMonthlyExpenses = CalculateAverageMonthlyExpenses(expenseBreakdown);
         categoryMonthlyData = expenseBreakdown.Expenses.ToList();
+        chartRenderVersion++;
+        isLoading = false;
     }
 
     private async Task OnIncludeTagsChanged(string tags)
     {
         includeTagsForEdit = tags;
+        await SetDefaultTagReportMode();
         await OnParametersSetAsync();
     }
 
@@ -270,10 +273,26 @@
         await OnParametersSetAsync();
     }
 
-    private void SetTagReportMode(TagReportMode mode)
+    private async Task SetTagReportMode(TagReportMode mode)
     {
         tagReportMode = mode;
-        _ = OnParametersSetAsync();
+        await OnParametersSetAsync();
+    }
+
+    private async Task SetDefaultTagReportMode()
+    {
+        var includeFilter = TransactionTagFormatter.ToTagText(TransactionTagFormatter.ParseTagText(includeTagsForEdit));
+        if (string.IsNullOrWhiteSpace(includeFilter))
+        {
+            tagReportMode = TagReportMode.Project;
+            return;
+        }
+
+        var excludeFilter = TransactionTagFormatter.ToTagText(TransactionTagFormatter.ParseTagText(excludeTagsForEdit));
+        var expenseBreakdown = await expensesApi.GetExpenseTotalsByMonth(includeFilter, excludeFilter, true);
+        tagReportMode = ShouldDefaultToOngoing(expenseBreakdown)
+            ? TagReportMode.Ongoing
+            : TagReportMode.Project;
     }
 
     private void GenerateData(CategoryTotals expenseBreakdown, bool allTime)
@@ -403,6 +422,19 @@
         }
 
         return $"{expenseBreakdown.StartDate.Value:MMM d, yyyy} - {expenseBreakdown.EndDate.Value:MMM d, yyyy}";
+    }
+
+    private static bool ShouldDefaultToOngoing(CategoryTotals expenseBreakdown)
+    {
+        if (expenseBreakdown.StartDate == null || expenseBreakdown.EndDate == null)
+        {
+            return false;
+        }
+
+        var start = new DateTime(expenseBreakdown.StartDate.Value.Year, expenseBreakdown.StartDate.Value.Month, 1);
+        var end = new DateTime(expenseBreakdown.EndDate.Value.Year, expenseBreakdown.EndDate.Value.Month, 1);
+        var monthSpan = (end.Year - start.Year) * 12 + end.Month - start.Month + 1;
+        return monthSpan >= OngoingTagMinimumMonthSpan;
     }
 
     private enum TagReportMode
