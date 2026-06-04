@@ -30,6 +30,7 @@ public static class Mappers
             Vendor = transaction.Vendor,
             TransactionId = transaction.TransactionId,
             TransactionType = transaction.TransactionType,
+            IsReconciled = transaction.IsReconciled,
             DownloadId = transaction.DownloadId,
             Tags = TransactionTagFormatter.Deserialize(transaction.Tags)
         };

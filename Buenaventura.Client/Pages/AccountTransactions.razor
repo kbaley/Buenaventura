@@ -20,6 +20,9 @@
         <MudIconButton Icon="@Icons.Material.Filled.Download"
                        Href="@($"api/accounts/{Account.AccountId}/transactions/csv")"
                        Target="_blank" Class="ml-2 d-none d-md-inline-flex"/>
+        <MudIconButton Icon="@Icons.Material.Filled.FactCheck"
+                       OnClick="NavigateToReconciliation"
+                       Class="ml-2 d-none d-md-inline-flex"/>
         <BulkTransactionUpload AccountId="@AccountId" OnTransactionsProcessed="ReloadTransactions"/>
         <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
                        OnClick="ToggleDuplicateSearch"
@@ -127,6 +130,8 @@
                       Placeholder="Search" Adornment="Adornment.Start"
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
                       Clearable="true" Immediate="true" Class="mr-2" Style="max-width: 100%;"/>
+        <MudIconButton Icon="@Icons.Material.Filled.FactCheck"
+                       OnClick="NavigateToReconciliation"/>
     </div>
 
     @if (loading)

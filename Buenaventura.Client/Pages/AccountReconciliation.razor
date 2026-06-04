@@ -1,0 +1,251 @@
+@page "/account/{AccountId:guid}/reconcile"
+@inject IReconciliationApi ReconciliationApi
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<div class="d-flex align-center justify-space-between mb-4">
+    <div>
+        <MudText Typo="Typo.h4">Reconcile @workspace.Account.Name</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">@ModeHelpText</MudText>
+    </div>
+    <MudButton Variant="Variant.Text"
+               StartIcon="@Icons.Material.Filled.ArrowBack"
+               OnClick="BackToAccount">
+        Transactions
+    </MudButton>
+</div>
+
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Method</MudText>
+                <MudRadioGroup T="ReconciliationMode" Value="@mode" ValueChanged="OnModeChanged">
+                    <MudRadio T="ReconciliationMode" Value="ReconciliationMode.Statement" Color="Color.Primary">
+                        Bank statement
+                    </MudRadio>
+                    <MudRadio T="ReconciliationMode" Value="ReconciliationMode.OnlineBalance" Color="Color.Primary">
+                        Online balance check
+                    </MudRadio>
+                </MudRadioGroup>
+                <MudDatePicker Date="@asOfDate"
+                               DateChanged="OnAsOfDateChanged"
+                               Label="@DateLabel"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Class="mt-3" />
+                <MudTextField T="string"
+                              @bind-Value="targetBalanceText"
+                              Label="@TargetBalanceLabel"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Adornment="Adornment.Start"
+                              AdornmentText="$" />
+                <MudSwitch T="bool"
+                           Value="@includeOlderTransactions"
+                           ValueChanged="OnIncludeOlderChanged"
+                           Color="Color.Primary"
+                           Label="Show all older unreconciled transactions" />
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="8">
+            <MudGrid>
+                <MudItem xs="12" md="4">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudText Typo="Typo.h6">Already Reconciled</MudText>
+                        <MudText Typo="Typo.h4">@workspace.ReconciledBalance.ToString("C")</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudText Typo="Typo.h6">Selected Balance</MudText>
+                        <MudText Typo="Typo.h4">@CalculatedBalance.ToString("C")</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudText Typo="Typo.h6">Difference</MudText>
+                        <MudText Typo="Typo.h4" Color="@DifferenceColor">@Difference.ToString("C")</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <div class="d-flex align-center justify-space-between mb-3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined">
+                                    @selectedTransactionIds.Count selected
+                                </MudChip>
+                                <MudChip T="string" Color="@DifferenceColor" Variant="Variant.Filled">
+                                    @DifferenceLabel
+                                </MudChip>
+                            </MudStack>
+                            <MudStack Row="true" Spacing="1">
+                                <MudButton Variant="Variant.Text" OnClick="ClearSelection">
+                                    Clear
+                                </MudButton>
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           Disabled="@(!selectedTransactionIds.Any() || isSaving)"
+                                           OnClick="Complete">
+                                    Complete
+                                </MudButton>
+                            </MudStack>
+                        </div>
+
+                        @if (!VisibleTransactions.Any())
+                        {
+                            <MudAlert Severity="Severity.Info">
+                                No unreconciled transactions were found for this date.
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <MudTable Items="@VisibleTransactions" Dense="true" Hover="true" Bordered="true" Striped="true" Elevation="0">
+                                <HeaderContent>
+                                    <MudTh></MudTh>
+                                    <MudTh>Date</MudTh>
+                                    <MudTh>Vendor</MudTh>
+                                    <MudTh>Category</MudTh>
+                                    <MudTh>Description</MudTh>
+                                    <MudTh Style="text-align: right">Amount</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd>
+                                        <MudCheckBox T="bool"
+                                                     Value="@IsSelected(context.TransactionId)"
+                                                     ValueChanged="@(selected => SetSelected(context.TransactionId, selected))"
+                                                     Color="Color.Primary" />
+                                    </MudTd>
+                                    <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
+                                    <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                                    <MudTd DataLabel="Category">@context.Category.Name</MudTd>
+                                    <MudTd DataLabel="Description">@context.Description</MudTd>
+                                    <MudTd DataLabel="Amount" Style="text-align: right">@context.Amount.ToString("C")</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public Guid AccountId { get; set; }
+
+    private ReconciliationWorkspace workspace = new();
+    private ReconciliationMode mode = ReconciliationMode.Statement;
+    private DateTime? asOfDate = DateTime.Today;
+    private string targetBalanceText = "";
+    private bool includeOlderTransactions;
+    private bool isLoading = true;
+    private bool isSaving;
+    private readonly HashSet<Guid> selectedTransactionIds = [];
+
+    private IEnumerable<TransactionForDisplay> VisibleTransactions =>
+        includeOlderTransactions
+            ? workspace.Transactions
+            : workspace.Transactions
+                .Where(t => t.TransactionDate >= asOfDate.GetValueOrDefault(DateTime.Today).AddDays(-45));
+
+    private decimal TargetBalance => decimal.TryParse(targetBalanceText, out var balance) ? balance : 0m;
+
+    private decimal SelectedTransactionTotal => workspace.Transactions
+        .Where(t => selectedTransactionIds.Contains(t.TransactionId))
+        .Sum(t => t.Amount);
+
+    private decimal CalculatedBalance => workspace.ReconciledBalance + SelectedTransactionTotal;
+    private decimal Difference => CalculatedBalance - TargetBalance;
+    private Color DifferenceColor => Math.Abs(Difference) < 0.005m ? Color.Success : Color.Warning;
+    private string DifferenceLabel => Math.Abs(Difference) < 0.005m ? "Balanced" : "Needs review";
+
+    private string DateLabel => mode == ReconciliationMode.Statement ? "Statement date" : "Balance date";
+    private string TargetBalanceLabel => mode == ReconciliationMode.Statement ? "Statement ending balance" : "Online bank balance";
+    private string ModeHelpText => mode == ReconciliationMode.Statement
+        ? "Match statement transactions, then complete when the calculated balance agrees with the statement."
+        : "Mark posted transactions from online banking; use older rows if a late-posting item explains the difference.";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadWorkspace();
+    }
+
+    private async Task LoadWorkspace()
+    {
+        isLoading = true;
+        selectedTransactionIds.Clear();
+        workspace = await ReconciliationApi.GetWorkspace(AccountId, asOfDate ?? DateTime.Today);
+        targetBalanceText = workspace.CurrentBalance.ToString("N2");
+        isLoading = false;
+    }
+
+    private async Task OnAsOfDateChanged(DateTime? date)
+    {
+        asOfDate = date ?? DateTime.Today;
+        await LoadWorkspace();
+    }
+
+    private Task OnModeChanged(ReconciliationMode selectedMode)
+    {
+        mode = selectedMode;
+        return Task.CompletedTask;
+    }
+
+    private Task OnIncludeOlderChanged(bool value)
+    {
+        includeOlderTransactions = value;
+        return Task.CompletedTask;
+    }
+
+    private bool IsSelected(Guid transactionId)
+    {
+        return selectedTransactionIds.Contains(transactionId);
+    }
+
+    private void SetSelected(Guid transactionId, bool selected)
+    {
+        if (selected)
+        {
+            selectedTransactionIds.Add(transactionId);
+        }
+        else
+        {
+            selectedTransactionIds.Remove(transactionId);
+        }
+    }
+
+    private void ClearSelection()
+    {
+        selectedTransactionIds.Clear();
+    }
+
+    private async Task Complete()
+    {
+        isSaving = true;
+        await ReconciliationApi.Complete(AccountId, new CompleteReconciliationRequest
+        {
+            AccountId = AccountId,
+            Mode = mode,
+            AsOfDate = asOfDate ?? DateTime.Today,
+            TargetBalance = TargetBalance,
+            TransactionIds = selectedTransactionIds.ToList()
+        });
+        Snackbar.Add("Reconciliation saved.", Severity.Success);
+        await LoadWorkspace();
+        isSaving = false;
+    }
+
+    private void BackToAccount()
+    {
+        Navigation.NavigateTo($"/account/{AccountId}");
+    }
+}

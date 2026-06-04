@@ -14,6 +14,7 @@ public partial class AccountTransactions(
     IInvoicesApi invoicesApi,
     IAccountsApi accountsApi,
     ITransactionsApi transactionsApi,
+    NavigationManager navigation,
     IJSRuntime jsRuntime)
 {
     [Parameter] public Guid AccountId { get; set; }
@@ -384,5 +385,10 @@ public partial class AccountTransactions(
             transactions = await transactionsApi.GetTransactions(AccountId, searchString, page - 1, 50);
         }
         StateHasChanged();
+    }
+
+    private void NavigateToReconciliation()
+    {
+        navigation.NavigateTo($"/account/{AccountId}/reconcile");
     }
 }
