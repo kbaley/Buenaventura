@@ -321,6 +321,42 @@ namespace Buenaventura.Data
             return model;
         }
 
+        public async Task<TransactionListModel> GetByTags(IEnumerable<string> includeTags, IEnumerable<string> excludeTags, int page, int pageSize)
+        {
+            var transactionList = await context.Transactions
+                .Include(t => t.LeftTransfer)
+                .Include(t => t.LeftTransfer!.RightTransaction)
+                .Include(t => t.LeftTransfer!.RightTransaction!.Account)
+                .Include(t => t.Category)
+                .Include(t => t.Account)
+                .Where(t => t.Category != null && t.Category.Type == "Expense")
+                .OrderByDescending(t => t.TransactionDate)
+                .ThenByDescending(t => t.EnteredDate)
+                .ThenBy(t => t.TransactionId)
+                .ToListAsync();
+
+            var filteredTransactions = transactionList
+                .Where(t => TransactionTagFormatter.Matches(t.Tags, includeTags, excludeTags))
+                .ToList();
+            var transactions = filteredTransactions
+                .Skip(pageSize * page)
+                .Take(pageSize)
+                .Select(t => t.ToDto())
+                .ToList();
+
+            transactions.ForEach(t => {
+                t.SetDebitAndCredit();
+                t.RunningTotal = 0m;
+            });
+
+            return new TransactionListModel
+            {
+                Items = transactions,
+                StartingBalance = 0m,
+                TotalCount = filteredTransactions.Count
+            };
+        }
+
         public async Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0,
             int pageSize = 50, bool isRestricted = false)
         {

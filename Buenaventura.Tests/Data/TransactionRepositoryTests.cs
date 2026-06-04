@@ -134,6 +134,56 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task GetByTags_ReturnsExpenseTransactionsMatchingTags()
+    {
+        // Arrange
+        var account = TestDataFactory.AccountFaker.Generate();
+        account.Name = "Vacation Card";
+        _fixture.Context.Accounts.Add(account);
+
+        var expenseCategory = TestDataFactory.CategoryFaker.Generate();
+        expenseCategory.Type = "Expense";
+        var incomeCategory = TestDataFactory.CategoryFaker.Generate();
+        incomeCategory.Type = "Income";
+        _fixture.Context.Categories.AddRange(expenseCategory, incomeCategory);
+
+        var matchingTransaction = TestDataFactory.TransactionFaker.Generate();
+        matchingTransaction.AccountId = account.AccountId;
+        matchingTransaction.Account = account;
+        matchingTransaction.CategoryId = expenseCategory.CategoryId;
+        matchingTransaction.Category = expenseCategory;
+        matchingTransaction.TransactionType = TransactionType.REGULAR;
+        matchingTransaction.Tags = TransactionTagFormatter.Serialize(["EuropeTrip2026"]);
+        matchingTransaction.TransactionDate = new DateTime(2026, 5, 1);
+
+        var excludedTransaction = TestDataFactory.TransactionFaker.Generate();
+        excludedTransaction.AccountId = account.AccountId;
+        excludedTransaction.CategoryId = expenseCategory.CategoryId;
+        excludedTransaction.Category = expenseCategory;
+        excludedTransaction.TransactionType = TransactionType.REGULAR;
+        excludedTransaction.Tags = TransactionTagFormatter.Serialize(["EuropeTrip2026", "reimbursed"]);
+
+        var incomeTransaction = TestDataFactory.TransactionFaker.Generate();
+        incomeTransaction.AccountId = account.AccountId;
+        incomeTransaction.CategoryId = incomeCategory.CategoryId;
+        incomeTransaction.Category = incomeCategory;
+        incomeTransaction.TransactionType = TransactionType.REGULAR;
+        incomeTransaction.Tags = TransactionTagFormatter.Serialize(["EuropeTrip2026"]);
+
+        _fixture.Context.Transactions.AddRange(matchingTransaction, excludedTransaction, incomeTransaction);
+        await _fixture.Context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetByTags(["europeTrip2026"], ["reimbursed"], 0, 10);
+
+        // Assert
+        result.TotalCount.Should().Be(1);
+        var transaction = result.Items.Should().ContainSingle().Subject;
+        transaction.TransactionId.Should().Be(matchingTransaction.TransactionId);
+        transaction.AccountName.Should().Be("Vacation Card");
+    }
+
+    [Fact]
     public async Task GetInDateRange_ReturnsTransactionsInRange()
     {
         // Arrange

@@ -3,6 +3,7 @@
 @using Buenaventura.Client.Components.DashboardCharts
 @using Color = MudBlazor.Color
 @inject IExpensesApi expensesApi
+@inject ITransactionsApi transactionsApi
 
 @attribute [Authorize]
 
@@ -145,6 +146,50 @@
         </MudPaper>
     </MudItem>
 
+    @if (HasIncludeTags)
+    {
+        <!-- Tagged Transaction List -->
+        <MudItem xs="12">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Tagged Transactions</MudText>
+                <MudTable @key="@($"tagged-transactions-{chartRenderVersion}")"
+                          ServerData="LoadTaggedTransactions"
+                          Dense="true"
+                          Hover="true"
+                          Bordered="true"
+                          Striped="true"
+                          RowsPerPage="10">
+                    <HeaderContent>
+                        <MudTh>Date</MudTh>
+                        <MudTh>Vendor</MudTh>
+                        <MudTh>Description</MudTh>
+                        <MudTh>Account</MudTh>
+                        <MudTh Style="text-align:right">Amount</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Date">@context.TransactionDate.ToShortDateString()</MudTd>
+                        <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                        <MudTd DataLabel="Description">@context.Description</MudTd>
+                        <MudTd DataLabel="Account">
+                            @if (context.AccountId.HasValue)
+                            {
+                                <MudLink Href="@($"/account/{context.AccountId}")">@context.AccountName</MudLink>
+                            }
+                            else
+                            {
+                                @context.AccountName
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="Amount" Style="text-align:right">@context.Amount.ToString("C2")</MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
+                </MudTable>
+            </MudPaper>
+        </MudItem>
+    }
+
     <!-- Expense Category Monthly Breakdown Table -->
     <MudItem xs="12">
         <MudPaper Elevation="1" Class="pa-4">
@@ -258,6 +303,18 @@
         categoryMonthlyData = expenseBreakdown.Expenses.ToList();
         chartRenderVersion++;
         isLoading = false;
+    }
+
+    private async Task<TableData<TransactionForDisplay>> LoadTaggedTransactions(TableState state, CancellationToken token)
+    {
+        var includeFilter = TransactionTagFormatter.ToTagText(TransactionTagFormatter.ParseTagText(includeTagsForEdit));
+        var excludeFilter = TransactionTagFormatter.ToTagText(TransactionTagFormatter.ParseTagText(excludeTagsForEdit));
+        var result = await transactionsApi.GetTransactionsByTags(includeFilter, excludeFilter, state.Page, state.PageSize);
+        return new TableData<TransactionForDisplay>
+        {
+            TotalItems = result.TotalCount,
+            Items = result.Items
+        };
     }
 
     private async Task OnIncludeTagsChanged(string tags)

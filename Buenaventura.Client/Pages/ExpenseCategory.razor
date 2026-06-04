@@ -92,7 +92,16 @@
                     <MudTd DataLabel="Date">@context.TransactionDate.ToShortDateString()</MudTd>
                     <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
                     <MudTd DataLabel="Description">@context.Description</MudTd>
-                    <MudTd DataLabel="Account">@context.AccountName</MudTd>
+                    <MudTd DataLabel="Account">
+                        @if (context.AccountId.HasValue)
+                        {
+                            <MudLink Href="@($"/account/{context.AccountId}")">@context.AccountName</MudLink>
+                        }
+                        else
+                        {
+                            @context.AccountName
+                        }
+                    </MudTd>
                     <MudTd DataLabel="Amount" Style="text-align:right">@context.Amount.ToString("C2")</MudTd>
                 </RowTemplate>
                 <PagerContent>
