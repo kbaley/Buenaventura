@@ -490,9 +490,9 @@ public class AdminService(
 
         var investments = new List<Investment>
         {
-            Investment("Vanguard Total Market ETF", "VTI", 242.18m, stockCategory, paysDividends: true),
-            Investment("International Equity ETF", "VXUS", 63.42m, internationalCategory, paysDividends: true),
-            Investment("Total Bond Market ETF", "BND", 74.88m, bondCategory, paysDividends: true),
+            Investment("Vanguard Total Market ETF", "VTI", 242.18m, null, paysDividends: true),
+            Investment("International Equity ETF", "VXUS", 63.42m, null, paysDividends: true),
+            Investment("Total Bond Market ETF", "BND", 74.88m, null, paysDividends: true),
         };
 
         context.Investments.AddRange(investments);
@@ -704,7 +704,7 @@ public class AdminService(
         string name,
         string symbol,
         decimal lastPrice,
-        InvestmentCategory category,
+        InvestmentCategory? category,
         bool paysDividends)
     {
         return new Investment
@@ -714,10 +714,10 @@ public class AdminService(
             Symbol = symbol,
             Currency = "USD",
             LastPrice = lastPrice,
-            LastPriceRetrievalDate = DateTime.Today,
+            LastPriceRetrievalDate = DateTime.Today.AddDays(-1),
             Category = category,
-            CategoryId = category.InvestmentCategoryId,
-            DontRetrievePrices = true,
+            CategoryId = category?.InvestmentCategoryId,
+            DontRetrievePrices = false,
             PaysDividends = paysDividends,
             Transactions = new List<InvestmentTransaction>(),
             Dividends = new List<Transaction>()

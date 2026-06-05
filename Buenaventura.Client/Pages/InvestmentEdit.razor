@@ -1,13 +1,14 @@
 @page "/Investments/new"
+@page "/Investments/Edit/{InvestmentId:guid}"
 
 @attribute [Authorize]
 
-<MudText Typo="Typo.h4" Class="mb-4">Add New Investment</MudText>
+<MudText Typo="Typo.h4" Class="mb-4">@PageTitle</MudText>
 
     <MudPaper Class="pa-4" Elevation="2">
         <MudGrid>
             <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="@investment.Name" 
+                <MudTextField @bind-Value="@investment.Name"
                             Label="Investment Name" 
                             Required="true"
                             RequiredError="Name is required"/>
@@ -35,56 +36,59 @@
                 </MudSelect>
             </MudItem>
             <MudItem xs="12" md="3" sm="6">
-                <MudSwitch T="bool" @bind-Checked="@investment.DontRetrievePrices"
+                <MudSwitch T="bool" @bind-Value="@investment.DontRetrievePrices"
                            Label="Exclude from Price Updates"
                            Color="Color.Primary"/>
             </MudItem>
             <MudItem xs="12" md="3" sm="6">
-                <MudSwitch T="bool" @bind-Checked="@investment.PaysDividends" 
+                <MudSwitch T="bool" @bind-Value="@investment.PaysDividends"
                           Label="Pays Dividends" 
                           Color="Color.Primary"/>
             </MudItem>
-            <MudItem xs="12">
-                <MudDivider Class="my-4"/>
-                <MudText Typo="Typo.h6" Class="mb-4">Initial Purchase Details</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="2">
-                <MudNumericField @bind-Value="@investment.Shares"
-                                 Label="Number of Shares"
-                                 Required="true"
-                                 Min="0"
-                                 OnBlur="CalculateTotal" />
-            </MudItem>
-            <MudItem xs="12" sm="2">
-                <MudNumericField @bind-Value="@investment.Price" 
-                                 Label="Price per Share"
-                                 Required="true"
-                                 Min="0"
-                                 OnBlur="CalculateTotal" />
-            </MudItem>
-            <MudItem xs="12" sm="2">
-                <MudNumericField @bind-Value="total" 
-                                 Label="Total Amount"
-                                 Required="true"
-                                 Min="0"
-                                 OnBlur="CalculatePrice" />
-            </MudItem>
-            <MudItem xs="12" sm="4">
-                <MudSelect T="Guid?" @bind-Value="@investment.AccountId" Label="Account to Debit" Required="true">
-                    @if (accounts != null)
-                    {
-                        @foreach (var account in accounts)
+            @if (!IsEditMode)
+            {
+                <MudItem xs="12">
+                    <MudDivider Class="my-4"/>
+                    <MudText Typo="Typo.h6" Class="mb-4">Initial Purchase Details</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudNumericField @bind-Value="@investment.Shares"
+                                     Label="Number of Shares"
+                                     Required="true"
+                                     Min="0"
+                                     OnBlur="CalculateTotal" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudNumericField @bind-Value="@investment.Price"
+                                     Label="Price per Share"
+                                     Required="true"
+                                     Min="0"
+                                     OnBlur="CalculateTotal" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudNumericField @bind-Value="total"
+                                     Label="Total Amount"
+                                     Required="true"
+                                     Min="0"
+                                     OnBlur="CalculatePrice" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="Guid?" @bind-Value="@investment.AccountId" Label="Account to Debit" Required="true">
+                        @if (accounts != null)
                         {
-                            <MudSelectItem Value="@((Guid?)account.AccountId)">@account.Name</MudSelectItem>
+                            @foreach (var account in accounts)
+                            {
+                                <MudSelectItem Value="@((Guid?)account.AccountId)">@account.Name</MudSelectItem>
+                            }
                         }
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" sm="2">
-                <MudDatePicker @bind-Date="@investment.Date" 
-                              Label="Purchase Date"
-                              Required="true"/>
-            </MudItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudDatePicker @bind-Date="@investment.Date"
+                                  Label="Purchase Date"
+                                  Required="true"/>
+                </MudItem>
+            }
             <MudItem xs="12" Class="d-flex justify-end">
                 <MudButton Variant="Variant.Text" 
                           Color="Color.Secondary" 

@@ -67,6 +67,7 @@ public class InvestmentService(
 
     public async Task<InvestmentListModel> UpdateCurrentPrices()
     {
+        var investments = context.Investments.ToList();
         var mustUpdatePrices = context.Investments
             .Any(i => !i.DontRetrievePrices && i.LastPriceRetrievalDate < DateTime.Today);
         if (mustUpdatePrices)

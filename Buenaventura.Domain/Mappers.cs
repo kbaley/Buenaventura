@@ -36,7 +36,7 @@ public static class Mappers
         };
     }
 
-    public static Investment ToInvestment(this InvestmentForUpdateDto dto)
+    public static Investment ToInvestment(this UpdateInvestmentModel dto)
     {
         return new Investment
         {
@@ -81,6 +81,7 @@ public static class Mappers
             InvestmentId = investment.InvestmentId,
             LastPrice = investment.LastPrice,
             Name = investment.Name,
+            PaysDividends = investment.PaysDividends,
             Symbol = investment.Symbol,
             AveragePrice = Math.Round(investment.GetAveragePricePaid(), 2),
             TotalReturn = investment.GetTotalReturn(),

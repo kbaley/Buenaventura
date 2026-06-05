@@ -13,16 +13,32 @@ public partial class InvestmentEdit(
 {
     private IEnumerable<InvestmentCategoryModel> categories = [];
     [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
+    [Parameter] public Guid? InvestmentId { get; set; }
     private decimal? total;
-    private readonly AddInvestmentModel investment = new()
+    private AddInvestmentModel investment = new()
     {
         Currency = "USD",
         Date = DateTime.Now,
     };
+    private bool IsEditMode => InvestmentId.HasValue;
+    private string PageTitle => IsEditMode ? "Edit Investment" : "Add New Investment";
 
     protected override async Task OnInitializedAsync()
     {
         categories = await categoriesApi.GetCategories();
+        if (InvestmentId.HasValue)
+        {
+            var existingInvestment = await investmentsApi.GetInvestment(InvestmentId.Value);
+            investment = new AddInvestmentModel
+            {
+                CategoryId = existingInvestment.CategoryId == Guid.Empty ? null : existingInvestment.CategoryId,
+                Currency = existingInvestment.Currency,
+                DontRetrievePrices = existingInvestment.DontRetrievePrices,
+                Name = existingInvestment.Name,
+                PaysDividends = existingInvestment.PaysDividends,
+                Symbol = existingInvestment.Symbol,
+            };
+        }
     }
 
     private void CalculateTotal()
@@ -32,7 +48,7 @@ public partial class InvestmentEdit(
 
     private void CalculatePrice()
     {
-        if (total.HasValue)
+        if (total.HasValue && investment.Shares != 0)
         {
             investment.Price = total.Value / investment.Shares;
         }
@@ -45,9 +61,25 @@ public partial class InvestmentEdit(
 
     private async Task Save()
     {
-        // Save functionality will be implemented later
-        await investmentsApi.AddInvestment(investment);
-        await accountSyncService.RefreshAccounts();
+        if (InvestmentId.HasValue)
+        {
+            await investmentsApi.UpdateInvestment(new UpdateInvestmentModel
+            {
+                CategoryId = investment.CategoryId,
+                Currency = investment.Currency,
+                DontRetrievePrices = investment.DontRetrievePrices,
+                InvestmentId = InvestmentId.Value,
+                Name = investment.Name,
+                PaysDividends = investment.PaysDividends,
+                Symbol = investment.Symbol,
+            });
+        }
+        else
+        {
+            await investmentsApi.AddInvestment(investment);
+            await accountSyncService.RefreshAccounts();
+        }
+
         navigationManager.NavigateTo("/Investments");
     }
 } 

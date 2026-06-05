@@ -7,6 +7,8 @@ public interface IInvestmentsApi
 {
     [Get("/api/investments")]
     Task<InvestmentListModel> GetInvestments();
+    [Get("/api/investments/{investmentId}")]
+    Task<InvestmentDetailDto> GetInvestment(Guid investmentId);
     
     [Post("/api/investments/updatecurrentprices")]
     Task<InvestmentListModel> UpdateCurrentPrices();
@@ -18,6 +20,8 @@ public interface IInvestmentsApi
     Task DeleteInvestment(Guid investmentId);
     [Post("/api/investments")]
     Task AddInvestment(AddInvestmentModel investmentModel);
+    [Put("/api/investments")]
+    Task<InvestmentModel> UpdateInvestment(UpdateInvestmentModel investmentModel);
     [Post("/api/investments/buysell")]
     Task BuySell(BuySellModel buySellModel);
     [Post("/api/investments/dividends")]
