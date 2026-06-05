@@ -3,6 +3,8 @@
 @inject AccountSyncService accountSyncService
 @inject NavigationManager navigationManager
 @inject IAdminApi adminApi
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
@@ -45,8 +47,27 @@ else
                        Color="Color.Error"
                        StartIcon="@Icons.Material.Filled.Shuffle"
                        OnClick="ScrambleDatabase"
+                       Disabled="@isBusy"
                        Class="mt-4">
                 Scramble Database
+            </MudButton>
+
+            <MudDivider Class="my-6"/>
+
+            <MudText Typo="Typo.h5" Class="mb-4">Demo Database</MudText>
+
+            <MudText Typo="Typo.body1" Class="mb-4">
+                This tool will wipe finance data and replace it with a coherent demo scenario. Existing users and
+                configuration are preserved so you can keep signing in.
+            </MudText>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.RestartAlt"
+                       OnClick="ResetDemoDatabase"
+                       Disabled="@isBusy"
+                       Class="mt-2">
+                Reset Demo Database
             </MudButton>
         </MudPaper>
     </MudContainer>
@@ -55,6 +76,7 @@ else
 @code {
     private DateTime? deleteBeforeDate = DateTime.Today.AddYears(-2);
     private List<CategoryModel> categories = new();
+    private bool isBusy;
 
     private bool IsLocalhost => navigationManager.BaseUri.Contains("localhost") ||
                                 navigationManager.BaseUri.Contains("127.0.0.1") ||
@@ -93,6 +115,43 @@ else
         await adminApi.ScrambleDatabase(model);
         await accountSyncService.RefreshAccounts();
         navigationManager.NavigateTo("/");
+    }
+
+    private async Task ResetDemoDatabase()
+    {
+        if (!IsLocalhost)
+        {
+            navigationManager.NavigateTo("/");
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] =
+                "Reset the finance database to demo data? This deletes accounts, transactions, categories, invoices, investments, customers, currencies, and related finance records.",
+            ["ButtonText"] = "Reset Demo Database",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Reset Demo Database", parameters);
+        var result = await dialog.Result;
+        if (result?.Canceled != false)
+        {
+            return;
+        }
+
+        isBusy = true;
+        try
+        {
+            await adminApi.ResetDemoDatabase();
+            await accountSyncService.RefreshAccounts();
+            Snackbar.Add("Demo database created", Severity.Success);
+            navigationManager.NavigateTo("/");
+        }
+        finally
+        {
+            isBusy = false;
+        }
     }
 
 } 

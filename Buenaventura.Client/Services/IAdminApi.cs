@@ -7,4 +7,7 @@ public interface IAdminApi
 {
     [Post("/api/admin/scramble")]
     Task ScrambleDatabase(ScrambleModel model);
+
+    [Post("/api/admin/reset-demo-database")]
+    Task ResetDemoDatabase();
 }
