@@ -1,0 +1,134 @@
+@page "/planning"
+@inject IPlanningApi PlanningApi
+
+@attribute [Authorize]
+
+<MudText Typo="Typo.h4" GutterBottom="true">Planning</MudText>
+
+@if (isLoading)
+{
+    <MudGrid>
+        <MudItem xs="12" md="4">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="120px" />
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="120px" />
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="120px" />
+        </MudItem>
+        <MudItem xs="12">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="360px" />
+        </MudItem>
+    </MudGrid>
+}
+else if (summary is null)
+{
+    <MudAlert Severity="Severity.Info">No planning data is available yet.</MudAlert>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.subtitle2">Suggested Monthly Budget</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Primary">@summary.TotalSuggestedMonthlyBudget.ToString("C0")</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.subtitle2">Average Monthly Spend</MudText>
+                <MudText Typo="Typo.h4">@summary.TotalAverageMonthlySpend.ToString("C0")</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.subtitle2">Recurring Monthly Spend</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Secondary">@summary.RecurringMonthlyTotal.ToString("C0")</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Elevation="1" Class="pa-4">
+                <div class="d-flex justify-space-between align-center mb-3">
+                    <MudText Typo="Typo.h6">Budget Generator</MudText>
+                    <MudText Typo="Typo.caption">
+                        @summary.HistoryStart.ToString("MMM yyyy") - @summary.HistoryEnd.ToString("MMM yyyy")
+                    </MudText>
+                </div>
+                <MudTable Items="@summary.BudgetCategories" Dense="true" Hover="true" Bordered="true" Striped="true">
+                    <HeaderContent>
+                        <MudTh>Category</MudTh>
+                        <MudTh Style="text-align:right">Suggested</MudTh>
+                        <MudTh Style="text-align:right">Average</MudTh>
+                        <MudTh Style="text-align:right">Median</MudTh>
+                        <MudTh Style="text-align:right">Recurring</MudTh>
+                        <MudTh Style="text-align:right">This Month</MudTh>
+                        <MudTh>Insight</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Category">
+                            <MudLink Href="@($"expense-analysis/{context.CategoryId}")">@context.CategoryName</MudLink>
+                        </MudTd>
+                        <MudTd DataLabel="Suggested" Style="text-align:right">@context.SuggestedMonthlyBudget.ToString("C0")</MudTd>
+                        <MudTd DataLabel="Average" Style="text-align:right">@context.AverageMonthlySpend.ToString("C0")</MudTd>
+                        <MudTd DataLabel="Median" Style="text-align:right">@context.MedianMonthlySpend.ToString("C0")</MudTd>
+                        <MudTd DataLabel="Recurring" Style="text-align:right">@context.RecurringMonthlyAmount.ToString("C0")</MudTd>
+                        <MudTd DataLabel="This Month" Style="text-align:right">
+                            <MudText Color="@(context.IsCurrentMonthHigherThanBudget ? Color.Error : Color.Default)">
+                                @context.CurrentMonthSpend.ToString("C0")
+                            </MudText>
+                        </MudTd>
+                        <MudTd DataLabel="Insight">@context.Insight</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Recurring Expenses</MudText>
+                @if (summary.RecurringExpenses.Count == 0)
+                {
+                    <MudAlert Severity="Severity.Info">No recurring expenses were detected in the last 12 completed months.</MudAlert>
+                }
+                else
+                {
+                    <MudTable Items="@summary.RecurringExpenses" Dense="true" Hover="true" Bordered="true" Striped="true">
+                        <HeaderContent>
+                            <MudTh>Vendor</MudTh>
+                            <MudTh>Category</MudTh>
+                            <MudTh>Cadence</MudTh>
+                            <MudTh Style="text-align:right">Average</MudTh>
+                            <MudTh Style="text-align:right">Last</MudTh>
+                            <MudTh>Last Paid</MudTh>
+                            <MudTh Style="text-align:right">Confidence</MudTh>
+                            <MudTh>Evidence</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
+                            <MudTd DataLabel="Category">@context.CategoryName</MudTd>
+                            <MudTd DataLabel="Cadence">@context.Cadence</MudTd>
+                            <MudTd DataLabel="Average" Style="text-align:right">@context.AverageAmount.ToString("C2")</MudTd>
+                            <MudTd DataLabel="Last" Style="text-align:right">@context.LastAmount.ToString("C2")</MudTd>
+                            <MudTd DataLabel="Last Paid">@context.LastTransactionDate.ToShortDateString()</MudTd>
+                            <MudTd DataLabel="Confidence" Style="text-align:right">@context.Confidence.ToString("P0")</MudTd>
+                            <MudTd DataLabel="Evidence">@context.Explanation</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private bool isLoading = true;
+    private BudgetPlanningSummary? summary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        summary = await PlanningApi.GetBudgetPlanningSummary();
+        isLoading = false;
+    }
+}
