@@ -7,6 +7,7 @@ namespace Buenaventura.Services;
 public interface IVendorService : IAppService
 {
     public Task<IEnumerable<VendorModel>> GetVendors();
+    public Task<PaginatedResults<VendorModel>> GetVendors(int page, int pageSize, string? sortBy, bool sortDescending);
     public Task<VendorModel> GetVendor(Guid id);
     public Task UpdateVendor(VendorModel vendorModel);
     public Task DeleteVendor(Guid id);
@@ -47,6 +48,51 @@ public class VendorService(
             })
             .OrderBy(v => v.Name)
             .ToList();
+    }
+
+    public async Task<PaginatedResults<VendorModel>> GetVendors(
+        int page,
+        int pageSize,
+        string? sortBy,
+        bool sortDescending)
+    {
+        var query = context.Vendors.Select(v => new VendorModel
+        {
+            VendorId = v.VendorId,
+            Name = v.Name,
+            LastTransactionCategoryId = v.LastTransactionCategoryId,
+            CategoryName = context.Categories
+                .Where(c => c.CategoryId == v.LastTransactionCategoryId)
+                .Select(c => c.Name)
+                .FirstOrDefault() ?? "",
+            LastTransactionDate = context.Transactions
+                .Where(t => t.Vendor != null && t.Vendor.ToLower() == v.Name.ToLower())
+                .Max(t => (DateTime?)t.TransactionDate)
+        });
+
+        query = (sortBy, sortDescending) switch
+        {
+            ("lastPosted", true) => query
+                .OrderByDescending(v => v.LastTransactionDate)
+                .ThenBy(v => v.Name),
+            ("lastPosted", false) => query
+                .OrderBy(v => v.LastTransactionDate)
+                .ThenBy(v => v.Name),
+            (_, true) => query.OrderByDescending(v => v.Name),
+            _ => query.OrderBy(v => v.Name)
+        };
+
+        var totalCount = await query.CountAsync();
+        var vendors = await query
+            .Skip(page * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PaginatedResults<VendorModel>
+        {
+            Items = vendors,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<VendorModel> GetVendor(Guid id)

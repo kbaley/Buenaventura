@@ -50,6 +50,50 @@ public class VendorServiceTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task GetVendors_WithPaging_ReturnsRequestedPage()
+    {
+        var category = CreateCategory("Paged Category");
+        var vendors = new[]
+        {
+            CreateVendor("000 Paging A", category.CategoryId),
+            CreateVendor("000 Paging B", category.CategoryId),
+            CreateVendor("000 Paging C", category.CategoryId)
+        };
+
+        _fixture.Context.Categories.Add(category);
+        _fixture.Context.Vendors.AddRange(vendors);
+        await _fixture.Context.SaveChangesAsync();
+
+        var result = await _service.GetVendors(0, 2, "name", false);
+
+        result.TotalCount.Should().BeGreaterOrEqualTo(3);
+        result.Items.Select(v => v.Name).Should().ContainInOrder("000 Paging A", "000 Paging B");
+    }
+
+    [Fact]
+    public async Task GetVendors_SortsByLastPosted()
+    {
+        var category = CreateCategory("Sorted Category");
+        var oldVendor = CreateVendor("Sort Old", category.CategoryId);
+        var newVendor = CreateVendor("Sort New", category.CategoryId);
+
+        _fixture.Context.Categories.Add(category);
+        _fixture.Context.Vendors.AddRange(oldVendor, newVendor);
+        _fixture.Context.Transactions.AddRange(
+            CreateTransaction(oldVendor.Name, category.CategoryId, new DateTime(2026, 4, 1)),
+            CreateTransaction(newVendor.Name, category.CategoryId, new DateTime(2026, 5, 1)));
+        await _fixture.Context.SaveChangesAsync();
+
+        var result = await _service.GetVendors(0, 10, "lastPosted", true);
+
+        result.Items
+            .Where(v => v.Name.StartsWith("Sort ", StringComparison.Ordinal))
+            .Select(v => v.Name)
+            .Should()
+            .ContainInOrder("Sort New", "Sort Old");
+    }
+
+    [Fact]
     public async Task UpdateVendor_RenamesVendorAndMatchingTransactions()
     {
         var category = new Category
@@ -115,6 +159,26 @@ public class VendorServiceTests : IClassFixture<TestDbContextFixture>
             AmountInBaseCurrency = -10,
             TransactionDate = date,
             TransactionType = TransactionType.REGULAR
+        };
+    }
+
+    private static Category CreateCategory(string name)
+    {
+        return new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = name,
+            Type = "Expense"
+        };
+    }
+
+    private static Vendor CreateVendor(string name, Guid categoryId)
+    {
+        return new Vendor
+        {
+            VendorId = Guid.NewGuid(),
+            Name = name,
+            LastTransactionCategoryId = categoryId
         };
     }
 }

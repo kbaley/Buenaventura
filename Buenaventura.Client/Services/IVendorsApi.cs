@@ -8,6 +8,13 @@ public interface IVendorsApi
     [Get("/api/vendors")]
     public Task<IEnumerable<VendorModel>> GetVendors();
 
+    [Get("/api/vendors/page?page={page}&pageSize={pageSize}&sortBy={sortBy}&sortDescending={sortDescending}")]
+    public Task<PaginatedResults<VendorModel>> GetVendors(
+        int page = 0,
+        int pageSize = 10,
+        string sortBy = "name",
+        bool sortDescending = false);
+
     [Get("/api/vendors/{id}")]
     public Task<VendorModel> GetVendor(Guid id);
 

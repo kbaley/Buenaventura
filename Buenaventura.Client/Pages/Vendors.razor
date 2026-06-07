@@ -11,48 +11,45 @@
     </MudItem>
 </MudGrid>
 
-@if (vendors == null)
-{
-    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
-}
-else
-{
-    <MudPaper Elevation="0" Class="pa-4 mt-4">
-        <MudTable Items="@vendors" Dense="true" Hover="true" Bordered="true" Striped="true">
-            <HeaderContent>
-                <MudTh>Name</MudTh>
-                <MudTh>Category</MudTh>
-                <MudTh>Last Posted</MudTh>
-                <MudTh>Actions</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Name">@context.Name</MudTd>
-                <MudTd DataLabel="Category">@context.CategoryName</MudTd>
-                <MudTd DataLabel="Last Posted">@FormatLastPosted(context.LastTransactionDate)</MudTd>
-                <MudTd>
-                    <MudStack Row="true" Spacing="2">
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                       Color="Color.Primary"
-                                       OnClick="@(() => EditVendor(context))"
-                                       Title="Edit vendor"/>
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                       Color="Color.Error"
-                                       OnClick="@(() => DeleteVendor(context))"
-                                       Title="Delete vendor"/>
-                    </MudStack>
-                </MudTd>
-            </RowTemplate>
-        </MudTable>
-    </MudPaper>
-}
+<MudPaper Elevation="0" Class="pa-4 mt-4">
+    <MudTable T="VendorModel" ServerData="ServerReload" Dense="true" Hover="true" Bordered="true" Striped="true"
+              Loading="@loading" @ref="vendorTable" RowsPerPage="25">
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel T="VendorModel" SortLabel="name">Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>Category</MudTh>
+            <MudTh>
+                <MudTableSortLabel T="VendorModel" SortLabel="lastPosted">Last Posted</MudTableSortLabel>
+            </MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Category">@context.CategoryName</MudTd>
+            <MudTd DataLabel="Last Posted">@FormatLastPosted(context.LastTransactionDate)</MudTd>
+            <MudTd>
+                <MudStack Row="true" Spacing="2">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Primary"
+                                   OnClick="@(() => EditVendor(context))"
+                                   Title="Edit vendor"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   OnClick="@(() => DeleteVendor(context))"
+                                   Title="Delete vendor"/>
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
+    </MudTable>
+</MudPaper>
 
 @code {
-    private IEnumerable<VendorModel>? vendors;
-
-    protected override async Task OnInitializedAsync()
-    {
-        vendors = await vendorsApi.GetVendors();
-    }
+    private MudTable<VendorModel>? vendorTable;
+    private bool loading = true;
 
     private void EditVendor(VendorModel vendor)
     {
@@ -73,9 +70,29 @@ else
         if (!result!.Canceled)
         {
             await vendorsApi.DeleteVendor(vendor.VendorId);
-            vendors = await vendorsApi.GetVendors();
-            StateHasChanged();
+            if (vendorTable != null)
+            {
+                await vendorTable.ReloadServerData();
+            }
         }
+    }
+
+    private async Task<TableData<VendorModel>> ServerReload(TableState state, CancellationToken token)
+    {
+        loading = true;
+        var sortBy = string.IsNullOrWhiteSpace(state.SortLabel) ? "name" : state.SortLabel;
+        var result = await vendorsApi.GetVendors(
+            state.Page,
+            state.PageSize,
+            sortBy,
+            state.SortDirection == SortDirection.Descending);
+
+        loading = false;
+        return new TableData<VendorModel>
+        {
+            TotalItems = result.TotalCount,
+            Items = result.Items
+        };
     }
 
     private static string FormatLastPosted(DateTime? date)
