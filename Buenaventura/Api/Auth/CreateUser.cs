@@ -1,8 +1,5 @@
 using Buenaventura.Data;
 using Buenaventura.Domain;
-using CryptoHelper;
-// using Buenaventura.Domain;
-// using CryptoHelper;
 using FastEndpoints;
 
 namespace Buenaventura.Api;
@@ -29,7 +26,7 @@ public class CreateUser(BuenaventuraDbContext context) : EndpointWithoutRequest
         //     Name = name,
         //     Email = email,
         //     UserId = Guid.NewGuid(),
-        //     Password = Crypto.HashPassword(password)
+        //     Password = new PasswordHasher<User>().HashPassword(user, password)
         // };
         //
         // var existingUser = context.Users.SingleOrDefault(u => u.Email == email);
