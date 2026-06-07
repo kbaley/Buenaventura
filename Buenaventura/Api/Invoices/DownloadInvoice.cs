@@ -16,6 +16,6 @@ public class DownloadInvoice(BuenaventuraDbContext context, IInvoiceGenerator in
         var invoiceId = Route<Guid>("invoiceId");
         var invoice = await context.FindInvoiceEager(invoiceId);
         var invoiceBytes = await invoiceGenerator.GeneratePdf(invoiceId);
-        await SendBytesAsync(bytes: invoiceBytes, fileName: $"Invoice-{invoice.InvoiceNumber}.pdf", contentType: "application/pdf", cancellation: ct);
+        await Send.BytesAsync(bytes: invoiceBytes, fileName: $"Invoice-{invoice.InvoiceNumber}.pdf", contentType: "application/pdf", cancellation: ct);
     }
 }

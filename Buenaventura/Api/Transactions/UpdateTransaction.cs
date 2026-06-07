@@ -15,6 +15,6 @@ public class UpdateTransaction(IAccountService accountService) : Endpoint<Transa
     public override async Task HandleAsync(TransactionForDisplay req, CancellationToken ct)
     {
         await accountService.UpdateTransaction(req);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 }

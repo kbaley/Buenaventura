@@ -14,6 +14,6 @@ internal class UpdateCurrentPrices(IInvestmentService investmentService)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        await SendOkAsync(await investmentService.UpdateCurrentPrices(), ct);
+        await Send.OkAsync(await investmentService.UpdateCurrentPrices(), ct);
     }
 }

@@ -47,6 +47,6 @@ internal class GetExpenseCategoryPageData(IExpenseService expenseService, ICateg
             .Select(x => new ReportDataPoint { Label = x.Date.ToString("MMM yyyy"), Value = x.Amount })
             .ToList();
         data.VendorData = await expenseService.GetVendorSpending(req.CategoryId, includeTags, excludeTags);
-        await SendOkAsync(data, ct);
+        await Send.OkAsync(data, ct);
     }
 }

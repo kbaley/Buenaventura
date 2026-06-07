@@ -16,6 +16,6 @@ internal class GetDuplicateTransactions(IAccountService accountService) : Endpoi
     public override async Task HandleAsync(GetDuplicateTransactionsRequest request, CancellationToken ct)
     {
         var transactions = await accountService.GetPotentialDuplicateTransactions(request.AccountId);
-        await SendAsync(transactions, cancellation: ct);
+        await Send.OkAsync(transactions, cancellation: ct);
     }
 }

@@ -25,6 +25,6 @@ internal class HashPassword(BuenaventuraDbContext context) : Endpoint<HashPasswo
         var hasher = new PasswordHasher<User>();
         var user = context.Users.First();
         var hashedPassword = hasher.HashPassword(user, req.Password);
-        await SendAsync(new HashPasswordResponse(hashedPassword), cancellation: ct);
+        await Send.OkAsync(new HashPasswordResponse(hashedPassword), cancellation: ct);
     }
 }

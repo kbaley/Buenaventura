@@ -16,6 +16,6 @@ public class ViewInvoice(IInvoiceGenerator invoiceGenerator) : EndpointWithoutRe
         var invoiceId = Route<Guid>("invoiceId");
         var html = await invoiceGenerator.GenerateHtml(invoiceId);
         var bytes = Encoding.UTF8.GetBytes(html);
-        await SendBytesAsync(bytes: bytes, contentType: "text/html", cancellation: ct);
+        await Send.BytesAsync(bytes: bytes, contentType: "text/html", cancellation: ct);
     }
 }

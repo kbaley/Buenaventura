@@ -16,6 +16,6 @@ internal class GetAccount(IAccountService accountService) : Endpoint<GetAccountR
     public override async Task HandleAsync(GetAccountRequest request, CancellationToken ct)
     {
         var account = await accountService.GetAccount(request.AccountId);
-        await SendAsync(account, cancellation: ct);
+        await Send.OkAsync(account, cancellation: ct);
     }
 }

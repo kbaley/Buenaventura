@@ -13,6 +13,6 @@ public class ResetDemoDatabase(IAdminService adminService) : EndpointWithoutRequ
     public override async Task HandleAsync(CancellationToken ct)
     {
         await adminService.ResetDemoDatabase();
-        await SendNoContentAsync(ct);
+        await Send.NoContentAsync(ct);
     }
 }

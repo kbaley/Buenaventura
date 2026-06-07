@@ -17,6 +17,6 @@ public class PutInvoice(IInvoiceService invoiceService) : Endpoint<InvoiceModel,
     public override async Task HandleAsync(InvoiceModel req, CancellationToken ct)
     {
         await invoiceService.UpdateInvoice(req);
-        await SendOkAsync(req, ct);
+        await Send.OkAsync(req, ct);
     }
 }

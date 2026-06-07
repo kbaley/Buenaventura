@@ -15,6 +15,6 @@ internal class BuySell(IInvestmentService investmentService)
     public override async Task HandleAsync(BuySellModel req, CancellationToken ct)
     {
         await investmentService.BuySell(req);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 }

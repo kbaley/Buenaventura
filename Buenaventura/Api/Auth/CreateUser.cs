@@ -36,7 +36,7 @@ public class CreateUser(BuenaventuraDbContext context) : EndpointWithoutRequest
         //
         // context.Users.Add(user);
         // await context.SaveChangesAsync(ct);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 
 }

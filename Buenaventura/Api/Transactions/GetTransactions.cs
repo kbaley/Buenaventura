@@ -22,6 +22,6 @@ internal class GetTransactions(IAccountService accountService, UserManager<User>
         var isRestricted = user?.Restricted ?? false;
         var transactions = await accountService
             .GetTransactions(request.AccountId, request.Search ?? "", request.Page, request.PageSize, isRestricted);
-        await SendAsync(transactions, cancellation: ct);
+        await Send.OkAsync(transactions, cancellation: ct);
     }
 }

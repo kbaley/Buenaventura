@@ -25,7 +25,7 @@ internal class GetInvestment(BuenaventuraDbContext context)
             .SingleOrDefaultAsync(i => i.InvestmentId == req.InvestmentId, ct);
         if (investment is null)
         {
-            await SendNotFoundAsync(ct);
+            await Send.NotFoundAsync(ct);
             return;
         }
 
@@ -38,7 +38,7 @@ internal class GetInvestment(BuenaventuraDbContext context)
         mappedInvestment.BookValue = decimal.Round(mappedInvestment.AveragePrice * mappedInvestment.Shares, 2);
         mappedInvestment.Dividends = dividends;
 
-        await SendOkAsync(mappedInvestment, ct);
+        await Send.OkAsync(mappedInvestment, ct);
     }
 
     private static IEnumerable<RecordDividendModel> GetDividendDtosFrom(Investment investment)

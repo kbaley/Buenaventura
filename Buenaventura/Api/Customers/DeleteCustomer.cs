@@ -14,6 +14,6 @@ internal class DeleteCustomer(ICustomerService customerService) : EndpointWithou
     {
         var id = Route<Guid>("id");
         await customerService.DeleteCustomer(id);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 }

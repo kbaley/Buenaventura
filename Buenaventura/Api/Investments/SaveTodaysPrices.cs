@@ -30,6 +30,6 @@ internal class SaveTodaysPrices(BuenaventuraDbContext context, IInvestmentServic
 
         await context.SaveChangesAsync(ct);
         var investments = await investmentService.GetInvestments();
-        await SendOkAsync(investments, ct);
+        await Send.OkAsync(investments, ct);
     }
 }

@@ -16,6 +16,6 @@ internal class DeleteVendorsLastPostedBefore(IVendorService vendorService)
     public override async Task HandleAsync(DeleteVendorsLastPostedBeforeRequest req, CancellationToken ct)
     {
         var deletedCount = await vendorService.DeleteVendorsLastPostedBefore(req.LastPostedBefore);
-        await SendOkAsync(deletedCount, ct);
+        await Send.OkAsync(deletedCount, ct);
     }
 }

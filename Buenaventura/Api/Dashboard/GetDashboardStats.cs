@@ -65,6 +65,6 @@ internal class GetDashboardStats(
             netWorthBreakdown
         };
 
-        await SendOkAsync(report, ct);
+        await Send.OkAsync(report, ct);
     }
 }

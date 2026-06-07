@@ -15,6 +15,6 @@ public class GetUserCount(BuenaventuraDbContext context) : EndpointWithoutReques
     public override async Task HandleAsync(CancellationToken ct)
     {
         var count = await context.Users.CountAsync(ct);
-        await SendOkAsync(count, ct);
+        await Send.OkAsync(count, ct);
     }
 }

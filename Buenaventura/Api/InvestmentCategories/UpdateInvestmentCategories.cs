@@ -47,6 +47,6 @@ public class UpdateInvestmentCategories(BuenaventuraDbContext context)
             }
         }
         await context.SaveChangesAsync(ct);
-        await SendOkAsync(context.InvestmentCategories.ToArray(), ct);
+        await Send.OkAsync(context.InvestmentCategories.ToArray(), ct);
     }
 }

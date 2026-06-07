@@ -15,6 +15,6 @@ public class GetInvestmentCategories(IInvestmentCategoryService investmentCatego
     public override async Task HandleAsync(CancellationToken ct)
     {
         var categories = await investmentCategoryService.GetCategories();
-        await SendOkAsync(categories, ct);
+        await Send.OkAsync(categories, ct);
     }
 }

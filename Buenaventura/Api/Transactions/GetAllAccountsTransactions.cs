@@ -16,6 +16,6 @@ internal class GetAllAccountsTransactions(IAccountService accountService) : Endp
     public override async Task HandleAsync(GetAllAccountsTransactionsRequest request, CancellationToken ct)
     {
         var transactions = await accountService.GetAllTransactions(request.Start, request.End);
-        await SendAsync(transactions, cancellation: ct);
+        await Send.OkAsync(transactions, cancellation: ct);
     }
 }

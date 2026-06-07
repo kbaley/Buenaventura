@@ -20,6 +20,6 @@ internal class GetTransactionsByTags(ITransactionRepository transactionRepositor
             TransactionTagFormatter.ParseTagText(request.ExcludeTags),
             request.Page,
             request.PageSize);
-        await SendAsync(transactions, cancellation: ct);
+        await Send.OkAsync(transactions, cancellation: ct);
     }
 }

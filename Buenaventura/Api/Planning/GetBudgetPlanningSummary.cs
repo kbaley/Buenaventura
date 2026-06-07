@@ -15,6 +15,6 @@ internal class GetBudgetPlanningSummary(IBudgetPlanningService planningService)
     public override async Task HandleAsync(CancellationToken ct)
     {
         var data = await planningService.GetBudgetPlanningSummary();
-        await SendOkAsync(data, ct);
+        await Send.OkAsync(data, ct);
     }
 }

@@ -14,6 +14,6 @@ internal class GetCustomers(ICustomerService customerService) : EndpointWithoutR
     public override async Task HandleAsync(CancellationToken ct)
     {
         var customers = await customerService.GetCustomers();
-        await SendOkAsync(customers, ct);
+        await Send.OkAsync(customers, ct);
     }
 }

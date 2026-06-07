@@ -17,6 +17,6 @@ internal class GetAllTransactions(IAccountService accountService) : Endpoint<Get
     {
         // Get all transactions without pagination for duplicate checking
         var transactions = await accountService.GetAllTransactions(request.AccountId, request.Start, request.End);
-        await SendAsync(transactions, cancellation: ct);
+        await Send.OkAsync(transactions, cancellation: ct);
     }
 }

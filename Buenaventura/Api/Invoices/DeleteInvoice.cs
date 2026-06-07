@@ -17,12 +17,12 @@ public class DeleteInvoice(BuenaventuraDbContext context) : EndpointWithoutReque
         var invoice = await context.Invoices.FindAsync([id], ct);
         if (invoice is null)
         {
-            await SendNotFoundAsync(ct);
+            await Send.NotFoundAsync(ct);
             return;
         }
 
         context.Invoices.Remove(invoice);
         await context.SaveChangesAsync(ct);
-        await SendOkAsync(invoice, ct);
+        await Send.OkAsync(invoice, ct);
     }
 }

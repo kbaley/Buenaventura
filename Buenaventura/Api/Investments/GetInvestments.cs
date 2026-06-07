@@ -13,6 +13,6 @@ internal class GetInvestments(IInvestmentService investmentService) : EndpointWi
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        await SendOkAsync(await investmentService.GetInvestments(), ct);
+        await Send.OkAsync(await investmentService.GetInvestments(), ct);
     }
 }

@@ -15,6 +15,6 @@ internal class AssetClasses(IDashboardService dashboardService)
     public override async Task HandleAsync(CancellationToken ct)
     {
         var data = await dashboardService.GetAssetClassData();
-        await SendOkAsync(data, ct);
+        await Send.OkAsync(data, ct);
     }
 }

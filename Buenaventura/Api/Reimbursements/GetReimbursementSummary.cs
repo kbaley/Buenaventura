@@ -15,6 +15,6 @@ internal class GetReimbursementSummary(IReimbursementService reimbursementServic
     public override async Task HandleAsync(CancellationToken ct)
     {
         var summary = await reimbursementService.GetSummary();
-        await SendOkAsync(summary, ct);
+        await Send.OkAsync(summary, ct);
     }
 }

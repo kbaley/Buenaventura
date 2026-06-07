@@ -15,6 +15,6 @@ public class GetInvoice(IInvoiceService invoiceService) : EndpointWithoutRequest
     {
         var id = Route<Guid>("id");
         var invoice = await invoiceService.GetInvoice(id);
-        await SendOkAsync(invoice, ct);
+        await Send.OkAsync(invoice, ct);
     }
 }

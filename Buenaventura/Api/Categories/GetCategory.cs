@@ -16,6 +16,6 @@ internal class GetCategory(ICategoryService categoryService) : Endpoint<GetCateg
     public override async Task HandleAsync(GetCategoryRequest req, CancellationToken ct)
     {
         var category = await categoryService.GetCategory(req.Id);
-        await SendAsync(category, cancellation: ct);
+        await Send.OkAsync(category, cancellation: ct);
     }
 }

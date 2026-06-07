@@ -16,6 +16,6 @@ internal class GetTransactionsByCategory(ICategoryService categoryService) : End
     public override async Task HandleAsync(GetTransactionsByCategoryRequest request, CancellationToken ct)
     {
         var transactions = await categoryService.GetTransactions(request.CategoryId, request.Page, request.PageSize);
-        await SendAsync(transactions, cancellation: ct);
+        await Send.OkAsync(transactions, cancellation: ct);
     }
 }

@@ -14,6 +14,6 @@ public class PutVendor(IVendorService vendorService) : Endpoint<VendorModel>
     public override async Task HandleAsync(VendorModel req, CancellationToken ct)
     {
         await vendorService.UpdateVendor(req);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 }

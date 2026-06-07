@@ -14,6 +14,6 @@ internal class LiquidAssetBalance(IDashboardService dashboardService)
     public override async Task HandleAsync(CancellationToken ct)
     {
         var balance = await dashboardService.GetLiquidAssetBalance();
-        await SendOkAsync(balance, ct);
+        await Send.OkAsync(balance, ct);
     }
 }

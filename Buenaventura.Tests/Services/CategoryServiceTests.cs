@@ -32,7 +32,7 @@ public class CategoryServiceTests : IClassFixture<TestDbContextFixture>
         var result = (await _service.GetCategories()).ToList();
 
         // Assert
-        result.Should().HaveCountGreaterOrEqualTo(5);
+        result.Should().HaveCountGreaterThanOrEqualTo(5);
         result.Should().AllSatisfy(c => c.CategoryId.Should().NotBeEmpty());
     }
 

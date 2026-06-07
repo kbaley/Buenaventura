@@ -14,6 +14,6 @@ public class ChangeAccountOrder(IAccountService accountService) : Endpoint<List<
     public override async Task HandleAsync(List<OrderedAccount> req, CancellationToken ct)
     {
         await accountService.SaveAccountOrder(req);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 }

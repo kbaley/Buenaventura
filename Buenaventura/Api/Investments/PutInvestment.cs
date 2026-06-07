@@ -18,7 +18,7 @@ internal class PutInvestment(BuenaventuraDbContext context)
         var investmentFromDb = await context.Investments.FindAsync([req.InvestmentId], ct);
         if (investmentFromDb is null)
         {
-            await SendNotFoundAsync(ct);
+            await Send.NotFoundAsync(ct);
             return;
         }
 
@@ -34,6 +34,6 @@ internal class PutInvestment(BuenaventuraDbContext context)
         await context.Entry(investmentMapped).ReloadAsync(ct);
         await context.Entry(investmentMapped).Collection(i => i.Transactions).LoadAsync(ct);
         var returnInvestment = investmentMapped.ToModel();
-        await SendOkAsync(returnInvestment, ct);
+        await Send.OkAsync(returnInvestment, ct);
     }
 }

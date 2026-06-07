@@ -20,6 +20,6 @@ internal class GetPagedVendors(IVendorService vendorService) : Endpoint<GetPaged
     public override async Task HandleAsync(GetPagedVendorsRequest req, CancellationToken ct)
     {
         var vendors = await vendorService.GetVendors(req.Page, req.PageSize, req.SortBy, req.SortDescending);
-        await SendOkAsync(vendors, ct);
+        await Send.OkAsync(vendors, ct);
     }
 }

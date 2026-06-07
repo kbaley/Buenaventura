@@ -61,6 +61,6 @@ public class CreateAccount(BuenaventuraDbContext context) : Endpoint<AccountForP
         };
         await context.SaveChangesAsync(ct);
 
-        await SendOkAsync(model, ct);
+        await Send.OkAsync(model, ct);
     }
 }

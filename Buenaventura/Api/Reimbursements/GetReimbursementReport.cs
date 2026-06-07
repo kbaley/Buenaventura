@@ -15,6 +15,6 @@ internal class GetReimbursementReport(IReimbursementService reimbursementService
     public override async Task HandleAsync(CancellationToken ct)
     {
         var report = await reimbursementService.GetReport();
-        await SendOkAsync(report, ct);
+        await Send.OkAsync(report, ct);
     }
 }

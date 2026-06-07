@@ -14,6 +14,6 @@ public class PutCategory(ICategoryService categoryService) : Endpoint<CategoryMo
     public override async Task HandleAsync(CategoryModel req, CancellationToken ct)
     {
         await categoryService.UpdateCategory(req);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 }

@@ -14,6 +14,6 @@ public class GetVendors(IVendorService vendorService) : EndpointWithoutRequest<I
     public override async Task HandleAsync(CancellationToken ct)
     {
         var vendors = await vendorService.GetVendors();
-        await SendOkAsync(vendors, ct);
+        await Send.OkAsync(vendors, ct);
     }
 }

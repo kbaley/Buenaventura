@@ -21,6 +21,6 @@ internal class GetVendorData(IExpenseService expenseService)
                 allTime: req.AllTime))
             .Where(d => d.Label != "Other")
             .ToList();
-        await SendOkAsync(data, ct);
+        await Send.OkAsync(data, ct);
     }
 }

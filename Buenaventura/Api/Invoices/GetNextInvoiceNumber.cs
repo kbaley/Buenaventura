@@ -14,6 +14,6 @@ public class GetNextInvoiceNumber(IInvoiceService invoiceService) : EndpointWith
     public override async Task HandleAsync(CancellationToken ct)
     {
         var nextInvoiceNumber = await invoiceService.GetNextInvoiceNumber();
-        await SendAsync(nextInvoiceNumber, cancellation: ct);
+        await Send.OkAsync(nextInvoiceNumber, cancellation: ct);
     }
 }

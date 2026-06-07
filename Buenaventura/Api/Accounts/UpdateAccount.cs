@@ -14,6 +14,6 @@ public class UpdateAccount(IAccountService accountService) : Endpoint<AccountWit
     public override async Task HandleAsync(AccountWithBalance req, CancellationToken ct)
     {
         await accountService.UpdateAccount(req);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 }

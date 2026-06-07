@@ -15,6 +15,6 @@ public class EmailInvoice(IInvoiceService invoiceService) : EndpointWithoutReque
     {
         var invoiceId = Route<Guid>("invoiceId");
         await invoiceService.EmailInvoice(invoiceId);
-        await SendOkAsync(new { Status = "Email sent successfully" }, ct);
+        await Send.OkAsync(new { Status = "Email sent successfully" }, ct);
     }
 }

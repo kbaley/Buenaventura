@@ -17,6 +17,6 @@ internal class ExpenseAverages(IExpenseService expenseService)
         var data = await expenseService.GetExpenseAveragesData(
             includeTags: TransactionTagFormatter.ParseTagText(req.IncludeTags),
             excludeTags: TransactionTagFormatter.ParseTagText(req.ExcludeTags));
-        await SendOkAsync(data, ct);
+        await Send.OkAsync(data, ct);
     }
 }

@@ -20,6 +20,6 @@ internal class Expenses(IExpenseService expenseService)
             TransactionTagFormatter.ParseTagText(req.IncludeTags),
             TransactionTagFormatter.ParseTagText(req.ExcludeTags),
             req.AllTime);
-        await SendOkAsync(data, ct);
+        await Send.OkAsync(data, ct);
     }
 }

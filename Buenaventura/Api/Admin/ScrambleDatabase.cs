@@ -14,6 +14,6 @@ public class ScrambleDatabase(IAdminService adminService) : Endpoint<ScrambleMod
     public override async Task HandleAsync(ScrambleModel req, CancellationToken ct)
     {
         await adminService.ScrambleDatabase(req);
-        await SendNoContentAsync(ct);
+        await Send.NoContentAsync(ct);
     }
 }

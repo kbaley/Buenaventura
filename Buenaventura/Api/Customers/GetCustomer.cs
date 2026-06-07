@@ -15,6 +15,6 @@ internal class GetCustomer(ICustomerService customerService) : EndpointWithoutRe
     {
         var id = Route<Guid>("id");
         var customer = await customerService.GetCustomer(id);
-        await SendOkAsync(customer, ct);
+        await Send.OkAsync(customer, ct);
     }
 }

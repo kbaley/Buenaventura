@@ -16,6 +16,6 @@ internal class GetVendor(IVendorService vendorService) : Endpoint<GetVendorReque
     public override async Task HandleAsync(GetVendorRequest req, CancellationToken ct)
     {
         var vendor = await vendorService.GetVendor(req.Id);
-        await SendOkAsync(vendor, ct);
+        await Send.OkAsync(vendor, ct);
     }
 }

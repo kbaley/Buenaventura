@@ -14,6 +14,6 @@ internal class PostCustomer(ICustomerService customerService) : Endpoint<Custome
     public override async Task HandleAsync(CustomerModel req, CancellationToken ct)
     {
         await customerService.AddCustomer(req);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 }

@@ -66,7 +66,7 @@ public class VendorServiceTests : IClassFixture<TestDbContextFixture>
 
         var result = await _service.GetVendors(0, 2, "name", false);
 
-        result.TotalCount.Should().BeGreaterOrEqualTo(3);
+        result.TotalCount.Should().BeGreaterThanOrEqualTo(3);
         result.Items.Select(v => v.Name).Should().ContainInOrder("000 Paging A", "000 Paging B");
     }
 

@@ -37,6 +37,6 @@ internal class DownloadTransactionsCsv(IAccountService accountService, UserManag
 
         var fileName = $"{account.Name.Replace(" ", "_")}_transactions_{DateTime.Now:yyyy-MM-dd}.csv";
         var fileContentBytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
-        await SendBytesAsync(fileContentBytes, fileName, "text/csv", cancellation: ct);
+        await Send.BytesAsync(fileContentBytes, fileName, "text/csv", cancellation: ct);
     }
 }

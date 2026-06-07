@@ -15,6 +15,6 @@ internal class DeleteCategory(ICategoryService categoryService) : Endpoint<Delet
     public override async Task HandleAsync(DeleteCategoryRequest req, CancellationToken ct)
     {
         await categoryService.DeleteCategory(req.Id);
-        await SendOkAsync(ct);
+        await Send.OkAsync(ct);
     }
 }

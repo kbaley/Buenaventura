@@ -16,6 +16,6 @@ public class GetInvoiceTemplate(IInvoiceService invoiceService) : EndpointWithou
     {
         var html = await invoiceService.GetInvoiceTemplate();
         var bytes = Encoding.UTF8.GetBytes(html);
-        await SendBytesAsync(bytes: bytes, contentType: "text/html", cancellation: ct);
+        await Send.BytesAsync(bytes: bytes, contentType: "text/html", cancellation: ct);
     }
 }

@@ -18,6 +18,6 @@ internal class GetExchangeRate(ICurrencyService currencyService) : Endpoint<GetE
     public override async Task HandleAsync(GetExchangeRateRequest req, CancellationToken ct)
     {
         var exchangeRate = await currencyService.GetExchangeRateFor(req.Symbol, ct);
-        await SendAsync(exchangeRate, cancellation: ct);
+        await Send.OkAsync(exchangeRate, cancellation: ct);
     }
 }

@@ -15,6 +15,6 @@ public class GetInvoices(IInvoiceService invoiceService) : EndpointWithoutReques
     public override async Task HandleAsync(CancellationToken ct)
     {
         var invoices = await invoiceService.GetInvoices();
-        await SendAsync(invoices, cancellation: ct);
+        await Send.OkAsync(invoices, cancellation: ct);
     }
 }

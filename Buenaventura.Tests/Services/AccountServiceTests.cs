@@ -196,7 +196,7 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
             .ToListAsync();
 
         updatedAccounts.Should().HaveCount(3);
-        updatedAccounts.Should().AllSatisfy(a => a.DisplayOrder.Should().BeGreaterOrEqualTo(10));
+        updatedAccounts.Should().AllSatisfy(a => a.DisplayOrder.Should().BeGreaterThanOrEqualTo(10));
     }
 
     [Fact]

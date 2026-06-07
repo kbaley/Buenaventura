@@ -18,6 +18,6 @@ internal class GetAccounts(IAccountService accountService) : Endpoint<GetAccount
 
     public override async Task HandleAsync(GetAccountsRequest req, CancellationToken ct)
     {
-        await SendAsync((await accountService.GetAccounts(req.IncludeHidden)).ToList(), cancellation: ct);
+        await Send.OkAsync((await accountService.GetAccounts(req.IncludeHidden)).ToList(), cancellation: ct);
     }
 }

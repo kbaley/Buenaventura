@@ -17,6 +17,6 @@ internal class GetReconciliationWorkspace(IReconciliationService reconciliationS
     public override async Task HandleAsync(GetReconciliationWorkspaceRequest req, CancellationToken ct)
     {
         var workspace = await reconciliationService.GetWorkspace(req.AccountId, req.AsOfDate ?? DateTime.Today);
-        await SendAsync(workspace, cancellation: ct);
+        await Send.OkAsync(workspace, cancellation: ct);
     }
 }
