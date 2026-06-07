@@ -15,6 +15,6 @@ internal class CompleteReconciliation(IReconciliationService reconciliationServi
     public override async Task HandleAsync(CompleteReconciliationRequest req, CancellationToken ct)
     {
         await reconciliationService.Complete(req);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

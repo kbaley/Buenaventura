@@ -15,6 +15,6 @@ public class DeleteTransaction(IAccountService accountService) : Endpoint<Delete
     public override async Task HandleAsync(DeleteTransactionRequest req, CancellationToken ct)
     {
         await accountService.DeleteTransaction(req.Id);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

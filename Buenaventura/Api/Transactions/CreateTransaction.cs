@@ -14,6 +14,6 @@ public class CreateTransaction(IAccountService accountService) : Endpoint<Transa
     public override async Task HandleAsync(TransactionForDisplay req, CancellationToken ct)
     {
         await accountService.AddTransaction(req.AccountId!.Value, req);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

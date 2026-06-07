@@ -15,6 +15,6 @@ internal class DeleteVendor(IVendorService vendorService) : Endpoint<DeleteVendo
     public override async Task HandleAsync(DeleteVendorRequest req, CancellationToken ct)
     {
         await vendorService.DeleteVendor(req.Id);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

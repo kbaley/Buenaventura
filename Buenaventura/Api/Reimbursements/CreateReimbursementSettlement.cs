@@ -15,6 +15,6 @@ internal class CreateReimbursementSettlement(IReimbursementService reimbursement
     public override async Task HandleAsync(CreateReimbursementSettlementRequest req, CancellationToken ct)
     {
         await reimbursementService.CreateSettlement(req);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

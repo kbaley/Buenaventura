@@ -15,6 +15,6 @@ internal class RecordDividend(IInvestmentService investmentService)
     public override async Task HandleAsync(RecordDividendModel req, CancellationToken ct)
     {
         await investmentService.RecordDividend(req.InvestmentId, req);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

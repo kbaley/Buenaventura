@@ -16,6 +16,6 @@ internal class DeleteInvestment(IInvestmentService investmentService)
     public override async Task HandleAsync(DeleteInvestmentRequest req, CancellationToken ct)
     {
         await investmentService.DeleteInvestment(req.InvestmentId);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

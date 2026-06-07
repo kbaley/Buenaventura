@@ -14,6 +14,6 @@ public class CreateBulkTransactions(IAccountService accountService) : Endpoint<C
     public override async Task HandleAsync(CreateBulkTransactionsRequest req, CancellationToken ct)
     {
         await accountService.AddBulkTransactions(req.AccountId, req.Transactions);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

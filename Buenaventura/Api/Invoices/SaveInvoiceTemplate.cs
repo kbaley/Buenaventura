@@ -14,6 +14,6 @@ public class SaveInvoiceTemplate(IInvoiceService invoiceService) : Endpoint<Invo
     public override async Task HandleAsync(InvoiceTemplateModel req, CancellationToken ct)
     {
         await invoiceService.SaveInvoiceTemplate(req.Template);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

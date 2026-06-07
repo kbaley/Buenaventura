@@ -14,6 +14,6 @@ internal class MakeCorrectingEntry(IInvestmentService investmentService)
     public override async Task HandleAsync(CancellationToken ct)
     {
         await investmentService.MakeCorrectingEntry();
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }

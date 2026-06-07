@@ -15,6 +15,6 @@ internal class CreateInvestment(IInvestmentService investmentService)
     public override async Task HandleAsync(AddInvestmentModel req, CancellationToken ct)
     {
         await investmentService.AddInvestment(req);
-        await Send.OkAsync(ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }
