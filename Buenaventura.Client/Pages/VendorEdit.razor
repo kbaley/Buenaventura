@@ -1,0 +1,46 @@
+@page "/vendor/{vendorId:guid}"
+@inject IVendorsApi vendorsApi
+@inject ICategoriesApi categoriesApi
+@inject NavigationManager navigationManager
+
+@attribute [Authorize]
+
+<MudGrid>
+    <MudItem xs="12" md="8">
+        <MudText Typo="Typo.h4" GutterBottom="true">Edit Vendor</MudText>
+        <MudTextField Label="Name" @bind-Value="vendor.Name" Required="true"/>
+
+        <MudSelect T="Guid" Label="Category" @bind-Value="vendor.LastTransactionCategoryId">
+            @foreach (var category in categories)
+            {
+                <MudSelectItem Value="@category.CategoryId!.Value">@category.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveVendor" Disabled="@IsSaveDisabled">Save</MudButton>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public Guid VendorId { get; set; }
+
+    private VendorModel vendor = new();
+    private List<CategoryModel> categories = [];
+    private bool IsSaveDisabled => string.IsNullOrWhiteSpace(vendor.Name) || vendor.LastTransactionCategoryId == Guid.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = (await categoriesApi.GetCategories())
+            .Where(c => c.CategoryId.HasValue)
+            .OrderBy(c => c.Name)
+            .ToList();
+
+        vendor = await vendorsApi.GetVendor(VendorId);
+    }
+
+    private async Task SaveVendor()
+    {
+        await vendorsApi.UpdateVendor(vendor);
+        navigationManager.NavigateTo("/vendors");
+    }
+}

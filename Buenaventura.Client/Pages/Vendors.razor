@@ -1,0 +1,85 @@
+@page "/vendors"
+@inject IVendorsApi vendorsApi
+@inject IDialogService dialogService
+@inject NavigationManager navigationManager
+
+@attribute [Authorize]
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudText Typo="Typo.h4" GutterBottom="true">Vendors</MudText>
+    </MudItem>
+</MudGrid>
+
+@if (vendors == null)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+}
+else
+{
+    <MudPaper Elevation="0" Class="pa-4 mt-4">
+        <MudTable Items="@vendors" Dense="true" Hover="true" Bordered="true" Striped="true">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Category</MudTh>
+                <MudTh>Last Posted</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Category">@context.CategoryName</MudTd>
+                <MudTd DataLabel="Last Posted">@FormatLastPosted(context.LastTransactionDate)</MudTd>
+                <MudTd>
+                    <MudStack Row="true" Spacing="2">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       OnClick="@(() => EditVendor(context))"
+                                       Title="Edit vendor"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       OnClick="@(() => DeleteVendor(context))"
+                                       Title="Delete vendor"/>
+                    </MudStack>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+
+@code {
+    private IEnumerable<VendorModel>? vendors;
+
+    protected override async Task OnInitializedAsync()
+    {
+        vendors = await vendorsApi.GetVendors();
+    }
+
+    private void EditVendor(VendorModel vendor)
+    {
+        navigationManager.NavigateTo($"/vendor/{vendor.VendorId}");
+    }
+
+    private async Task DeleteVendor(VendorModel vendor)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to delete vendor {vendor.Name}?",
+            ["ButtonText"] = "Delete",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await dialogService.ShowAsync<ConfirmationDialog>("Delete Vendor", parameters);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            await vendorsApi.DeleteVendor(vendor.VendorId);
+            vendors = await vendorsApi.GetVendors();
+            StateHasChanged();
+        }
+    }
+
+    private static string FormatLastPosted(DateTime? date)
+    {
+        return date?.ToString("MM/dd/yyyy") ?? "";
+    }
+}
