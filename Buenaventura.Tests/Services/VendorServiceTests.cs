@@ -147,6 +147,29 @@ public class VendorServiceTests : IClassFixture<TestDbContextFixture>
         dbVendor.Should().BeNull();
     }
 
+    [Fact]
+    public async Task DeleteVendorsLastPostedBefore_RemovesOnlyVendorsOlderThanDate()
+    {
+        var category = CreateCategory("Bulk Delete Category");
+        var oldVendor = CreateVendor("Bulk Delete Old", category.CategoryId);
+        var newerVendor = CreateVendor("Bulk Delete Newer", category.CategoryId);
+        var noTransactionsVendor = CreateVendor("Bulk Delete No Transactions", category.CategoryId);
+
+        _fixture.Context.Categories.Add(category);
+        _fixture.Context.Vendors.AddRange(oldVendor, newerVendor, noTransactionsVendor);
+        _fixture.Context.Transactions.AddRange(
+            CreateTransaction(oldVendor.Name, category.CategoryId, new DateTime(2025, 12, 31)),
+            CreateTransaction(newerVendor.Name, category.CategoryId, new DateTime(2026, 1, 2)));
+        await _fixture.Context.SaveChangesAsync();
+
+        var deletedCount = await _service.DeleteVendorsLastPostedBefore(new DateTime(2026, 1, 1));
+
+        deletedCount.Should().Be(1);
+        (await _fixture.Context.Vendors.FindAsync(oldVendor.VendorId)).Should().BeNull();
+        (await _fixture.Context.Vendors.FindAsync(newerVendor.VendorId)).Should().NotBeNull();
+        (await _fixture.Context.Vendors.FindAsync(noTransactionsVendor.VendorId)).Should().NotBeNull();
+    }
+
     private static Transaction CreateTransaction(string vendor, Guid categoryId, DateTime date)
     {
         return new Transaction

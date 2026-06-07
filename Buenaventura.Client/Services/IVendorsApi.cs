@@ -23,4 +23,7 @@ public interface IVendorsApi
 
     [Delete("/api/vendors/{id}")]
     public Task DeleteVendor(Guid id);
+
+    [Delete("/api/vendors?lastPostedBefore={lastPostedBefore}")]
+    public Task<int> DeleteVendorsLastPostedBefore(DateTime lastPostedBefore);
 }

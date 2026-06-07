@@ -2,6 +2,7 @@
 @inject IVendorsApi vendorsApi
 @inject IDialogService dialogService
 @inject NavigationManager navigationManager
+@inject ISnackbar snackbar
 
 @attribute [Authorize]
 
@@ -14,6 +15,15 @@
 <MudPaper Elevation="0" Class="pa-4 mt-4">
     <MudTable T="VendorModel" ServerData="ServerReload" Dense="true" Hover="true" Bordered="true" Striped="true"
               Loading="@loading" @ref="vendorTable" RowsPerPage="25">
+        <ToolBarContent>
+            <MudSpacer/>
+            <MudDatePicker Label="Last posted before" @bind-Date="bulkDeleteBeforeDate" Class="mt-0 mr-2"/>
+            <MudIconButton Icon="@Icons.Material.Filled.DeleteSweep"
+                           Color="Color.Error"
+                           OnClick="BulkDeleteVendors"
+                           Disabled="@(bulkDeleteBeforeDate == null)"
+                           Title="Delete vendors last posted before this date"/>
+        </ToolBarContent>
         <HeaderContent>
             <MudTh>
                 <MudTableSortLabel T="VendorModel" SortLabel="name">Name</MudTableSortLabel>
@@ -50,6 +60,7 @@
 @code {
     private MudTable<VendorModel>? vendorTable;
     private bool loading = true;
+    private DateTime? bulkDeleteBeforeDate;
 
     private void EditVendor(VendorModel vendor)
     {
@@ -93,6 +104,35 @@
             TotalItems = result.TotalCount,
             Items = result.Items
         };
+    }
+
+    private async Task BulkDeleteVendors()
+    {
+        if (bulkDeleteBeforeDate == null)
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Delete all vendors whose last posted transaction is before {bulkDeleteBeforeDate.Value:MM/dd/yyyy}?",
+            ["ButtonText"] = "Delete",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await dialogService.ShowAsync<ConfirmationDialog>("Bulk Delete Vendors", parameters);
+        var result = await dialog.Result;
+        if (result!.Canceled)
+        {
+            return;
+        }
+
+        var deletedCount = await vendorsApi.DeleteVendorsLastPostedBefore(bulkDeleteBeforeDate.Value);
+        snackbar.Add($"Deleted {deletedCount} vendor{(deletedCount == 1 ? "" : "s")}.", Severity.Success);
+        if (vendorTable != null)
+        {
+            await vendorTable.ReloadServerData();
+        }
     }
 
     private static string FormatLastPosted(DateTime? date)

@@ -11,6 +11,7 @@ public interface IVendorService : IAppService
     public Task<VendorModel> GetVendor(Guid id);
     public Task UpdateVendor(VendorModel vendorModel);
     public Task DeleteVendor(Guid id);
+    public Task<int> DeleteVendorsLastPostedBefore(DateTime date);
 }
 
 public class VendorService(
@@ -138,5 +139,34 @@ public class VendorService(
     {
         await context.Vendors.RemoveByIdAsync(id);
         await context.SaveChangesAsync();
+    }
+
+    public async Task<int> DeleteVendorsLastPostedBefore(DateTime date)
+    {
+        var cutoff = date.Date;
+        var vendorIds = await context.Vendors
+            .Select(v => new
+            {
+                v.VendorId,
+                LastTransactionDate = context.Transactions
+                    .Where(t => t.Vendor != null && t.Vendor.ToLower() == v.Name.ToLower())
+                    .Max(t => (DateTime?)t.TransactionDate)
+            })
+            .Where(v => v.LastTransactionDate.HasValue && v.LastTransactionDate < cutoff)
+            .Select(v => v.VendorId)
+            .ToListAsync();
+
+        if (!vendorIds.Any())
+        {
+            return 0;
+        }
+
+        var vendors = await context.Vendors
+            .Where(v => vendorIds.Contains(v.VendorId))
+            .ToListAsync();
+
+        context.Vendors.RemoveRange(vendors);
+        await context.SaveChangesAsync();
+        return vendors.Count;
     }
 }
