@@ -5,7 +5,6 @@
 
   <ItemGroup>
     <PackageVersion Include="Blazor-ApexCharts" Version="6.1.0" />
-    <PackageVersion Include="Blazored.LocalStorage" Version="4.3.0" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="Dapper" Version="2.1.79" />
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />

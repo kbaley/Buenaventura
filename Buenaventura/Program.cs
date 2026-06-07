@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
-using Blazored.LocalStorage;
 using Buenaventura;
+using Buenaventura.Client.Services;
 using MudBlazor.Services;
 using Buenaventura.Components;
 using Buenaventura.Components.Account;
@@ -45,7 +45,7 @@ builder.Services.AddDbContext<BuenaventuraDbContext>(options =>
 
 // Register server-side implementations of services
 builder.Services
-    .AddBlazoredLocalStorage()
+    .AddScoped<IBrowserStorageService, BrowserStorageService>()
     .AddBuenaventuraServices()
     .AddOptions()
     .AddResend(builder.Configuration)

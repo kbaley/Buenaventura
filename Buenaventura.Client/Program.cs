@@ -1,5 +1,4 @@
 using ApexCharts;
-using Blazored.LocalStorage;
 using Buenaventura.Client;
 using Buenaventura.Client.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -13,7 +12,7 @@ builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
 });
-builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddScoped<IBrowserStorageService, BrowserStorageService>();
 // Register client-side implementations of services
 builder.Services.AddSingleton(_ => new HttpClient
 {
