@@ -88,6 +88,11 @@ else
                                 </MudChip>
                             </MudStack>
                             <MudStack Row="true" Spacing="1">
+                                <MudButton Variant="Variant.Text"
+                                           Disabled="@(!VisibleTransactions.Any() || AllVisibleTransactionsSelected)"
+                                           OnClick="SelectAllVisibleTransactions">
+                                    Select all
+                                </MudButton>
                                 <MudButton Variant="Variant.Text" OnClick="ClearSelection">
                                     Clear
                                 </MudButton>
@@ -167,6 +172,8 @@ else
     private decimal Difference => CalculatedBalance - TargetBalance;
     private Color DifferenceColor => Math.Abs(Difference) < 0.005m ? Color.Success : Color.Warning;
     private string DifferenceLabel => Math.Abs(Difference) < 0.005m ? "Balanced" : "Needs review";
+    private bool AllVisibleTransactionsSelected => VisibleTransactions
+        .All(t => selectedTransactionIds.Contains(t.TransactionId));
 
     private string DateLabel => mode == ReconciliationMode.Statement ? "Statement date" : "Balance date";
     private string TargetBalanceLabel => mode == ReconciliationMode.Statement ? "Statement ending balance" : "Online bank balance";
@@ -226,6 +233,11 @@ else
     private void ClearSelection()
     {
         selectedTransactionIds.Clear();
+    }
+
+    private void SelectAllVisibleTransactions()
+    {
+        selectedTransactionIds.UnionWith(VisibleTransactions.Select(t => t.TransactionId));
     }
 
     private async Task Complete()
