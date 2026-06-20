@@ -357,6 +357,17 @@ namespace Buenaventura.Data
             };
         }
 
+        public async Task<List<string>> GetAvailableTags()
+        {
+            var serializedTags = await context.Transactions
+                .Where(t => t.Tags != "[]" && t.Tags != "")
+                .Select(t => t.Tags)
+                .ToListAsync();
+
+            return TransactionTagFormatter.Normalize(
+                serializedTags.SelectMany(TransactionTagFormatter.Deserialize));
+        }
+
         public async Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0,
             int pageSize = 50, bool isRestricted = false)
         {

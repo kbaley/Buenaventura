@@ -31,6 +31,9 @@ public interface ITransactionsApi
 
     [Get("/api/transactions/tags?includeTags={includeTags}&excludeTags={excludeTags}&page={page}&pageSize={pageSize}")]
     Task<TransactionListModel> GetTransactionsByTags(string includeTags = "", string excludeTags = "", int page = 0, int pageSize = 50);
+
+    [Get("/api/transactions/available-tags")]
+    Task<List<string>> GetAvailableTags();
     
     [Post("/api/accounts/{accountId}/transactions/bulk")]
     Task AddBulkTransactions(Guid accountId, CreateBulkTransactionsRequest request);

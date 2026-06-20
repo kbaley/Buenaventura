@@ -6,6 +6,7 @@ namespace Buenaventura.Shared;
 public static class TransactionTagFormatter
 {
     private static readonly Regex HashTagRegex = new(@"(?<![\w-])#(?<tag>[A-Za-z0-9][A-Za-z0-9_-]*)", RegexOptions.Compiled);
+    private static readonly Regex ActiveHashTagRegex = new(@"(?:^|[\s,;])#(?<tag>[A-Za-z0-9_-]*)$", RegexOptions.Compiled);
 
     public static List<string> Normalize(IEnumerable<string>? tags)
     {
@@ -29,6 +30,27 @@ public static class TransactionTagFormatter
         return Normalize(HashTagRegex
             .Matches(text ?? string.Empty)
             .Select(match => match.Groups["tag"].Value));
+    }
+
+    public static string? GetActiveHashTagQuery(string? text)
+    {
+        var match = ActiveHashTagRegex.Match(text ?? string.Empty);
+        return match.Success ? match.Groups["tag"].Value : null;
+    }
+
+    public static string ReplaceActiveHashTag(string? text, string tag)
+    {
+        var value = text ?? string.Empty;
+        var match = ActiveHashTagRegex.Match(value);
+        if (!match.Success)
+        {
+            return value;
+        }
+
+        var normalizedTag = Normalize([tag]).SingleOrDefault();
+        return normalizedTag == null
+            ? value
+            : $"{value[..match.Groups["tag"].Index]}{normalizedTag}";
     }
 
     public static string ToTagText(IEnumerable<string>? tags)

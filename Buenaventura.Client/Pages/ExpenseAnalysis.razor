@@ -14,22 +14,22 @@
         <MudPaper Elevation="1" Class="pa-4">
             <MudGrid>
                 <MudItem xs="12" md="6">
-                    <MudTextField T="string"
-                                  Label="Include hashtags"
-                                  Value="@includeTagsForEdit"
-                                  ValueChanged="OnIncludeTagsChanged"
-                                  Clearable="true"
-                                  Immediate="false"
-                                  Placeholder="#EuropeTrip2026 #maintenance" />
+                    <HashtagAutocomplete Label="Include hashtags"
+                                         Value="@includeTagsForEdit"
+                                         ValueChanged="OnIncludeTagsChanged"
+                                         AvailableTags="availableTags"
+                                         Clearable="true"
+                                         Immediate="false"
+                                         Placeholder="#EuropeTrip2026 #maintenance" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField T="string"
-                                  Label="Exclude hashtags"
-                                  Value="@excludeTagsForEdit"
-                                  ValueChanged="OnExcludeTagsChanged"
-                                  Clearable="true"
-                                  Immediate="false"
-                                  Placeholder="#personal #reimbursed" />
+                    <HashtagAutocomplete Label="Exclude hashtags"
+                                         Value="@excludeTagsForEdit"
+                                         ValueChanged="OnExcludeTagsChanged"
+                                         AvailableTags="availableTags"
+                                         Clearable="true"
+                                         Immediate="false"
+                                         Placeholder="#personal #reimbursed" />
                 </MudItem>
                 @if (HasIncludeTags)
                 {
@@ -248,6 +248,7 @@
     private int chartRenderVersion;
     private string includeTagsForEdit = "";
     private string excludeTagsForEdit = "";
+    private IReadOnlyCollection<string> availableTags = [];
     private TagReportMode tagReportMode = TagReportMode.Project;
     private const int OngoingTagMinimumMonthSpan = 12;
     private readonly ApexChartOptions<ReportDataPoint> vendorChartOptions = Services.ChartOptions.GetDefaultOptions<ReportDataPoint>();
@@ -259,6 +260,11 @@
     private string VendorChartTitle => IsProjectTagMode
         ? "Spending by Vendor"
         : "Spending by Vendor (last 12 months)";
+
+    protected override async Task OnInitializedAsync()
+    {
+        availableTags = await transactionsApi.GetAvailableTags();
+    }
 
     protected override async Task OnParametersSetAsync()
     {

@@ -1,0 +1,61 @@
+<MudAutocomplete T="string"
+                 Value="@Value"
+                 ValueChanged="OnValueSelected"
+                 Text="@Value"
+                 TextChanged="OnTextChanged"
+                 SearchFunc="SearchTags"
+                 ToStringFunc="@(value => value)"
+                 Variant="@Variant"
+                 Typo="@Typo"
+                 Label="@Label"
+                 Placeholder="@Placeholder"
+                 Clearable="@Clearable"
+                 Immediate="@Immediate"
+                 CoerceText="true"
+                 CoerceValue="true"
+                 ResetValueOnEmptyText="false"
+                 SelectValueOnTab="true"
+                 RelativeWidth="DropdownWidth.Adaptive"
+                 Adornment="Adornment.None"
+                 OnKeyDown="@OnKeyDown">
+    <ItemTemplate>
+        #@TransactionTagFormatter.GetActiveHashTagQuery(context)
+    </ItemTemplate>
+</MudAutocomplete>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public IReadOnlyCollection<string> AvailableTags { get; set; } = [];
+    [Parameter] public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+    [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    [Parameter] public Typo Typo { get; set; } = Typo.body1;
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public bool Clearable { get; set; }
+    [Parameter] public bool Immediate { get; set; } = true;
+
+    private Task<IEnumerable<string>> SearchTags(string? text, CancellationToken token)
+    {
+        var query = TransactionTagFormatter.GetActiveHashTagQuery(text);
+        if (query == null)
+        {
+            return Task.FromResult<IEnumerable<string>>([]);
+        }
+
+        var matches = AvailableTags
+            .Where(tag => tag.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+            .Select(tag => TransactionTagFormatter.ReplaceActiveHashTag(text, tag));
+        return Task.FromResult(matches);
+    }
+
+    private Task OnTextChanged(string? value) => SetValue(value);
+
+    private Task OnValueSelected(string? value) => SetValue(value);
+
+    private async Task SetValue(string? value)
+    {
+        Value = value ?? string.Empty;
+        await ValueChanged.InvokeAsync(Value);
+    }
+}

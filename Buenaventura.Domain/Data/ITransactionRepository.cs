@@ -15,5 +15,6 @@ namespace Buenaventura.Data
         Task<TransactionListModel> GetInDateRange(Guid accountId, DateTime start, DateTime end);
         Task<TransactionListModel> GetByCategory(Guid categoryId, int page, int pageSize);
         Task<TransactionListModel> GetByTags(IEnumerable<string> includeTags, IEnumerable<string> excludeTags, int page, int pageSize);
+        Task<List<string>> GetAvailableTags();
     }
 }

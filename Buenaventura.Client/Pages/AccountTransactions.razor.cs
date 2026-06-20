@@ -35,6 +35,7 @@ public partial class AccountTransactions(
     // List of categories not including the accounts for transfers
     private IEnumerable<CategoryModel> masterCategoryList { get; set; } = [];
     private IEnumerable<VendorModel> vendors { get; set; } = [];
+    private IReadOnlyCollection<string> availableTags { get; set; } = [];
     [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
@@ -58,6 +59,7 @@ public partial class AccountTransactions(
 
         categories = masterCategoryList.ToList();
         vendors = await vendorsApi.GetVendors();
+        availableTags = await transactionsApi.GetAvailableTags();
     }
 
     private TransactionForDisplay newTransaction { get; set; } = new()

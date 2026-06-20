@@ -66,9 +66,11 @@
 
             </MudTd>
             <MudTd DataLabel="Description" Class="mud-table-small-cell">
-                <TextField @bind-Value="@context.Description"
-                           OnKeyDown="@(async e => await HandleKeyDown(e, context))"
-                />
+                <HashtagAutocomplete @bind-Value="@context.Description"
+                                     AvailableTags="availableTags"
+                                     Variant="Variant.Text"
+                                     Typo="Typo.inherit"
+                                     OnKeyDown="@(async e => await HandleKeyDown(e, context))" />
             </MudTd>
             <MudTd DataLabel="Debit" Class="mud-table-small-cell align-right">
                 <MoneyTextField @bind-Value="@context.DebitForEdit"
