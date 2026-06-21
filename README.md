@@ -216,6 +216,35 @@ url = "https://<app-name>.azurewebsites.net/mcp"
 bearer_token_env_var = "BUENAVENTURA_MCP_TOKEN"
 ```
 
+On macOS, avoid putting the literal token in `~/.codex/config.toml`. Store the Azure `Mcp__ApiKey` value in Keychain and use a login LaunchAgent to populate `BUENAVENTURA_MCP_TOKEN` for GUI apps after reboot/login.
+
+This machine uses:
+
+- Keychain service: `Buenaventura MCP`
+- Keychain account: `BUENAVENTURA_MCP_TOKEN`
+- LaunchAgent: `~/Library/LaunchAgents/com.kbaley.buenaventura-mcp-env.plist`
+
+The LaunchAgent should read the token from Keychain and run:
+
+```bash
+launchctl setenv BUENAVENTURA_MCP_TOKEN "$token"
+```
+
+After changing the token or LaunchAgent, quit and reopen Codex so the app process picks up the environment. To verify the Codex config without exposing the token:
+
+```bash
+codex mcp get buenaventura
+```
+
+The expected shape is:
+
+```text
+buenaventura
+  transport: streamable_http
+  url: https://<app-name>.azurewebsites.net/mcp
+  bearer_token_env_var: BUENAVENTURA_MCP_TOKEN
+```
+
 ### Connect ChatGPT developer mode
 
 ChatGPT connects to the HTTPS `/mcp` endpoint. For this minimal first version, set `Mcp__AllowAnonymous=true` and choose **No authentication** when creating the app in ChatGPT developer mode.
