@@ -27,6 +27,7 @@ Buenaventura is a multi-project solution:
 - `Buenaventura.Tests/`: xUnit tests for domain, service, data, parser, integration, and performance behavior.
 - `Buenaventura.Functions/`: Azure Functions isolated worker app. The timer job updates investment prices on weekdays.
 - `Buenaventura.Mobile/`: .NET MAUI Blazor Hybrid app.
+- `Buenaventura.MCP/`: read-only Model Context Protocol server for finance queries from Codex or ChatGPT.
 
 The usual request flow is:
 
@@ -156,6 +157,70 @@ dotnet Buenaventura.dll
 ```
 
 This became required after moving to .NET 10, likely because multiple runtime configuration files are present in the published output and the startup command makes the intended assembly explicit.
+
+## MCP Server
+
+`Buenaventura.MCP` exposes three read-only tools:
+
+- `get_transactions`: searches income and expense transactions over a bounded date range.
+- `summarize_finances`: totals income and expenses by category, including invoiced income.
+- `list_financial_categories`: lists configured income and expense categories.
+
+Set the connection string with an environment variable; do not put it in `appsettings`:
+
+```bash
+export ConnectionStrings__Buenaventura="Host=localhost;Port=5432;Database=buenaventura;Username=postgres;Password=<password>"
+```
+
+Run the Streamable HTTP server locally:
+
+```bash
+ASPNETCORE_ENVIRONMENT=Development dotnet run --project Buenaventura.MCP/Buenaventura.MCP.csproj
+```
+
+The health endpoint is `/health` and the MCP endpoint is `/mcp`. Development permits anonymous MCP calls. Production fails to start unless either `Mcp__ApiKey` is set or `Mcp__AllowAnonymous=true` is explicitly configured.
+
+### Use locally with Codex
+
+Codex can start the server over stdio, so no HTTP server or Azure deployment is required. Replace the project path with the absolute path on your machine:
+
+```bash
+codex mcp add buenaventura \
+  --env MCP_TRANSPORT=stdio \
+  --env ConnectionStrings__Buenaventura="$ConnectionStrings__Buenaventura" \
+  -- dotnet run --project /absolute/path/to/Buenaventura.MCP/Buenaventura.MCP.csproj
+```
+
+Restart Codex after adding the server. The Codex app, CLI, and IDE extension share this MCP configuration.
+
+### Deploy to Azure App Service
+
+Create a separate Linux App Service for the MCP project and configure:
+
+- Startup command: `dotnet Buenaventura.MCP.dll`
+- `ConnectionStrings__Buenaventura`: the PostgreSQL connection string
+- `Mcp__ApiKey`: a long random token for Codex remote access
+
+Configure the GitHub environment named `MCP` with:
+
+- Repository/environment variable `AZURE_MCP_WEBAPP_NAME`
+- Secret `AZURE_MCP_PUBLISH_PROFILE`
+
+The `azure-mcp.yml` workflow can then deploy the project manually or after relevant changes reach `main`.
+
+For remote Codex access, configure the Azure endpoint and keep the token in an environment variable:
+
+```toml
+[mcp_servers.buenaventura]
+url = "https://<app-name>.azurewebsites.net/mcp"
+bearer_token_env_var = "BUENAVENTURA_MCP_TOKEN"
+```
+
+### Connect ChatGPT developer mode
+
+ChatGPT connects to the HTTPS `/mcp` endpoint. For this minimal first version, set `Mcp__AllowAnonymous=true` and choose **No authentication** when creating the app in ChatGPT developer mode.
+
+This anonymous mode exposes financial data to anyone who can reach the endpoint. Use it only for a short-lived personal experiment, add Azure network restrictions where practical, and move to standards-based OAuth before treating the deployment as permanent. ChatGPT cannot use the server's custom bearer-token option. To test a local HTTP server with ChatGPT, expose it temporarily through an HTTPS tunnel and use the tunnel's `/mcp` URL.
 
 ## Monitoring
 
