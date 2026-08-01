@@ -308,6 +308,82 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task BulkTagTransactions_AddsExistingTagToSelectedAccountTransactions()
+    {
+        // Arrange
+        var tag = $"europe-{Guid.NewGuid():N}";
+        var account = TestDataFactory.AccountFaker.Generate();
+        var otherAccount = TestDataFactory.AccountFaker.Generate();
+        var existingTagTransaction = CreateTransaction(account.AccountId, "Train #tag-source");
+        existingTagTransaction.Tags = TransactionTagFormatter.Serialize([tag]);
+        var firstSelected = CreateTransaction(account.AccountId, "Cafe");
+        var secondSelected = CreateTransaction(account.AccountId, "");
+        var alreadyTagged = CreateTransaction(account.AccountId, $"Hotel #{tag}");
+        alreadyTagged.Tags = TransactionTagFormatter.Serialize([tag]);
+        var otherAccountTransaction = CreateTransaction(otherAccount.AccountId, "Museum");
+
+        _fixture.Context.Accounts.AddRange(account, otherAccount);
+        _fixture.Context.Transactions.AddRange(
+            existingTagTransaction,
+            firstSelected,
+            secondSelected,
+            alreadyTagged,
+            otherAccountTransaction);
+        await _fixture.Context.SaveChangesAsync();
+
+        // Act
+        var updatedCount = await _service.BulkTagTransactions(
+            account.AccountId,
+            [firstSelected.TransactionId, secondSelected.TransactionId, alreadyTagged.TransactionId, otherAccountTransaction.TransactionId],
+            tag);
+
+        // Assert
+        updatedCount.Should().Be(2);
+        firstSelected.Description.Should().Be($"Cafe #{tag}");
+        secondSelected.Description.Should().Be($"#{tag}");
+        TransactionTagFormatter.Deserialize(firstSelected.Tags).Should().ContainSingle(tag);
+        TransactionTagFormatter.Deserialize(secondSelected.Tags).Should().ContainSingle(tag);
+        alreadyTagged.Description.Should().Be($"Hotel #{tag}");
+        otherAccountTransaction.Description.Should().Be("Museum");
+    }
+
+    [Fact]
+    public async Task BulkTagTransactions_WhenTagDoesNotExist_DoesNotUpdateTransactions()
+    {
+        // Arrange
+        var account = TestDataFactory.AccountFaker.Generate();
+        var transaction = CreateTransaction(account.AccountId, "Cafe");
+        _fixture.Context.Accounts.Add(account);
+        _fixture.Context.Transactions.Add(transaction);
+        await _fixture.Context.SaveChangesAsync();
+
+        // Act
+        var updatedCount = await _service.BulkTagTransactions(
+            account.AccountId,
+            [transaction.TransactionId],
+            $"missing-{Guid.NewGuid():N}");
+
+        // Assert
+        updatedCount.Should().Be(0);
+        transaction.Description.Should().Be("Cafe");
+        TransactionTagFormatter.Deserialize(transaction.Tags).Should().BeEmpty();
+    }
+
+    private static Transaction CreateTransaction(Guid accountId, string description)
+    {
+        return new Transaction
+        {
+            TransactionId = Guid.NewGuid(),
+            AccountId = accountId,
+            Description = description,
+            Amount = -10m,
+            AmountInBaseCurrency = -10m,
+            TransactionDate = DateTime.UtcNow,
+            EnteredDate = DateTime.UtcNow
+        };
+    }
+
+    [Fact]
     public async Task DeleteAccount_WithOnlyStartingBalance_DeletesAccount()
     {
         // Arrange

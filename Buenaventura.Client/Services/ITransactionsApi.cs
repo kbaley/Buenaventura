@@ -37,4 +37,7 @@ public interface ITransactionsApi
     
     [Post("/api/accounts/{accountId}/transactions/bulk")]
     Task AddBulkTransactions(Guid accountId, CreateBulkTransactionsRequest request);
+
+    [Put("/api/accounts/{accountId}/transactions/bulk-tag")]
+    Task<int> BulkTagTransactions(Guid accountId, BulkTagTransactionsRequest request);
 }

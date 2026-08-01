@@ -15,7 +15,8 @@ public partial class AccountTransactions(
     IAccountsApi accountsApi,
     ITransactionsApi transactionsApi,
     NavigationManager navigation,
-    IJSRuntime jsRuntime)
+    IJSRuntime jsRuntime,
+    ISnackbar snackbar)
 {
     [Parameter] public Guid AccountId { get; set; }
     private AccountWithBalance Account { get; set; } = new();
@@ -36,6 +37,8 @@ public partial class AccountTransactions(
     private IEnumerable<CategoryModel> masterCategoryList { get; set; } = [];
     private IEnumerable<VendorModel> vendors { get; set; } = [];
     private IReadOnlyCollection<string> availableTags { get; set; } = [];
+    private readonly HashSet<Guid> selectedTransactionIds = [];
+    private string? selectedBulkTag;
     [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
@@ -72,6 +75,8 @@ public partial class AccountTransactions(
     {
         if (AccountId != previousAccountId)
         {
+            selectedTransactionIds.Clear();
+            selectedBulkTag = null;
             await LoadAccount();
         }
     }
@@ -233,6 +238,52 @@ public partial class AccountTransactions(
         {
             await transactionTable.ReloadServerData();
         }
+    }
+
+    private bool AreAllVisibleTransactionsSelected => transactions.Items.Any()
+        && transactions.Items.All(t => selectedTransactionIds.Contains(t.TransactionId));
+
+    private void ToggleTransactionSelection(Guid transactionId, bool selected)
+    {
+        if (selected)
+        {
+            selectedTransactionIds.Add(transactionId);
+        }
+        else
+        {
+            selectedTransactionIds.Remove(transactionId);
+        }
+    }
+
+    private void ToggleVisibleTransactions(bool selected)
+    {
+        foreach (var transaction in transactions.Items)
+        {
+            ToggleTransactionSelection(transaction.TransactionId, selected);
+        }
+    }
+
+    private async Task ApplyBulkTag()
+    {
+        if (selectedTransactionIds.Count == 0 || string.IsNullOrWhiteSpace(selectedBulkTag))
+        {
+            return;
+        }
+
+        var selectedCount = selectedTransactionIds.Count;
+        var updatedCount = await transactionsApi.BulkTagTransactions(
+            AccountId,
+            new BulkTagTransactionsRequest(AccountId, selectedTransactionIds.ToList(), selectedBulkTag));
+
+        selectedTransactionIds.Clear();
+        selectedBulkTag = null;
+        await ReloadTransactions();
+
+        snackbar.Add(
+            updatedCount == selectedCount
+                ? $"Tagged {updatedCount} transactions"
+                : $"Tagged {updatedCount} of {selectedCount} selected transactions",
+            updatedCount > 0 ? Severity.Success : Severity.Info);
     }
 
     private Task<IEnumerable<CategoryModel>> SearchCategories(string? search, CancellationToken token)

@@ -19,6 +19,7 @@ public interface IAccountService : IAppService
     Task<TransactionListModel> GetAllTransactions(Guid accountId, DateTime startDate, DateTime endDate);
     Task<TransactionListModel> GetAllTransactions(DateTime startDate, DateTime endDate);
     Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions);
+    Task<int> BulkTagTransactions(Guid accountId, IEnumerable<Guid> transactionIds, string tag);
     Task<DeleteAccountResponse> DeleteAccount(Guid accountId);
 }
 
@@ -253,6 +254,53 @@ public class AccountService(
         }
         await context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<int> BulkTagTransactions(Guid accountId, IEnumerable<Guid> transactionIds, string tag)
+    {
+        var normalizedTag = TransactionTagFormatter.Normalize([tag]).SingleOrDefault();
+        if (normalizedTag == null)
+        {
+            return 0;
+        }
+
+        var serializedTags = await context.Transactions
+            .AsNoTracking()
+            .Where(t => t.Tags != "[]" && t.Tags != "")
+            .Select(t => t.Tags)
+            .ToListAsync();
+        var tagExists = serializedTags
+            .SelectMany(TransactionTagFormatter.Deserialize)
+            .Contains(normalizedTag, StringComparer.OrdinalIgnoreCase);
+        if (!tagExists)
+        {
+            return 0;
+        }
+
+        var ids = transactionIds.Where(id => id != Guid.Empty).Distinct().ToList();
+        var selectedTransactions = await context.Transactions
+            .Where(t => t.AccountId == accountId && ids.Contains(t.TransactionId))
+            .ToListAsync();
+
+        var updatedCount = 0;
+        foreach (var transaction in selectedTransactions)
+        {
+            var tags = TransactionTagFormatter.Deserialize(transaction.Tags);
+            if (tags.Contains(normalizedTag, StringComparer.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            tags.Add(normalizedTag);
+            transaction.Tags = TransactionTagFormatter.Serialize(tags);
+            transaction.Description = string.IsNullOrWhiteSpace(transaction.Description)
+                ? $"#{normalizedTag}"
+                : $"{transaction.Description.TrimEnd()} #{normalizedTag}";
+            updatedCount++;
+        }
+
+        await context.SaveChangesAsync();
+        return updatedCount;
     }
 
     public async Task<DeleteAccountResponse> DeleteAccount(Guid accountId)

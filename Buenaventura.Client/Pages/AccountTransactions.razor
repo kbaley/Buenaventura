@@ -10,6 +10,21 @@
           OnRowClick="@BeginEdit" Class="d-none d-md-block"
 >
     <ToolBarContent>
+        @if (selectedTransactionIds.Count > 0)
+        {
+            <MudText Typo="Typo.body2" Class="mr-2">@selectedTransactionIds.Count selected</MudText>
+            <MudSelect T="string" @bind-Value="selectedBulkTag" Label="Existing tag" Dense="true"
+                       Style="width: 200px;" Class="mr-2">
+                @foreach (var tag in availableTags)
+                {
+                    <MudSelectItem T="string" Value="@tag">#@tag</MudSelectItem>
+                }
+            </MudSelect>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ApplyBulkTag"
+                       Disabled="@string.IsNullOrWhiteSpace(selectedBulkTag)" Class="mr-2">
+                Apply tag
+            </MudButton>
+        }
         <MudSpacer/>
         <div style="width: 400px;">
             <MudTextField T="string" Value="@searchString" ValueChanged="@(s => OnSearchChanged(s))"
@@ -31,6 +46,11 @@
                        Title="Show potential duplicate transactions"/>
     </ToolBarContent>
     <HeaderContent>
+        <MudTh Style="width: 44px;">
+            <MudCheckBox T="bool" Value="AreAllVisibleTransactionsSelected"
+                         ValueChanged="ToggleVisibleTransactions"
+                         AriaLabel="Select all visible transactions" />
+        </MudTh>
         <MudTh Style="width: 125px;">Date</MudTh>
         <MudTh Style="width: 175px;">Vendor</MudTh>
         <MudTh Style="width: 200px;">Category</MudTh>
@@ -40,6 +60,16 @@
         <MudTh Class="transaction-amount">Balance</MudTh>
     </HeaderContent>
     <RowTemplate>
+        <MudTd DataLabel="Select" Class="mud-table-small-cell">
+            @if (context.TransactionId != Guid.Empty)
+            {
+                <span @onclick:stopPropagation="true">
+                    <MudCheckBox T="bool" Value="@selectedTransactionIds.Contains(context.TransactionId)"
+                                 ValueChanged="@(selected => ToggleTransactionSelection(context.TransactionId, selected))"
+                                 AriaLabel="Select transaction" />
+                </span>
+            }
+        </MudTd>
         @if (editingTransaction == context || newTransaction == context)
         {
             <MudTd DataLabel="Date" Class="mud-table-small-cell">
