@@ -94,7 +94,7 @@
         {
             <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
             <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-            <MudTd DataLabel="Category">@context.Category.Name</MudTd>
+            <MudTd DataLabel="Category">@context.Category?.Name</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="Debit" Class="transaction-amount">@context.Debit?.ToString("N2")</MudTd>
             <MudTd DataLabel="Credit" Class="transaction-amount">@context.Credit?.ToString("N2")</MudTd>
@@ -162,7 +162,7 @@
                                 </div>
                                 <div class="d-flex flex-column">
                                     <div class="d-flex justify-space-between">
-                                        <MudText Typo="Typo.body2">@transaction.Category.Name</MudText>
+                                        <MudText Typo="Typo.body2">@transaction.Category?.Name</MudText>
                                         @if (string.IsNullOrEmpty(searchString) && !showDuplicates)
                                         {
                                             <MudText Typo="Typo.body2">$@transaction.RunningTotal.ToString("N2")</MudText>
