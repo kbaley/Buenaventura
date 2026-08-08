@@ -308,6 +308,58 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task AddBulkTransactions_WithTaggedMatchedTransaction_RetainsOriginalTags()
+    {
+        // Arrange
+        var account = TestDataFactory.AccountFaker.Generate();
+        var category = new Category
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Dining"
+        };
+        var existingTransaction = new Transaction
+        {
+            TransactionId = Guid.NewGuid(),
+            AccountId = account.AccountId,
+            Description = "Original description #vacation",
+            Tags = TransactionTagFormatter.Serialize(["vacation"]),
+            CategoryId = category.CategoryId,
+            Amount = -25m,
+            AmountInBaseCurrency = -25m,
+            TransactionDate = DateTime.UtcNow,
+            EnteredDate = DateTime.UtcNow
+        };
+
+        _fixture.Context.Accounts.Add(account);
+        _fixture.Context.Categories.Add(category);
+        _fixture.Context.Transactions.Add(existingTransaction);
+        await _fixture.Context.SaveChangesAsync();
+
+        var importedTransaction = new TransactionForDisplay
+        {
+            TransactionId = existingTransaction.TransactionId,
+            Description = "IMPORTED RESTAURANT #reimbursable",
+            DownloadId = "posted-tagged-123",
+            Category = new CategoryModel
+            {
+                CategoryId = category.CategoryId,
+                Name = category.Name
+            }
+        };
+
+        // Act
+        await _service.AddBulkTransactions(account.AccountId, [importedTransaction]);
+
+        // Assert
+        var updatedTransaction = await _fixture.Context.Transactions
+            .AsNoTracking()
+            .SingleAsync(t => t.TransactionId == existingTransaction.TransactionId);
+        updatedTransaction.Description.Should().Be("IMPORTED RESTAURANT #reimbursable #vacation");
+        TransactionTagFormatter.Deserialize(updatedTransaction.Tags)
+            .Should().BeEquivalentTo(["reimbursable", "vacation"]);
+    }
+
+    [Fact]
     public async Task BulkTagTransactions_AddsExistingTagToSelectedAccountTransactions()
     {
         // Arrange

@@ -243,11 +243,22 @@ public class AccountService(
                 var dbTransaction = await context.Transactions.FindAsync(transaction.TransactionId);
                 if (dbTransaction != null)
                 {
+                    var originalTags = TransactionTagFormatter.Normalize(
+                        TransactionTagFormatter.Deserialize(dbTransaction.Tags)
+                            .Concat(TransactionTagFormatter.ParseHashTags(dbTransaction.Description)));
+                    var importedTags = TransactionTagFormatter.ParseHashTags(transaction.Description);
+                    var tagsMissingFromImportedDescription = originalTags
+                        .Where(tag => !importedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+                        .Select(tag => $"#{tag}")
+                        .ToList();
+
                     dbTransaction.DownloadId = transaction.DownloadId;
                     dbTransaction.Vendor = transaction.Vendor;
-                    dbTransaction.Description = transaction.Description;
+                    dbTransaction.Description = string.Join(" ", new[] { transaction.Description.TrimEnd() }
+                        .Concat(tagsMissingFromImportedDescription)
+                        .Where(value => !string.IsNullOrWhiteSpace(value)));
                     dbTransaction.Category = await context.GetOrCreateCategory(transaction.Category);
-                    dbTransaction.Tags = TransactionTagFormatter.Serialize(TransactionTagFormatter.ParseHashTags(transaction.Description));
+                    dbTransaction.Tags = TransactionTagFormatter.Serialize(originalTags.Concat(importedTags));
                     context.Transactions.Update(dbTransaction);
                 }
             }
