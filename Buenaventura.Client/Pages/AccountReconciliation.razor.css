@@ -1,0 +1,56 @@
+.reconciliation-actions {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+::deep .reconciliation-table table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+::deep .reconciliation-table .select-column {
+    width: 52px;
+}
+
+::deep .reconciliation-table .date-column {
+    width: 100px;
+}
+
+::deep .reconciliation-table .vendor-column {
+    width: 22%;
+}
+
+::deep .reconciliation-table .category-column {
+    width: 22%;
+}
+
+::deep .reconciliation-table .description-column {
+    width: auto;
+}
+
+::deep .reconciliation-table .amount-column {
+    width: 110px;
+    text-align: right;
+}
+
+::deep .reconciliation-table .vendor-column,
+::deep .reconciliation-table .category-column,
+::deep .reconciliation-table .description-column {
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+@media (max-width: 959.98px) {
+    ::deep .reconciliation-table table {
+        table-layout: auto;
+    }
+
+    ::deep .reconciliation-table .select-column,
+    ::deep .reconciliation-table .date-column,
+    ::deep .reconciliation-table .vendor-column,
+    ::deep .reconciliation-table .category-column,
+    ::deep .reconciliation-table .description-column,
+    ::deep .reconciliation-table .amount-column {
+        width: auto;
+    }
+}

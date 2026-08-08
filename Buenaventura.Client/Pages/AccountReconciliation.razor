@@ -24,7 +24,7 @@
 else
 {
     <MudGrid>
-        <MudItem xs="12" md="4">
+        <MudItem xs="12" md="3">
             <MudPaper Elevation="1" Class="pa-4">
                 <MudText Typo="Typo.h6" GutterBottom="true">Method</MudText>
                 <MudRadioGroup T="ReconciliationMode" Value="@mode" ValueChanged="OnModeChanged">
@@ -56,7 +56,7 @@ else
             </MudPaper>
         </MudItem>
 
-        <MudItem xs="12" md="8">
+        <MudItem xs="12" md="9">
             <MudGrid>
                 <MudItem xs="12" md="4">
                     <MudPaper Elevation="1" Class="pa-4">
@@ -78,7 +78,7 @@ else
                 </MudItem>
                 <MudItem xs="12">
                     <MudPaper Elevation="1" Class="pa-4">
-                        <div class="d-flex align-center justify-space-between mb-3">
+                        <div class="reconciliation-actions d-flex align-center justify-space-between mb-3">
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                 <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined">
                                     @selectedTransactionIds.Count selected
@@ -113,27 +113,27 @@ else
                         }
                         else
                         {
-                            <MudTable Items="@VisibleTransactions" Dense="true" Hover="true" Bordered="true" Striped="true" Elevation="0">
+                            <MudTable Items="@VisibleTransactions" Dense="true" Hover="true" Bordered="true" Striped="true" Elevation="0" Class="reconciliation-table">
                                 <HeaderContent>
-                                    <MudTh></MudTh>
-                                    <MudTh>Date</MudTh>
-                                    <MudTh>Vendor</MudTh>
-                                    <MudTh>Category</MudTh>
-                                    <MudTh>Description</MudTh>
-                                    <MudTh Style="text-align: right">Amount</MudTh>
+                                    <MudTh Class="select-column"></MudTh>
+                                    <MudTh Class="date-column">Date</MudTh>
+                                    <MudTh Class="vendor-column">Vendor</MudTh>
+                                    <MudTh Class="category-column">Category</MudTh>
+                                    <MudTh Class="description-column">Description</MudTh>
+                                    <MudTh Class="amount-column">Amount</MudTh>
                                 </HeaderContent>
                                 <RowTemplate>
-                                    <MudTd>
+                                    <MudTd Class="select-column">
                                         <MudCheckBox T="bool"
                                                      Value="@IsSelected(context.TransactionId)"
                                                      ValueChanged="@(selected => SetSelected(context.TransactionId, selected))"
                                                      Color="Color.Primary" />
                                     </MudTd>
-                                    <MudTd DataLabel="Date">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
-                                    <MudTd DataLabel="Vendor">@context.Vendor</MudTd>
-                                    <MudTd DataLabel="Category">@context.Category.Name</MudTd>
-                                    <MudTd DataLabel="Description">@context.Description</MudTd>
-                                    <MudTd DataLabel="Amount" Style="text-align: right">@context.Amount.ToString("C")</MudTd>
+                                    <MudTd DataLabel="Date" Class="date-column">@context.TransactionDate.ToString("MM/dd/yyyy")</MudTd>
+                                    <MudTd DataLabel="Vendor" Class="vendor-column">@context.Vendor</MudTd>
+                                    <MudTd DataLabel="Category" Class="category-column">@context.Category.Name</MudTd>
+                                    <MudTd DataLabel="Description" Class="description-column">@context.Description</MudTd>
+                                    <MudTd DataLabel="Amount" Class="amount-column">@context.Amount.ToString("C")</MudTd>
                                 </RowTemplate>
                             </MudTable>
                         }
