@@ -24,6 +24,11 @@
 <CascadingAuthenticationState>
     <Routes @rendermode="PageRenderMode"/>
 </CascadingAuthenticationState>
+@* Keep the token in the server-rendered shell: Routes runs in WebAssembly without prerendering. *@
+<form id="logoutForm" method="post" action="Account/Logout" hidden>
+    <AntiforgeryToken/>
+    <input type="hidden" name="ReturnUrl" value=""/>
+</form>
 <script src="_framework/blazor.web.js"></script>
 <script src=@Assets["_content/MudBlazor/MudBlazor.min.js"]></script>
 <script src="/scripts/logout.js"></script>

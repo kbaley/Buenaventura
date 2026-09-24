@@ -60,10 +60,6 @@
                                  OnClick="Logout"
                                  IconColor="Color.Primary" Label="Logout"/>
                 </MudMenu>
-                <form action="Account/Logout" method="post">
-                    <AntiforgeryToken/>
-                    <input type="hidden" name="ReturnUrl" value=""/>
-                </form>
             </MudAppBar>
             <MudDrawer id="nav-drawer" @bind-Open="drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="7" Width="350px">
                 <NavMenu/>
@@ -79,12 +75,6 @@
     </CascadingValue>
 </CascadingValue>
 
-<form id="logoutForm" method="post" action="Account/Logout">
-    <AntiforgeryToken/>
-    <input type="hidden" name="ReturnUrl" value="@currentUrl"/>
-</form>
-
-
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
@@ -99,7 +89,6 @@
     private bool drawerOpen = true;
     private bool isDarkMode = true;
     private MudTheme? theme;
-    private string? currentUrl;
     private MudThemeProvider? mudThemeProvider;
     private IEnumerable<AccountWithBalance> accounts = [];
     private IEnumerable<CategoryModel> categories = [];
@@ -128,15 +117,6 @@
         accounts = await accountsApi.GetAccounts();
         categories = await categoriesApi.GetCategories();
         accountSyncService.OnAccountsUpdated += OnAccountsUpdated;
-
-        currentUrl = navigationManager.ToBaseRelativePath(navigationManager.Uri);
-        navigationManager.LocationChanged += OnLocationChanged;
-    }
-
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        currentUrl = navigationManager.ToBaseRelativePath(e.Location);
-        StateHasChanged();
     }
 
 
@@ -167,7 +147,7 @@
 
     private async Task Logout(MouseEventArgs obj)
     {
-        await JS.InvokeVoidAsync("submitLogoutForm");
+        await JS.InvokeVoidAsync("submitLogoutForm", navigationManager.ToBaseRelativePath(navigationManager.Uri));
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
