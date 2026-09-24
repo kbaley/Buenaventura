@@ -4,6 +4,8 @@
 @using Color = MudBlazor.Color
 @inject IExpensesApi expensesApi
 @inject ITransactionsApi transactionsApi
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
@@ -193,7 +195,14 @@
     <!-- Expense Category Monthly Breakdown Table -->
     <MudItem xs="12">
         <MudPaper Elevation="1" Class="pa-4">
-            <MudText Typo="Typo.h6" GutterBottom="true">Expense Categories by Month</MudText>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Wrap="Wrap.Wrap">
+                <MudText Typo="Typo.h6">Expense Categories by Month</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PictureAsPdf"
+                           OnClick="DownloadCategoriesPdf" Disabled="@(isLoading || isDownloadingPdf || pdfCategoryMonthlyData.Count == 0)">
+                    @(isDownloadingPdf ? "Preparing PDF..." : "Download PDF")
+                </MudButton>
+            </MudStack>
             <MudTable Items="@categoryMonthlyData" Dense="true" Hover="true" Bordered="true" Striped="true">
                 <HeaderContent>
                     <MudTh>Category</MudTh>
@@ -232,6 +241,8 @@
 
 @code {
     private bool isLoading = true;
+    private bool isDownloadingPdf;
+    private string loadedReportFilters = "";
     private decimal expensesThisMonth;
     private decimal averageMonthlyExpenses;
     private decimal projectTotal;
@@ -242,6 +253,7 @@
     private IEnumerable<ReportDataPoint> monthlyExpenseTrendLine = [];
     private List<DateTime> lastTwelveMonths = [];
     private List<CategoryTotal> categoryMonthlyData = [];
+    private List<CategoryTotal> pdfCategoryMonthlyData = [];
     private List<decimal> monthlyTotals = [];
     private decimal grandTotal;
     private List<ReportDataPoint> vendorData = [];
@@ -306,9 +318,63 @@
         GenerateData(expenseBreakdown, allTime);
         monthlyExpenseTrendLine = CalculateTrendLine(expenseBreakdown.MonthTotals?.ToList());
         averageMonthlyExpenses = CalculateAverageMonthlyExpenses(expenseBreakdown);
-        categoryMonthlyData = expenseBreakdown.Expenses.ToList();
+        categoryMonthlyData = ExpenseCategoryMonthlyReport.GetVisibleCategories(expenseBreakdown.Expenses, lastTwelveMonths);
+        pdfCategoryMonthlyData = ExpenseCategoryMonthlyReport.GetVisibleCategories(expenseBreakdown.Expenses, lastTwelveMonths.TakeLast(6));
+        monthlyTotals = lastTwelveMonths.Select(month => categoryMonthlyData
+            .SelectMany(category => category.Amounts)
+            .Where(amount => amount.Date.Year == month.Year && amount.Date.Month == month.Month)
+            .Sum(amount => amount.Amount)).ToList();
+        grandTotal = monthlyTotals.Sum();
+        loadedReportFilters = string.Join(" | ", new[]
+        {
+            string.IsNullOrEmpty(includeFilter) ? null : $"Include: {includeFilter}",
+            string.IsNullOrEmpty(excludeFilter) ? null : $"Exclude: {excludeFilter}",
+            HasIncludeTags ? $"Mode: {tagReportMode}" : null
+        }.Where(value => value != null));
         chartRenderVersion++;
         isLoading = false;
+    }
+
+    private async Task DownloadCategoriesPdf()
+    {
+        if (isLoading || isDownloadingPdf || pdfCategoryMonthlyData.Count == 0)
+            return;
+
+        isDownloadingPdf = true;
+        try
+        {
+            var pdfMonths = lastTwelveMonths.TakeLast(6).ToList();
+            var pdfMonthlyTotals = pdfMonths.Select(month => pdfCategoryMonthlyData
+                .SelectMany(category => category.Amounts)
+                .Where(amount => amount.Date.Year == month.Year && amount.Date.Month == month.Month)
+                .Sum(amount => amount.Amount)).ToList();
+            var report = new
+            {
+                Months = pdfMonths.Select(month => month.ToString("MMM yyyy")).ToArray(),
+                Filters = loadedReportFilters,
+                Rows = pdfCategoryMonthlyData.Select(category => new
+                {
+                    Name = category.CategoryName,
+                    Amounts = pdfMonths.Select(month => (category.Amounts
+                        .SingleOrDefault(a => a.Date.Year == month.Year && a.Date.Month == month.Month)?.Amount ?? 0m)
+                        .ToString("C0")).ToArray(),
+                    Total = category.Total.ToString("C0")
+                }).ToArray(),
+                MonthlyTotals = pdfMonthlyTotals.Select(total => total.ToString("C0")).ToArray(),
+                Total = pdfMonthlyTotals.Sum().ToString("C0"),
+                Filename = $"expense-categories-{pdfMonths.First():yyyy-MM}-to-{pdfMonths.Last():yyyy-MM}.pdf"
+            };
+            await using var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/expenseCategoriesPdf.js");
+            await module.InvokeVoidAsync("download", report);
+        }
+        catch (JSException)
+        {
+            Snackbar.Add("Unable to download the PDF. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            isDownloadingPdf = false;
+        }
     }
 
     private async Task<TableData<TransactionForDisplay>> LoadTaggedTransactions(TableState state, CancellationToken token)
