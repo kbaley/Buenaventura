@@ -18,7 +18,7 @@ public interface IExpenseService : IAppService
     /// <summary>
     /// Get a breakdown of expense totals by category and month for the last 12 months
     /// </summary>
-    Task<CategoryTotals> GetExpenseTotalsByMonth(IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null, bool allTime = false);
+    Task<CategoryTotals> GetExpenseTotalsByMonth(IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null, bool allTime = false, bool isRestricted = false);
     /// <summary>
     /// Get a breakdown of expense totals for a category by month for the last 24 months
     /// </summary>
@@ -53,10 +53,10 @@ public class ExpenseService(
     /// <summary>
     /// Get a breakdown of expense totals by category and month for the last 12 months
     /// </summary>
-    public async Task<CategoryTotals> GetExpenseTotalsByMonth(IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null, bool allTime = false)
+    public async Task<CategoryTotals> GetExpenseTotalsByMonth(IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null, bool allTime = false, bool isRestricted = false)
     {
         var period = ReportPeriod.GetLast12Months();
-        var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End, includeTags, excludeTags, allTime);
+        var expenseData = await GetEntriesByCategoryType("Expense", period.Start, period.End, includeTags, excludeTags, allTime, isRestricted);
         return expenseData;
     }
 
@@ -211,14 +211,17 @@ public class ExpenseService(
         return mainVendors;
     }
 
-    private async Task<CategoryTotals> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null, bool allTime = false)
+    private async Task<CategoryTotals> GetEntriesByCategoryType(string categoryType, DateTime start, DateTime end, IEnumerable<string>? includeTags = null, IEnumerable<string>? excludeTags = null, bool allTime = false, bool isRestricted = false)
     {
-        var categories = await context.Categories.Where(c => c.Type == categoryType).ToListAsync();
+        var categories = await context.Categories
+            .Where(c => c.Type == categoryType && (!isRestricted || !c.ExcludeFromTransactionReport))
+            .ToListAsync();
         var transactions = await context.Transactions
             .Include(t => t.Category)
             .Where(t => (allTime || (t.TransactionDate > start && t.TransactionDate <= end))
                         && t.Category != null
-                        && t.Category.Type == categoryType)
+                        && t.Category.Type == categoryType
+                        && (!isRestricted || !t.Category.ExcludeFromTransactionReport))
             .ToListAsync();
         var amountMultiplier = categoryType == "Expense" ? -1 : 1;
         var filteredTransactions = FilterByTags(transactions, includeTags, excludeTags).ToList();
