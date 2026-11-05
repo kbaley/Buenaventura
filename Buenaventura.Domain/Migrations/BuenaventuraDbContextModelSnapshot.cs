@@ -17,7 +17,7 @@ namespace Buenaventura.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -521,6 +521,10 @@ namespace Buenaventura.Migrations
                     b.Property<Guid?>("InvoiceId")
                         .HasColumnType("uuid")
                         .HasColumnName("invoice_id");
+
+                    b.Property<bool>("IsImported")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_imported");
 
                     b.Property<bool>("IsReconciled")
                         .HasColumnType("boolean")

@@ -21,7 +21,10 @@ public static class DomainExtensions
             InvoiceId = transaction.Category.InvoiceId,
             AmountInBaseCurrency = transaction.AmountInBaseCurrency,
             DownloadId = transaction.DownloadId,
-            Tags = TransactionTagFormatter.Serialize(TransactionTagFormatter.ParseHashTags(transaction.Description))
+            IsImported = transaction.IsImported || !string.IsNullOrEmpty(transaction.DownloadId),
+            Tags = transaction.IsImported || !string.IsNullOrEmpty(transaction.DownloadId)
+                ? "[]"
+                : TransactionTagFormatter.Serialize(TransactionTagFormatter.ParseHashTags(transaction.Description))
         };
     }
 

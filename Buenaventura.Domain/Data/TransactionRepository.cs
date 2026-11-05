@@ -73,8 +73,13 @@ namespace Buenaventura.Data
             dbTransaction.IsReconciled = transaction.IsReconciled;
             dbTransaction.InvoiceId = transaction.InvoiceId;
             dbTransaction.TransactionDate = transaction.TransactionDate;
+            // Use persisted import provenance, even if the edit omits or changes the download ID.
+            dbTransaction.IsImported |= !string.IsNullOrEmpty(dbTransaction.DownloadId);
             dbTransaction.DownloadId = transaction.DownloadId;
-            dbTransaction.Tags = TransactionTagFormatter.Serialize(TransactionTagFormatter.ParseHashTags(transaction.Description));
+            if (!dbTransaction.IsImported)
+            {
+                dbTransaction.Tags = TransactionTagFormatter.Serialize(TransactionTagFormatter.ParseHashTags(transaction.Description));
+            }
             dbTransaction.Category = await context.GetOrCreateCategory(transaction.Category);
 
             await UpdateAmount(dbTransaction, transaction);

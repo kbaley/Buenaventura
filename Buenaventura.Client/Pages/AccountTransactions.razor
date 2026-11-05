@@ -96,11 +96,19 @@
 
             </MudTd>
             <MudTd DataLabel="Description" Class="mud-table-small-cell">
-                <HashtagAutocomplete @bind-Value="@context.Description"
-                                     AvailableTags="availableTags"
-                                     Variant="Variant.Text"
-                                     Typo="Typo.inherit"
-                                     OnKeyDown="@(async e => await HandleKeyDown(e, context))" />
+                @if (context.IsImported)
+                {
+                    <MudTextField @bind-Value="@context.Description" Variant="Variant.Text" Typo="Typo.inherit" Immediate="true"
+                                  OnKeyDown="@(async e => await HandleKeyDown(e, context))" />
+                }
+                else
+                {
+                    <HashtagAutocomplete @bind-Value="@context.Description"
+                                         AvailableTags="availableTags"
+                                         Variant="Variant.Text"
+                                         Typo="Typo.inherit"
+                                         OnKeyDown="@(async e => await HandleKeyDown(e, context))" />
+                }
             </MudTd>
             <MudTd DataLabel="Debit" Class="mud-table-small-cell align-right">
                 <MoneyTextField @bind-Value="@context.DebitForEdit"

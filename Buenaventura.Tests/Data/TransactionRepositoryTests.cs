@@ -269,6 +269,8 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         // Arrange
         var transactionDto = TestDataFactory.TransactionForDisplayFaker.Generate();
         transactionDto.TransactionId = Guid.NewGuid();
+        transactionDto.Description = "Manual transaction #maintenance";
+        transactionDto.DownloadId = null;
 
         // Create and add a real account for the transaction
         var account = TestDataFactory.AccountFaker.Generate();
@@ -294,6 +296,8 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         dbTransaction.Vendor.Should().Be(transactionDto.Vendor);
         dbTransaction.Description.Should().Be(transactionDto.Description);
         dbTransaction.Amount.Should().Be(transactionDto.Amount);
+        dbTransaction.IsImported.Should().BeFalse();
+        TransactionTagFormatter.Deserialize(dbTransaction.Tags).Should().Equal("maintenance");
     }
 
     [Fact]
@@ -340,6 +344,40 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         dbTransaction.Vendor.Should().Be("Updated Vendor");
         dbTransaction.Description.Should().Be("Updated Description");
         dbTransaction.Amount.Should().Be(999.99m);
+    }
+
+    [Theory]
+    [InlineData(false, null, false)]
+    [InlineData(true, null, true)]
+    [InlineData(false, "legacy-import", true)]
+    public async Task Update_ParsesHashtagsOnlyForManualTransactions(bool isImported, string? downloadId, bool shouldPreserveTags)
+    {
+        var account = TestDataFactory.AccountFaker.Generate();
+        var category = new Category { CategoryId = Guid.NewGuid(), Name = "Tag editing", Type = "Expense" };
+        var transaction = new Transaction
+        {
+            TransactionId = Guid.NewGuid(), AccountId = account.AccountId,
+            CategoryId = category.CategoryId, TransactionType = TransactionType.REGULAR,
+            Description = "Original #1234", DownloadId = downloadId, IsImported = isImported,
+            Tags = TransactionTagFormatter.Serialize(["vacation"]), Amount = -25m
+        };
+        _fixture.Context.Accounts.Add(account);
+        _fixture.Context.Categories.Add(category);
+        _fixture.Context.Transactions.Add(transaction);
+        await _fixture.Context.SaveChangesAsync();
+        var edit = new TransactionForDisplay
+        {
+            TransactionId = transaction.TransactionId, AccountId = account.AccountId,
+            Vendor = "Edited", Description = "Edited #1234 #maintenance", Amount = -25m,
+            Category = new CategoryModel { CategoryId = category.CategoryId, Name = category.Name },
+            TransactionType = TransactionType.REGULAR
+            // Deliberately omit import provenance and tags from the request.
+        };
+
+        var saved = await _repository.Update(edit);
+        TransactionTagFormatter.Deserialize(saved.Tags).Should().BeEquivalentTo(
+            shouldPreserveTags ? new[] { "vacation" } : new[] { "1234", "maintenance" });
+        saved.IsImported.Should().Be(shouldPreserveTags);
     }
 
     [Fact]

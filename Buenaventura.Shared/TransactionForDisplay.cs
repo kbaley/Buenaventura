@@ -37,6 +37,7 @@ public class TransactionForDisplay
     public decimal RunningTotal { get; set; }
     public string? DownloadId { get; set; }
     public List<string> Tags { get; set; } = [];
+    public bool IsImported { get; set; }
 
     public void SetAmount()
     {

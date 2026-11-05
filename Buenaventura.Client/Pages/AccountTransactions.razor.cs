@@ -201,7 +201,10 @@ public partial class AccountTransactions(
             return;
         }
 
-        transaction.Tags = TransactionTagFormatter.ParseHashTags(transaction.Description);
+        if (!transaction.IsImported)
+        {
+            transaction.Tags = TransactionTagFormatter.ParseHashTags(transaction.Description);
+        }
 
         if (transaction == newTransaction)
         {

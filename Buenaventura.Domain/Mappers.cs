@@ -32,6 +32,7 @@ public static class Mappers
             TransactionType = transaction.TransactionType,
             IsReconciled = transaction.IsReconciled,
             DownloadId = transaction.DownloadId,
+            IsImported = transaction.IsImported || !string.IsNullOrEmpty(transaction.DownloadId),
             Tags = TransactionTagFormatter.Deserialize(transaction.Tags)
         };
     }

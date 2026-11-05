@@ -321,7 +321,7 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
         {
             TransactionId = Guid.NewGuid(),
             AccountId = account.AccountId,
-            Description = "Original description #vacation",
+            Description = "Original description #vacation #untracked-reference",
             Tags = TransactionTagFormatter.Serialize(["vacation"]),
             CategoryId = category.CategoryId,
             Amount = -25m,
@@ -354,9 +354,80 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
         var updatedTransaction = await _fixture.Context.Transactions
             .AsNoTracking()
             .SingleAsync(t => t.TransactionId == existingTransaction.TransactionId);
-        updatedTransaction.Description.Should().Be("IMPORTED RESTAURANT #reimbursable #vacation");
+        updatedTransaction.Description.Should().Be("IMPORTED RESTAURANT #reimbursable");
+        updatedTransaction.IsImported.Should().BeTrue();
         TransactionTagFormatter.Deserialize(updatedTransaction.Tags)
-            .Should().BeEquivalentTo(["reimbursable", "vacation"]);
+            .Should().BeEquivalentTo(["vacation"]);
+
+        var repository = new TransactionRepository(_fixture.Context);
+        var edit = await repository.Get(existingTransaction.TransactionId);
+        edit.Description += " edited #1234";
+        var savedEdit = await repository.Update(edit);
+        TransactionTagFormatter.Deserialize(savedEdit.Tags).Should().Equal("vacation");
+
+        // A second import must not parse either the old or replacement description.
+        importedTransaction.Description = "REIMPORTED #5678";
+        await _service.AddBulkTransactions(account.AccountId, [importedTransaction]);
+        _fixture.Context.ChangeTracker.Clear();
+        var reimported = await repository.Get(existingTransaction.TransactionId);
+        reimported.IsImported.Should().BeTrue();
+        reimported.Description.Should().Be("REIMPORTED #5678");
+        reimported.Tags.Should().Equal("vacation");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("posted-123")]
+    public async Task AddBulkTransactions_NewImportAndLaterEdits_TreatDescriptionAsPlainText(string? downloadId)
+    {
+        var account = TestDataFactory.AccountFaker.Generate();
+        account.Currency = "USD";
+        var category = new Category { CategoryId = Guid.NewGuid(), Name = "Imported dining", Type = "Expense" };
+        _fixture.Context.Accounts.Add(account);
+        _fixture.Context.Categories.Add(category);
+        await _fixture.Context.SaveChangesAsync();
+        var repository = new TransactionRepository(_fixture.Context);
+        var service = new AccountService(_fixture.Context, repository);
+        var imported = new TransactionForDisplay
+        {
+            Description = "STORE #1234 #ABC123",
+            DownloadId = downloadId,
+            Vendor = "Imported store",
+            Debit = 25m,
+            Category = new CategoryModel { CategoryId = category.CategoryId, Name = category.Name },
+            TransactionDate = DateTime.UtcNow
+        };
+
+        await service.AddBulkTransactions(account.AccountId, [imported]);
+        _fixture.Context.ChangeTracker.Clear();
+        var saved = await repository.Get(imported.TransactionId);
+        saved.IsImported.Should().BeTrue();
+        saved.Description.Should().Be("STORE #1234 #ABC123");
+        saved.Tags.Should().BeEmpty();
+
+        // Add a real tag through bulk tagging, then edit and save twice.
+        var tagSource = new Transaction
+        {
+            TransactionId = Guid.NewGuid(), AccountId = account.AccountId,
+            Tags = TransactionTagFormatter.Serialize(["vacation"])
+        };
+        _fixture.Context.Transactions.Add(tagSource);
+        await _fixture.Context.SaveChangesAsync();
+        await service.BulkTagTransactions(account.AccountId, [saved.TransactionId], "vacation");
+        for (var edit = 0; edit < 2; edit++)
+        {
+            _fixture.Context.ChangeTracker.Clear();
+            saved = await repository.Get(imported.TransactionId);
+            saved.Description += " #another-reference";
+            saved.Vendor = "Edited store";
+            await service.UpdateTransaction(saved);
+        }
+
+        _fixture.Context.ChangeTracker.Clear();
+        saved = await repository.Get(imported.TransactionId);
+        saved.IsImported.Should().BeTrue();
+        saved.Description.Should().Contain("#1234 #ABC123").And.Contain("#another-reference");
+        saved.Tags.Should().Equal("vacation");
     }
 
     [Fact]

@@ -28,6 +28,7 @@ public class Transaction
     public decimal AmountInBaseCurrency { get; set; }
     public string? DownloadId { get; set; }
     public string Tags { get; set; } = "[]";
+    public bool IsImported { get; set; }
     public Guid? DividendInvestmentId { get; set; }
     public Guid? ReimbursementSettlementId { get; set; }
     public ReimbursementSettlement? ReimbursementSettlement { get; set; }
