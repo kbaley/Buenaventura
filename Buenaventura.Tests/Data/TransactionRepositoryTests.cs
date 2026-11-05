@@ -358,7 +358,7 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         {
             TransactionId = Guid.NewGuid(), AccountId = account.AccountId,
             CategoryId = category.CategoryId, TransactionType = TransactionType.REGULAR,
-            Description = "Original #1234", DownloadId = downloadId, IsImported = isImported,
+            Description = "Original #vacation", DownloadId = downloadId, IsImported = isImported,
             Tags = TransactionTagFormatter.Serialize(["vacation"]), Amount = -25m
         };
         _fixture.Context.Accounts.Add(account);

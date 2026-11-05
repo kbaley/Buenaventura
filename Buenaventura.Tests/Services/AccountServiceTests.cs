@@ -492,6 +492,81 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
         TransactionTagFormatter.Deserialize(transaction.Tags).Should().BeEmpty();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task BulkRemoveTagTransactions_RemovesOnlySelectedAccountTagsAndPreservesDescriptions(bool isImported)
+    {
+        var account = TestDataFactory.AccountFaker.Generate();
+        var otherAccount = TestDataFactory.AccountFaker.Generate();
+        var category = new Category { CategoryId = Guid.NewGuid(), Name = "Tag removal", Type = "Expense" };
+        var selected = CreateTransaction(account.AccountId, "STORE #1234 #keep");
+        selected.IsImported = isImported;
+        selected.CategoryId = category.CategoryId;
+        selected.Tags = TransactionTagFormatter.Serialize(["1234", "keep"]);
+        var lastTag = CreateTransaction(account.AccountId, "REFERENCE #1234");
+        lastTag.Tags = TransactionTagFormatter.Serialize(["1234"]);
+        var withoutTag = CreateTransaction(account.AccountId, "No matching tag");
+        withoutTag.Tags = TransactionTagFormatter.Serialize(["keep"]);
+        var unselected = CreateTransaction(account.AccountId, "Unselected #1234");
+        unselected.Tags = TransactionTagFormatter.Serialize(["1234"]);
+        var otherAccountTransaction = CreateTransaction(otherAccount.AccountId, "Other account #1234");
+        otherAccountTransaction.Tags = TransactionTagFormatter.Serialize(["1234"]);
+        _fixture.Context.Accounts.AddRange(account, otherAccount);
+        _fixture.Context.Categories.Add(category);
+        _fixture.Context.Transactions.AddRange(selected, lastTag, withoutTag, unselected, otherAccountTransaction);
+        await _fixture.Context.SaveChangesAsync();
+        var ids = new[] { selected.TransactionId, selected.TransactionId, lastTag.TransactionId,
+            withoutTag.TransactionId, otherAccountTransaction.TransactionId, Guid.Empty, Guid.NewGuid() };
+
+        var updatedCount = await _service.BulkRemoveTagTransactions(account.AccountId, ids, " #1234 ");
+
+        updatedCount.Should().Be(2);
+        _fixture.Context.ChangeTracker.Clear();
+        var repository = new TransactionRepository(_fixture.Context);
+        var saved = await repository.Get(selected.TransactionId);
+        saved.Tags.Should().Equal("keep");
+        saved.Description.Should().Be("STORE #1234 #keep");
+        var cleared = await repository.Get(lastTag.TransactionId);
+        cleared.Tags.Should().BeEmpty();
+        cleared.Description.Should().Be("REFERENCE #1234");
+        (await repository.Get(withoutTag.TransactionId)).Tags.Should().Equal("keep");
+        (await repository.Get(unselected.TransactionId)).Tags.Should().Equal("1234");
+        (await repository.Get(otherAccountTransaction.TransactionId)).Tags.Should().Equal("1234");
+        (await _service.BulkRemoveTagTransactions(account.AccountId, ids, "1234")).Should().Be(0);
+
+        // Both an unchanged save and a description edit must respect the removal.
+        await repository.Update(saved);
+        saved.Description += " edited #new-tag";
+        await repository.Update(saved);
+        _fixture.Context.ChangeTracker.Clear();
+        saved = await repository.Get(selected.TransactionId);
+        saved.Tags.Should().BeEquivalentTo(isImported ? new[] { "keep" } : new[] { "keep", "new-tag" });
+        saved.Description.Should().Be("STORE #1234 #keep edited #new-tag");
+    }
+
+    [Theory]
+    [InlineData("", 0)]
+    [InlineData(" # ", 0)]
+    [InlineData("missing-tag", 0)]
+    [InlineData("VACATION", 1)]
+    public async Task BulkRemoveTagTransactions_NormalizesTagAndIgnoresMissingTags(string tag, int expectedCount)
+    {
+        var account = TestDataFactory.AccountFaker.Generate();
+        var transaction = CreateTransaction(account.AccountId, "Dinner #vacation");
+        transaction.Tags = TransactionTagFormatter.Serialize(["vacation"]);
+        _fixture.Context.Accounts.Add(account);
+        _fixture.Context.Transactions.Add(transaction);
+        await _fixture.Context.SaveChangesAsync();
+
+        var updatedCount = await _service.BulkRemoveTagTransactions(account.AccountId, [transaction.TransactionId], tag);
+
+        updatedCount.Should().Be(expectedCount);
+        transaction.Description.Should().Be("Dinner #vacation");
+        TransactionTagFormatter.Deserialize(transaction.Tags).Should().BeEquivalentTo(
+            expectedCount == 0 ? new[] { "vacation" } : Array.Empty<string>());
+    }
+
     private static Transaction CreateTransaction(Guid accountId, string description)
     {
         return new Transaction

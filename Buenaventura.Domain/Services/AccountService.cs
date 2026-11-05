@@ -20,6 +20,7 @@ public interface IAccountService : IAppService
     Task<TransactionListModel> GetAllTransactions(DateTime startDate, DateTime endDate);
     Task<bool> AddBulkTransactions(Guid accountId, List<TransactionForDisplay> transactions);
     Task<int> BulkTagTransactions(Guid accountId, IEnumerable<Guid> transactionIds, string tag);
+    Task<int> BulkRemoveTagTransactions(Guid accountId, IEnumerable<Guid> transactionIds, string tag);
     Task<DeleteAccountResponse> DeleteAccount(Guid accountId);
 }
 
@@ -297,6 +298,36 @@ public class AccountService(
             transaction.Description = string.IsNullOrWhiteSpace(transaction.Description)
                 ? $"#{normalizedTag}"
                 : $"{transaction.Description.TrimEnd()} #{normalizedTag}";
+            updatedCount++;
+        }
+
+        await context.SaveChangesAsync();
+        return updatedCount;
+    }
+
+    public async Task<int> BulkRemoveTagTransactions(Guid accountId, IEnumerable<Guid> transactionIds, string tag)
+    {
+        var normalizedTag = TransactionTagFormatter.Normalize([tag]).SingleOrDefault();
+        if (normalizedTag == null)
+        {
+            return 0;
+        }
+
+        var ids = transactionIds.Where(id => id != Guid.Empty).Distinct().ToList();
+        var selectedTransactions = await context.Transactions
+            .Where(t => t.AccountId == accountId && ids.Contains(t.TransactionId))
+            .ToListAsync();
+
+        var updatedCount = 0;
+        foreach (var transaction in selectedTransactions)
+        {
+            var tags = TransactionTagFormatter.Deserialize(transaction.Tags);
+            if (tags.RemoveAll(t => string.Equals(t, normalizedTag, StringComparison.OrdinalIgnoreCase)) == 0)
+            {
+                continue;
+            }
+
+            transaction.Tags = TransactionTagFormatter.Serialize(tags);
             updatedCount++;
         }
 

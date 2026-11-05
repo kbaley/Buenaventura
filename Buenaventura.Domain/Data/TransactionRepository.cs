@@ -67,6 +67,7 @@ namespace Buenaventura.Data
             {
                 throw new Exception("Can't change the destination account of a transfer");
             }
+            var originalDescription = dbTransaction.Description;
             dbTransaction.AccountId = transaction.AccountId!.Value;
             dbTransaction.Vendor = transaction.Vendor;
             dbTransaction.Description = transaction.Description;
@@ -78,7 +79,15 @@ namespace Buenaventura.Data
             dbTransaction.DownloadId = transaction.DownloadId;
             if (!dbTransaction.IsImported)
             {
-                dbTransaction.Tags = TransactionTagFormatter.Serialize(TransactionTagFormatter.ParseHashTags(transaction.Description));
+                // Only changed hashtags affect tags, so a bulk removal survives later edits.
+                var originalDescriptionTags = TransactionTagFormatter.ParseHashTags(originalDescription);
+                var descriptionTags = TransactionTagFormatter.ParseHashTags(transaction.Description);
+                var removedTags = originalDescriptionTags.Except(descriptionTags, StringComparer.OrdinalIgnoreCase);
+                var addedTags = descriptionTags.Except(originalDescriptionTags, StringComparer.OrdinalIgnoreCase);
+                dbTransaction.Tags = TransactionTagFormatter.Serialize(
+                    TransactionTagFormatter.Deserialize(dbTransaction.Tags)
+                        .Except(removedTags, StringComparer.OrdinalIgnoreCase)
+                        .Concat(addedTags));
             }
             dbTransaction.Category = await context.GetOrCreateCategory(transaction.Category);
 

@@ -201,11 +201,6 @@ public partial class AccountTransactions(
             return;
         }
 
-        if (!transaction.IsImported)
-        {
-            transaction.Tags = TransactionTagFormatter.ParseHashTags(transaction.Description);
-        }
-
         if (transaction == newTransaction)
         {
             await transactionsApi.AddTransaction(AccountId, transaction);
@@ -286,6 +281,30 @@ public partial class AccountTransactions(
             updatedCount == selectedCount
                 ? $"Tagged {updatedCount} transactions"
                 : $"Tagged {updatedCount} of {selectedCount} selected transactions",
+            updatedCount > 0 ? Severity.Success : Severity.Info);
+    }
+
+    private async Task RemoveBulkTag()
+    {
+        if (selectedTransactionIds.Count == 0 || string.IsNullOrWhiteSpace(selectedBulkTag))
+        {
+            return;
+        }
+
+        var selectedCount = selectedTransactionIds.Count;
+        var updatedCount = await transactionsApi.BulkRemoveTagTransactions(
+            AccountId,
+            new BulkTagTransactionsRequest(AccountId, selectedTransactionIds.ToList(), selectedBulkTag));
+
+        selectedTransactionIds.Clear();
+        selectedBulkTag = null;
+        availableTags = await transactionsApi.GetAvailableTags();
+        await ReloadTransactions();
+
+        snackbar.Add(
+            updatedCount == selectedCount
+                ? $"Removed tag from {updatedCount} transactions"
+                : $"Removed tag from {updatedCount} of {selectedCount} selected transactions",
             updatedCount > 0 ? Severity.Success : Severity.Info);
     }
 

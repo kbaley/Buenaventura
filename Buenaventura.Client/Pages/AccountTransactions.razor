@@ -24,6 +24,10 @@
                        Disabled="@string.IsNullOrWhiteSpace(selectedBulkTag)" Class="mr-2">
                 Apply tag
             </MudButton>
+            <MudButton Color="Color.Error" Variant="Variant.Outlined" OnClick="RemoveBulkTag"
+                       Disabled="@string.IsNullOrWhiteSpace(selectedBulkTag)" Class="mr-2">
+                Remove tag
+            </MudButton>
         }
         <MudSpacer/>
         <div style="width: 400px;">

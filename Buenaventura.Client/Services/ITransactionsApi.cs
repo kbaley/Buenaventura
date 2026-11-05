@@ -40,4 +40,7 @@ public interface ITransactionsApi
 
     [Put("/api/accounts/{accountId}/transactions/bulk-tag")]
     Task<int> BulkTagTransactions(Guid accountId, BulkTagTransactionsRequest request);
+
+    [Put("/api/accounts/{accountId}/transactions/bulk-remove-tag")]
+    Task<int> BulkRemoveTagTransactions(Guid accountId, BulkTagTransactionsRequest request);
 }
