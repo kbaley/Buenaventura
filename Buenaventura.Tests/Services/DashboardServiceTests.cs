@@ -21,6 +21,50 @@ public class DashboardServiceTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task GetInvestmentData_AccumulatesGainsAndLossesOnly()
+    {
+        var period = ReportPeriod.GetLast12Months();
+        var reportRepo = new Mock<IReportRepository>(MockBehavior.Strict);
+        for (var month = 0; month < 12; month++)
+        {
+            var start = period.Start.AddMonths(month);
+            reportRepo.Setup(repo => repo.GetInvestmentChangeFor(start, start.LastDayOfMonth()))
+                .ReturnsAsync(month % 2 == 0 ? 2000m : -500m);
+        }
+        var service = new DashboardService(_fixture.Context, reportRepo.Object);
+
+        var result = (await service.GetInvestmentData()).ToList();
+
+        result.Select(point => point.Value).Should().Equal(
+            2000m, 1500m, 3500m, 3000m, 5000m, 4500m,
+            6500m, 6000m, 8000m, 7500m, 9500m, 9000m);
+        result.Select(point => point.Label).Should().Equal(Enumerable.Range(0, 12)
+            .Select(month => period.Start.AddMonths(month).ToString("MMM yy")));
+    }
+
+    [Fact]
+    public async Task GetPortfolioValueData_ReturnsMonthlyPortfolioBalancesWithoutAccumulatingThem()
+    {
+        var period = ReportPeriod.GetLast12Months();
+        var dates = Enumerable.Range(0, 12)
+            .Select(month => period.Start.AddMonths(month).LastDayOfMonth()).ToList();
+        var balances = Enumerable.Range(0, 12)
+            .Select(month => 200000m + (month % 2 == 0 ? month * 1000m : -month * 500m)).ToList();
+        var reportRepo = new Mock<IReportRepository>(MockBehavior.Strict);
+        for (var i = 0; i < dates.Count; i++)
+            reportRepo.Setup(repo => repo.GetInvestmentTotalFor(dates[i])).ReturnsAsync(balances[i]);
+        var service = new DashboardService(_fixture.Context, reportRepo.Object);
+
+        var result = (await service.GetPortfolioValueData()).ToList();
+
+        result.Select(point => point.Value).Should().Equal(balances);
+        result.Select(point => point.Label).Should().Equal(dates.Select(date => date.ToString("MMM yy")));
+        foreach (var date in dates)
+            reportRepo.Verify(repo => repo.GetInvestmentTotalFor(date), Times.Once);
+        reportRepo.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task GetLiquidAssetBalance_UsesCurrentAccountBalanceForCadAccounts()
     {
         _fixture.Context.Transactions.RemoveRange(_fixture.Context.Transactions);

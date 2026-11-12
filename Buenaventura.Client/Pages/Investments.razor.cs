@@ -18,6 +18,7 @@ public partial class Investments(
     [CascadingParameter] IEnumerable<AccountWithBalance> accounts { get; set; } = [];
     private IEnumerable<InvestmentModel>? investments;
     private IEnumerable<ReportDataPoint> investmentPerformanceData = [];
+    private IEnumerable<ReportDataPoint> portfolioValueData = [];
     private double portfolioIrr;
     private bool isInvestmentPerformanceLoading = true;
 
@@ -31,7 +32,7 @@ public partial class Investments(
         isInvestmentPerformanceLoading = true;
 
         var investmentsTask = LoadInvestments();
-        var performanceTask = LoadInvestmentPerformanceData();
+        var performanceTask = LoadInvestmentChartData();
 
         await Task.WhenAll(investmentsTask, performanceTask);
 
@@ -45,9 +46,13 @@ public partial class Investments(
         portfolioIrr = investmentList.PortfolioIrr;
     }
 
-    private async Task LoadInvestmentPerformanceData()
+    private async Task LoadInvestmentChartData()
     {
-        investmentPerformanceData = await dashboardApi.GetInvestmentData();
+        var performanceTask = dashboardApi.GetInvestmentData();
+        var portfolioValueTask = dashboardApi.GetPortfolioValueData();
+        await Task.WhenAll(performanceTask, portfolioValueTask);
+        investmentPerformanceData = await performanceTask;
+        portfolioValueData = await portfolioValueTask;
     }
 
     private void EditInvestment(InvestmentModel investment)
@@ -141,7 +146,7 @@ Do this only for test databases or if you are absolutely sure you want to delete
         await accountSyncService.RefreshAccounts();
         isInvestmentPerformanceLoading = true;
         StateHasChanged();
-        await LoadInvestmentPerformanceData();
+        await LoadInvestmentChartData();
         isInvestmentPerformanceLoading = false;
     }
 

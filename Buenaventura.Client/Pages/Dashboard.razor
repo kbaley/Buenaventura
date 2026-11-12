@@ -60,7 +60,7 @@
         </MudGrid>
     </MudItem>
 
-    <!-- Investment Value Over Time -->
+    <!-- Investment Change Over Time -->
     <MudItem xs="12" md="6">
         <LineChart
             IsLoading="isLoading"
@@ -77,6 +77,17 @@
             ChartData="netWorthData"
             Title="Net Worth Over Time"
             Height="418"
+        />
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        <LineChart
+            IsLoading="isLoading"
+            ChartData="portfolioValueData"
+            Title="Portfolio Value Over Time"
+            SeriesName="Portfolio Value (USD)"
+            FitYAxisToData="true"
+            Height="335"
         />
     </MudItem>
 

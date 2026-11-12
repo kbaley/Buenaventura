@@ -42,11 +42,22 @@ else
     </MudPaper>
 
     <MudGrid>
-        <MudItem xs="12" md="8">
+        <MudItem xs="12" md="6">
             <LineChart
                 IsLoading="isInvestmentPerformanceLoading"
                 ChartData="investmentPerformanceData"
                 Title="Investment Performance Over Time"
+                Height="350"
+            />
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <LineChart
+                IsLoading="isInvestmentPerformanceLoading"
+                ChartData="portfolioValueData"
+                Title="Portfolio Value Over Time"
+                SeriesName="Portfolio Value (USD)"
+                FitYAxisToData="true"
                 Height="350"
             />
         </MudItem>

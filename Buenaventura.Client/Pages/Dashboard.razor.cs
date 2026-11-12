@@ -15,6 +15,7 @@ public partial class Dashboard(
     private IEnumerable<IncomeExpenseDataPoint> incomeExpenseData = [];
     private IEnumerable<ReportDataPoint> netWorthData = [];
     private IEnumerable<ReportDataPoint> investmentData = [];
+    private IEnumerable<ReportDataPoint> portfolioValueData = [];
     private IEnumerable<ReportDataPoint> expenseData = [];
     private IEnumerable<ReportDataPoint> assetData = [];
     private IEnumerable<ExpenseAveragesDataPoint> expenseAveragesData = [];
@@ -31,6 +32,7 @@ public partial class Dashboard(
         var incomeExpenseTask = dashboardApi.GetIncomeExpenseData();
         var netWorthTask = dashboardApi.GetNetWorthData();
         var investmentTask = dashboardApi.GetInvestmentData();
+        var portfolioValueTask = dashboardApi.GetPortfolioValueData();
         var expenseTask = expensesApi.GetExpenseCategoryBreakdown();
         var assetTask = dashboardApi.GetAssetClassData();
         var expenseAveragesTask = expensesApi.GetExpenseAveragesData();
@@ -43,6 +45,7 @@ public partial class Dashboard(
             incomeExpenseTask,
             netWorthTask,
             investmentTask,
+            portfolioValueTask,
             expenseTask,
             assetTask,
             expenseAveragesTask,
@@ -55,6 +58,7 @@ public partial class Dashboard(
         incomeExpenseData = await incomeExpenseTask;
         netWorthData = await netWorthTask;
         investmentData = await investmentTask;
+        portfolioValueData = await portfolioValueTask;
         expenseData = await expenseTask;
         assetData = await assetTask;
         expenseAveragesData = await expenseAveragesTask;

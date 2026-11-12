@@ -12,6 +12,7 @@ public interface IDashboardService : IAppService
     Task<decimal> GetLiquidAssetBalance();
     Task<IEnumerable<IncomeExpenseDataPoint>> GetIncomeExpenseData();
     Task<IEnumerable<ReportDataPoint>> GetInvestmentData();
+    Task<IEnumerable<ReportDataPoint>> GetPortfolioValueData();
     Task<IEnumerable<ReportDataPoint>> GetAssetClassData();
 }
 
@@ -80,6 +81,26 @@ public class DashboardService(
         return report;
     }
     
+    public async Task<IEnumerable<ReportDataPoint>> GetPortfolioValueData()
+    {
+        var period = ReportPeriod.GetLast12Months();
+        var report = new List<ReportDataPoint>();
+        var currentData = period.Start;
+        while (currentData < period.End)
+        {
+            var endDate = currentData.LastDayOfMonth();
+            var reportValue = await reportRepo.GetInvestmentTotalFor(endDate);
+            report.Add(new ReportDataPoint
+            {
+                Label = currentData.ToString("MMM yy"),
+                Value = reportValue
+            });
+            currentData = currentData.AddMonths(1);
+        }
+
+        return report;
+    }
+
     public async Task<IEnumerable<ReportDataPoint>> GetAssetClassData()
     {
         var assetBalances = (await context.Accounts

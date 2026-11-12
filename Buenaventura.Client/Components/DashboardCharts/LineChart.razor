@@ -65,11 +65,33 @@
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string SeriesName { get; set; } = "Value";
     [Parameter] public string ComparisonSeriesName { get; set; } = "Previous Period";
+    [Parameter] public bool FitYAxisToData { get; set; }
     [Parameter] public int Height { get; set; } = 300;
 
     private string paperHeight => $"{Height}px";
     private string skeletonHeight => $"{Height - 115}px";
 
     private readonly ApexChartOptions<ReportDataPoint> investmentsChartOptions = ChartOptions.GetDefaultOptions<ReportDataPoint>();
+
+    protected override void OnParametersSet()
+    {
+        var axis = investmentsChartOptions.Yaxis[0];
+        axis.Min = null;
+        axis.Max = null;
+        if (!FitYAxisToData)
+            return;
+
+        var values = ChartData.Concat(ComparisonData).Concat(TrendLine).Select(p => p.Value).ToList();
+        if (values.Count == 0)
+            return;
+
+        var min = values.Min();
+        var max = values.Max();
+        // Pad the range, including flat series, without anchoring the axis at zero.
+        var padding = max == min ? Math.Max(Math.Abs(min) * 0.01m, 1m) : (max - min) * 0.1m;
+        axis.Min = min - padding;
+        axis.Max = max + padding;
+        axis.ForceNiceScale = false;
+    }
 
 }

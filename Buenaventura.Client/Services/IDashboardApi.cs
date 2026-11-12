@@ -21,6 +21,9 @@ public interface IDashboardApi
     [Get("/api/dashboard/investments")]
     Task<IEnumerable<ReportDataPoint>> GetInvestmentData();
     
+    [Get("/api/dashboard/portfoliovalue")]
+    Task<IEnumerable<ReportDataPoint>> GetPortfolioValueData();
+
     [Get("/api/dashboard/assetclasses")]
     Task<IEnumerable<ReportDataPoint>> GetAssetClassData();
 }
