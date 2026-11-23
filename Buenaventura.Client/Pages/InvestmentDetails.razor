@@ -1,0 +1,78 @@
+@page "/Investments/{InvestmentId:guid}"
+@attribute [Authorize]
+
+<PageTitle>Investment details</PageTitle>
+
+<MudButton Href="/Investments" StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-4">
+    Back to investments
+</MudButton>
+
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+}
+else if (errorMessage is not null)
+{
+    <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+}
+else if (investment is not null)
+{
+    <MudText Typo="Typo.h4" GutterBottom="true">@investment.Name (@investment.Symbol)</MudText>
+    <MudText Typo="Typo.body2" Class="mb-4">Currency: @investment.Currency</MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="6" md="4">
+                <MudText Typo="Typo.caption">Shares</MudText>
+                <MudText Typo="Typo.h6">@investment.Shares.ToString("N4")</MudText>
+            </MudItem>
+            <MudItem xs="6" md="4">
+                <MudText Typo="Typo.caption">Current price</MudText>
+                <MudText Typo="Typo.h6">@investment.LastPrice.ToString("N2")</MudText>
+            </MudItem>
+            <MudItem xs="6" md="4">
+                <MudText Typo="Typo.caption">Current value</MudText>
+                <MudText Typo="Typo.h6" Color="Color.Primary">@investment.CurrentValue.ToString("N2")</MudText>
+            </MudItem>
+            <MudItem xs="6" md="4">
+                <MudText Typo="Typo.caption">Average purchase price</MudText>
+                <MudText Typo="Typo.h6">@investment.AveragePrice.ToString("N2")</MudText>
+            </MudItem>
+            <MudItem xs="6" md="4">
+                <MudText Typo="Typo.caption">Book value</MudText>
+                <MudText Typo="Typo.h6">@investment.BookValue.ToString("N2")</MudText>
+            </MudItem>
+            <MudItem xs="6" md="4">
+                <MudText Typo="Typo.caption">Annualized IRR</MudText>
+                <MudText Typo="Typo.h6">@investment.TotalAnnualizedReturn.ToString("P2")</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <MudText Typo="Typo.h5" GutterBottom="true">Buy and sell transactions</MudText>
+    <MudText Typo="Typo.body2" Class="mb-2">Prices and totals are in @investment.Currency.</MudText>
+    <MudTable Items="@transactions" Dense="true" Hover="true" Bordered="true" Striped="true" RowsPerPage="25">
+        <HeaderContent>
+            <MudTh>Date</MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Account</MudTh>
+            <MudTh>Shares</MudTh>
+            <MudTh>Price</MudTh>
+            <MudTh>Total</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Date">@context.Date.ToString("yyyy-MM-dd")</MudTd>
+            <MudTd DataLabel="Type">@(context.Shares < 0 ? "Sell" : "Buy")</MudTd>
+            <MudTd DataLabel="Account">@context.SourceAccountName</MudTd>
+            <MudTd DataLabel="Shares">@Math.Abs(context.Shares).ToString("N4")</MudTd>
+            <MudTd DataLabel="Price">@context.Price.ToString("N4")</MudTd>
+            <MudTd DataLabel="Total">@Math.Abs(context.Shares * context.Price).ToString("N2")</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No buy or sell transactions have been recorded for this investment.</MudText>
+        </NoRecordsContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="@(new[] { 10, 25, 50 })"/>
+        </PagerContent>
+    </MudTable>
+}
