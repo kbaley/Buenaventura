@@ -6,7 +6,7 @@ using IAccountService = Buenaventura.Services.IAccountService;
 
 namespace Buenaventura.Api;
 
-internal record GetAccountTransactionsRequest(Guid AccountId, int Page = 0, int PageSize = 50, string? Search = null);
+internal record GetAccountTransactionsRequest(Guid AccountId, int Page = 0, int PageSize = 50, string? Search = null, bool UncategorizedOnly = false);
 
 internal class GetTransactions(IAccountService accountService, UserManager<User> userManager)
     : Endpoint<GetAccountTransactionsRequest, TransactionListModel>
@@ -21,7 +21,7 @@ internal class GetTransactions(IAccountService accountService, UserManager<User>
         var user = await userManager.GetUserAsync(User);
         var isRestricted = user?.Restricted ?? false;
         var transactions = await accountService
-            .GetTransactions(request.AccountId, request.Search ?? "", request.Page, request.PageSize, isRestricted);
+            .GetTransactions(request.AccountId, request.Search ?? "", request.Page, request.PageSize, isRestricted, request.UncategorizedOnly);
         await Send.OkAsync(transactions, cancellation: ct);
     }
 }

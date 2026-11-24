@@ -29,6 +29,8 @@
                 Remove tag
             </MudButton>
         }
+        <MudCheckBox T="bool" Value="uncategorizedOnly" ValueChanged="OnUncategorizedOnlyChanged"
+                     Label="Uncategorized only" />
         <MudSpacer/>
         <div style="width: 400px;">
             <MudTextField T="string" Value="@searchString" ValueChanged="@(s => OnSearchChanged(s))"
@@ -143,7 +145,7 @@
             <MudTd DataLabel="Balance" Class="transaction-amount">
                 <div class="row-with-actions">
                     <div class="hover-row-content">
-                        @if (string.IsNullOrEmpty(searchString) && !showDuplicates)
+                        @if (string.IsNullOrEmpty(searchString) && !showDuplicates && !uncategorizedOnly)
                         {
                             @context.RunningTotal.ToString("N2")
                         }
@@ -169,6 +171,8 @@
 
 <!-- Mobile view for small screens -->
 <div class="d-md-none">
+    <MudCheckBox T="bool" Value="uncategorizedOnly" ValueChanged="OnUncategorizedOnlyChanged"
+                 Label="Uncategorized only" />
     <div class="d-flex justify-space-between align-center mb-3">
         <MudTextField T="string" Value="@searchString" ValueChanged="@(s => OnSearchChanged(s))"
                       Placeholder="Search" Adornment="Adornment.Start"
@@ -205,7 +209,7 @@
                                 <div class="d-flex flex-column">
                                     <div class="d-flex justify-space-between">
                                         <MudText Typo="Typo.body2">@transaction.Category?.Name</MudText>
-                                        @if (string.IsNullOrEmpty(searchString) && !showDuplicates)
+                                        @if (string.IsNullOrEmpty(searchString) && !showDuplicates && !uncategorizedOnly)
                                         {
                                             <MudText Typo="Typo.body2">$@transaction.RunningTotal.ToString("N2")</MudText>
                                         }
@@ -226,7 +230,7 @@
 
         <div class="d-flex justify-center my-4">
             <MudPagination Count="@((int)Math.Ceiling((double)transactions.TotalCount / 50))" 
-                          SelectedChanged="async page => await LoadMobilePage(page)" 
+                          Selected="mobilePage" SelectedChanged="async page => await LoadMobilePage(page)"
                           Color="Color.Primary"/>
         </div>
     }

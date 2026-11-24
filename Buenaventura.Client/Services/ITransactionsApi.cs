@@ -5,8 +5,8 @@ namespace Buenaventura.Client.Services;
 
 public interface ITransactionsApi
 {
-    [Get("/api/accounts/{accountId}/transactions?search={search}&page={page}&pageSize={pageSize}")]
-    Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50);
+    [Get("/api/accounts/{accountId}/transactions?search={search}&page={page}&pageSize={pageSize}&uncategorizedOnly={uncategorizedOnly}")]
+    Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50, bool uncategorizedOnly = false);
     
     [Put("/api/transactions")]
     Task UpdateTransaction(TransactionForDisplay transaction);

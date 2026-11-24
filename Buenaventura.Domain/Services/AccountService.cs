@@ -8,7 +8,7 @@ public interface IAccountService : IAppService
 {
     Task<IEnumerable<AccountWithBalance>> GetAccounts(bool includeHidden = false);
     Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0, int pageSize = 50,
-        bool isRestricted = false);
+        bool isRestricted = false, bool uncategorizedOnly = false);
     Task<AccountWithBalance> GetAccount(Guid id);
     Task UpdateTransaction(TransactionForDisplay transaction);
     Task AddTransaction(Guid accountId, TransactionForDisplay transaction);
@@ -61,9 +61,9 @@ public class AccountService(
     }
 
     public async Task<TransactionListModel> GetTransactions(Guid accountId, string search = "", int page = 0,
-        int pageSize = 50, bool isRestricted = false)
+        int pageSize = 50, bool isRestricted = false, bool uncategorizedOnly = false)
     {
-        return await transactionRepo.GetByAccount(accountId, search, page, pageSize, isRestricted);
+        return await transactionRepo.GetByAccount(accountId, search, page, pageSize, isRestricted, uncategorizedOnly);
     }
 
     public async Task<AccountWithBalance> GetAccount(Guid id)

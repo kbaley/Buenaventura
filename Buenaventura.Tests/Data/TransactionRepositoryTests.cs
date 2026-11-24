@@ -18,6 +18,39 @@ public class TransactionRepositoryTests : IClassFixture<TestDbContextFixture>
         _repository = new TransactionRepository(_fixture.Context);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetByAccount_UncategorizedOnly_FiltersBeforePaginationAndCombinesWithSearch(bool isRestricted)
+    {
+        var account = TestDataFactory.AccountFaker.Generate();
+        var category = TestDataFactory.CategoryFaker.Generate();
+        _fixture.Context.Accounts.Add(account);
+        _fixture.Context.Categories.Add(category);
+
+        var transactions = Enumerable.Range(0, 6).Select(index => new Transaction
+        {
+            TransactionId = Guid.NewGuid(),
+            AccountId = account.AccountId,
+            TransactionDate = new DateTime(2026, 1, 1).AddDays(index),
+            Description = index == 0 ? "Other purchase" : "Matching purchase",
+            TransactionType = index == 5 ? TransactionType.INVOICE_PAYMENT : TransactionType.REGULAR,
+            CategoryId = index == 4 ? category.CategoryId : null,
+            Amount = -10
+        }).ToList();
+        _fixture.Context.Transactions.AddRange(transactions);
+        await _fixture.Context.SaveChangesAsync();
+
+        var result = await _repository.GetByAccount(account.AccountId, "Matching", 1, 2,
+            isRestricted, uncategorizedOnly: true);
+
+        result.TotalCount.Should().Be(3);
+        result.Items.Should().ContainSingle().Which.TransactionId.Should().Be(transactions[1].TransactionId);
+
+        var unfiltered = await _repository.GetByAccount(account.AccountId);
+        unfiltered.TotalCount.Should().Be(6);
+    }
+
     [Fact]
     public async Task GetByAccount_ReturnsTransactionsForAccount()
     {

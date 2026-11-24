@@ -29,6 +29,8 @@ public partial class AccountTransactions(
     private TransactionForDisplay? transactionBackup { get; set; }
     private MudTextField<string>? transactionDateField;
     private bool showDuplicates = false;
+    private bool uncategorizedOnly;
+    private int mobilePage = 1;
     private TransactionListModel? originalTransactions;
 
     private List<CategoryModel> categories { get; set; } = [];
@@ -139,6 +141,22 @@ public partial class AccountTransactions(
     {
         searchString = text;
         await ReloadTransactions();
+    }
+
+    private async Task OnUncategorizedOnlyChanged(bool value)
+    {
+        uncategorizedOnly = value;
+        mobilePage = 1;
+        showDuplicates = false;
+        selectedTransactionIds.Clear();
+        if (transactionTable?.CurrentPage > 0)
+        {
+            transactionTable.NavigateTo(0);
+        }
+        else
+        {
+            await ReloadTransactions();
+        }
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args, TransactionForDisplay context, bool isDateField = false)
@@ -424,7 +442,7 @@ public partial class AccountTransactions(
         }
         else
         {
-            transactions = await transactionsApi.GetTransactions(AccountId, searchString, state.Page, state.PageSize);
+            transactions = await transactionsApi.GetTransactions(AccountId, searchString, state.Page, state.PageSize, uncategorizedOnly);
         }
 
         var gridTransactions = showDuplicates ? transactions.Items : transactions.Items.Prepend(newTransaction);
@@ -436,6 +454,7 @@ public partial class AccountTransactions(
     private async Task ToggleDuplicateSearch()
     {
         showDuplicates = !showDuplicates;
+        uncategorizedOnly = false;
         if (showDuplicates)
         {
             originalTransactions = transactions;
@@ -450,6 +469,7 @@ public partial class AccountTransactions(
 
     private async Task LoadMobilePage(int page)
     {
+        mobilePage = page;
         if (showDuplicates)
         {
             transactions = await transactionsApi.GetPotentialDuplicateTransactions(AccountId);
@@ -457,7 +477,7 @@ public partial class AccountTransactions(
         else
         {
             // Page is 1-based but API expects 0-based index
-            transactions = await transactionsApi.GetTransactions(AccountId, searchString, page - 1, 50);
+            transactions = await transactionsApi.GetTransactions(AccountId, searchString, page - 1, 50, uncategorizedOnly);
         }
         StateHasChanged();
     }

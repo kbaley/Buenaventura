@@ -7,7 +7,7 @@ namespace Buenaventura.Data
     public interface ITransactionRepository : IAppService
     {
         Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0, int pageSize = 50,
-            bool isRestricted = false);
+            bool isRestricted = false, bool uncategorizedOnly = false);
         Task Insert(TransactionForDisplay transaction);
         Task<Transaction> Update(TransactionForDisplay transaction);
         Task Delete(Guid transactionId);

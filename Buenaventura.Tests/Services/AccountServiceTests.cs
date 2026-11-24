@@ -104,8 +104,10 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
         result.Name.Should().Be("");
     }
 
-    [Fact]
-    public async Task GetTransactions_CallsTransactionRepository()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetTransactions_CallsTransactionRepository(bool uncategorizedOnly)
     {
         // Arrange
         var accountId = Guid.NewGuid();
@@ -116,15 +118,15 @@ public class AccountServiceTests : IClassFixture<TestDbContextFixture>
             TotalCount = 0
         };
 
-        _mockTransactionRepo.Setup(r => r.GetByAccount(accountId, "", 0, 50, false))
+        _mockTransactionRepo.Setup(r => r.GetByAccount(accountId, "", 0, 50, false, uncategorizedOnly))
             .ReturnsAsync(expectedResult);
 
         // Act
-        var result = await _service.GetTransactions(accountId);
+        var result = await _service.GetTransactions(accountId, uncategorizedOnly: uncategorizedOnly);
 
         // Assert
         result.Should().Be(expectedResult);
-        _mockTransactionRepo.Verify(r => r.GetByAccount(accountId, "", 0, 50, false), Times.Once);
+        _mockTransactionRepo.Verify(r => r.GetByAccount(accountId, "", 0, 50, false, uncategorizedOnly), Times.Once);
     }
 
     [Fact]

@@ -383,7 +383,7 @@ namespace Buenaventura.Data
         }
 
         public async Task<TransactionListModel> GetByAccount(Guid accountId, string search = "", int page = 0,
-            int pageSize = 50, bool isRestricted = false)
+            int pageSize = 50, bool isRestricted = false, bool uncategorizedOnly = false)
         {
             var transactionList = await context.Transactions
                 .Include(t => t.LeftTransfer)
@@ -395,7 +395,7 @@ namespace Buenaventura.Data
                     && (string.IsNullOrWhiteSpace(search) 
                         || (t.Description ?? "").ToLower().Contains(search.ToLower())
                         || t.Vendor != null && t.Vendor.ToLower().Contains(search.ToLower())
-                        || t.Category!.Name.ToLower().Contains(search.ToLower())
+                        || t.Category != null && t.Category.Name.ToLower().Contains(search.ToLower())
                         || t.Tags.ToLower().Contains(search.ToLower()))
                     // ReSharper disable once SpecifyACultureInStringConversionExplicitly
                         || t.Amount.ToString() == search
@@ -403,6 +403,7 @@ namespace Buenaventura.Data
                         || (-t.Amount).ToString() == search
                     )
                 .Where(t => !isRestricted || t.Category == null || !t.Category.ExcludeFromTransactionReport)
+                .Where(t => !uncategorizedOnly || (t.CategoryId == null && t.TransactionType == TransactionType.REGULAR))
                 .OrderByDescending(t => t.TransactionDate)
                 .ThenByDescending(t => t.EnteredDate)
                 .ThenBy(t => t.TransactionId)
@@ -418,13 +419,14 @@ namespace Buenaventura.Data
                             && (string.IsNullOrWhiteSpace(search)
                         || (t.Description ?? "").ToLower().Contains(search.ToLower())
                         || t.Vendor != null && t.Vendor.ToLower().Contains(search.ToLower())
-                        || t.Category!.Name.ToLower().Contains(search.ToLower())
+                        || t.Category != null && t.Category.Name.ToLower().Contains(search.ToLower())
                         || t.Tags.ToLower().Contains(search.ToLower()))
                     // ReSharper disable once SpecifyACultureInStringConversionExplicitly
                         || t.Amount.ToString() == search
                     // ReSharper disable once SpecifyACultureInStringConversionExplicitly
                         || (-t.Amount).ToString() == search)
                 .Where(t => !isRestricted || t.Category == null || !t.Category.ExcludeFromTransactionReport)
+                .Where(t => !uncategorizedOnly || (t.CategoryId == null && t.TransactionType == TransactionType.REGULAR))
                 .CountAsync();
             var endingBalance = await context.Transactions
                 .Where(t => t.AccountId == accountId)
